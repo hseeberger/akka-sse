@@ -1,6 +1,8 @@
 # akka-sse #
 
-Welcome to akka-sse!
+akka-sse adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification) (SSE) to akka-http.
+
+More documentation to come ...
 
 ## Contribution policy ##
 
