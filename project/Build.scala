@@ -1,6 +1,7 @@
 import com.typesafe.sbt.SbtScalariform._
 import sbt._
 import sbt.Keys._
+import sbtrelease.ReleasePlugin._
 import scalariform.formatter.preferences._
 
 object Build extends AutoPlugin {
@@ -13,10 +14,10 @@ object Build extends AutoPlugin {
 
   override def projectSettings =
     scalariformSettings ++
+    releaseSettings ++
     List(
       // Core settings
       organization := "de.heikoseeberger",
-      version := "0.1.0-SNAPSHOT",
       scalaVersion := Version.scala,
       crossScalaVersions := List(scalaVersion.value),
       scalacOptions ++= List(
@@ -34,6 +35,8 @@ object Build extends AutoPlugin {
         .setPreference(AlignParameters, true)
         .setPreference(AlignSingleLineCaseStatements, true)
         .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
-        .setPreference(DoubleIndentClassDeclaration, true)
+        .setPreference(DoubleIndentClassDeclaration, true),
+      // Release settings
+      ReleaseKeys.versionBump := sbtrelease.Version.Bump.Minor
     )
 }
