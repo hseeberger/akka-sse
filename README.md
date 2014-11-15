@@ -9,6 +9,8 @@ akka-sse depends on akka-http 0.11.
 Grab it while it's hot:
 
 ``` scala
+resolvers += "hseeberger at bintray" at "http://dl.bintray.com/hseeberger/maven"
+
 libraryDependencies ++= List(
   "de.heikoseeberger" %% "akka-sse" % "0.1.0",
   ...
@@ -23,7 +25,7 @@ First, mix `SseMarshalling` into your classes/actors defining routes (`akka.http
 class HttpService
     extends Actor
     with ScalaRoutingDSL
-    with SseMarshalling
+    with SseMarshalling { ... }
 ```
 
 Then, define an implicit view from your domain events to `Sse.Message`, e.g.:
@@ -38,7 +40,7 @@ implicit def flowRepositoryEventToSseMessage(event: FlowRepository.Event): Sse.M
   }
 ```
 
-Finally, simply complete a request to get a SSE stream with a `akka.stream.scaladsl.Source` of your domain events, e.g.:
+Finally, simply complete a request to get an SSE stream with a `akka.stream.scaladsl.Source` of your domain events, e.g.:
 
 ``` scala
 private def messages: Route =
