@@ -1,3 +1,4 @@
+import bintray.Plugin._
 import com.typesafe.sbt.SbtScalariform._
 import sbt._
 import sbt.Keys._
@@ -15,6 +16,7 @@ object Build extends AutoPlugin {
   override def projectSettings =
     scalariformSettings ++
     releaseSettings ++
+    bintrayPublishSettings ++
     List(
       // Core settings
       organization := "de.heikoseeberger",
@@ -29,6 +31,7 @@ object Build extends AutoPlugin {
       ),
       unmanagedSourceDirectories in Compile := List((scalaSource in Compile).value),
       unmanagedSourceDirectories in Test := List((scalaSource in Test).value),
+      licenses += ("APSL-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
       // Scalariform settings
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
         .setPreference(AlignArguments, true)
