@@ -23,7 +23,9 @@ import scala.concurrent.ExecutionContext
 
 trait SseMarshalling {
 
-  implicit def toResponseMarshaller(implicit ec: ExecutionContext): ToResponseMarshaller[Source[Sse.Message]] =
+  type ToSseMessage[A] = A => Sse.Message
+
+  implicit def toResponseMarshaller[A: ToSseMessage](implicit ec: ExecutionContext): ToResponseMarshaller[Source[A]] =
     Marshaller.withFixedCharset(Sse.`text/event-stream`.mediaType, HttpCharsets.`UTF-8`) { messages =>
       val entity = HttpEntity.CloseDelimited(
         Sse.`text/event-stream`.mediaType,

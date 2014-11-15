@@ -17,7 +17,7 @@
 package de.heikoseeberger.akkasse
 
 import akka.actor.ActorSystem
-import akka.http.marshalling.ToResponseMarshallable
+import akka.http.marshalling.{ Marshaller, ToResponseMarshallable }
 import akka.http.model.HttpRequest
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.Source
@@ -35,18 +35,19 @@ class SseMarshallingSpec
 
   import system.dispatcher
 
-  "TODO" should {
-    "TODO" in {
-      val messages = List(1, 2, 3).map(_.toString)
-      val marshallable: ToResponseMarshallable = Source(messages.map(message => Sse.Message(message)))
-      val request = HttpRequest()
-      val response = marshallable(request).flatMap { response =>
+  "A source of elements which can be viewed as SSS messages" should {
+    "be marshallable to a HTTP response" in {
+      implicit def itnToSseMessage(n: Int): Sse.Message =
+        Sse.Message(n.toString)
+      val elements = 1 to 666
+      val marshallable: ToResponseMarshallable = Source(elements)
+      val response = marshallable(HttpRequest()).flatMap { response =>
         response.entity.dataBytes
           .map(_.utf8String)
-          .fold(List.empty[String])(_ :+ _)
+          .fold(Vector.empty[String])(_ :+ _)
       }
       val actual = Await.result(response, 1 second)
-      val expected = List(1, 2, 3).map(n => Sse.Message(n.toString).toString)
+      val expected = elements.map(n => Sse.Message(n.toString).toString)
       actual should ===(expected)
     }
   }
