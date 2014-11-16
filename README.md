@@ -31,12 +31,11 @@ class HttpService
 Then, define an implicit view from your domain events to `Sse.Message`, e.g.:
 
 ``` scala
-implicit def flowRepositoryEventToSseMessage(event: FlowRepository.Event): Sse.Message =
+implicit def flowEventToSseMessage(event: Flow.Event): Sse.Message =
   event match {
-    case FlowRepository.FlowAdded(flowData) =>
-      Sse.Message(PrettyPrinter(jsonWriter[FlowRepository.FlowData].write(flowData)), Some("added")) // Yes Ma, SSE can carry JSON! 
-    case FlowRepository.FlowRemoved(name) =>
-      Sse.Message(name, Some("removed")) // But plain text is fine, too!
+    case messageAdded: Flow.MessageAdded =>
+      val data = PrettyPrinter(jsonWriter[Flow.MessageAdded].write(messageAdded))
+      Sse.Message(data, Some("added"))
   }
 ```
 
