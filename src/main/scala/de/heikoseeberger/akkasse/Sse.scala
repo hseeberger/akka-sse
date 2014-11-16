@@ -19,6 +19,8 @@ package de.heikoseeberger.akkasse
 import akka.http.model.{ ContentType, HttpCharsets, MediaType }
 import akka.util.ByteString
 
+import scala.annotation.tailrec
+
 object Sse {
 
   /**
@@ -26,8 +28,8 @@ object Sse {
    * @param data data which may span multiple lines
    * @param event optional event type, must not contain \n or \r
    */
-  case class Message(data: String, event: Option[String] = None) {
-    require(event.fold(true)(e => eventPattern.matcher(e).matches()), "Event must not contain \n or \r!")
+  final case class Message(data: String, event: Option[String] = None) {
+    require(event.forall(_.forall(c => c != '\n' && c != '\r')), "Event must not contain \\n or \\r!")
 
     /**
      * Convert to a `java.lang.String`
@@ -35,20 +37,61 @@ object Sse {
      * @return converted message
      */
     override def toString: String = {
-      val dataString = data
-        .split("\n", -1)
-        .map(line => s"data:$line")
-        .mkString("", "\n", "\n")
-      event.foldLeft(s"$dataString\n")((d, e) => s"event:$e\n$d")
+      @tailrec def addLines(b: StringBuilder, label: String, seq: String, idx: Int): StringBuilder = {
+        @tailrec def addLine(idx: Int): Int =
+          if (idx >= seq.length) -1
+          else {
+            val c = seq.charAt(idx)
+            b.append(c)
+            if (c == '\n') idx + 1
+            else addLine(idx + 1)
+          }
+        b.append(label)
+        addLine(idx) match {
+          case -1     => b.append('\n')
+          case newIdx => addLines(b, label, seq, newIdx)
+        }
+      }
+
+      def addEvent(b: StringBuilder): StringBuilder =
+        event match {
+          case Some(e) => addLines(b, "event:", e, 0)
+          case None    => b
+        }
+
+      def addData(b: StringBuilder): StringBuilder =
+        addLines(b, "data:", data, 0).append('\n')
+
+      def newBuilder(): StringBuilder = {
+        //Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+        // We want powers to two both because they typically work better with the allocator,
+        // and because we want to minimize reallocations/buffer growth
+        def nextPowerOfTwoBiggerThan(i: Int): Int = {
+          var v = i
+          v -= 1;
+          v |= v >> 1
+          v |= v >> 2
+          v |= v >> 4
+          v |= v >> 8
+          v |= v >> 16
+          v + 1
+        }
+        // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
+        //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
+        // Why 7? "event:" + \n == 7 chars
+        new StringBuilder(nextPowerOfTwoBiggerThan(8 + event.fold(0)(_.length + 7) + data.length))
+      }
+
+      addData(addEvent(newBuilder())).toString
     }
 
     /**
      * Convert to an `akka.util.ByteString`
      * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-     * @return converted message
+     * @return converted message as a UTF-8 encoded ByteString
      */
     def toByteString: ByteString =
-      ByteString(toString)
+      ByteString(toString, "UTF-8")
   }
 
   /**
@@ -56,6 +99,4 @@ object Sse {
    */
   val `text/event-stream`: ContentType =
     ContentType(MediaType.custom("text", "event-stream"), HttpCharsets.`UTF-8`)
-
-  private val eventPattern = """[^\n\r]*""".r.pattern
 }
