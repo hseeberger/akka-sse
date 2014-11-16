@@ -18,7 +18,6 @@ package de.heikoseeberger.akkasse
 
 import akka.http.model.{ ContentType, HttpCharsets, MediaType }
 import akka.util.ByteString
-
 import scala.annotation.tailrec
 
 object Sse {
@@ -34,41 +33,45 @@ object Sse {
     /**
      * Convert to a `java.lang.String`
      * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-     * @return converted message
+     * @return message converted to `String`
      */
     override def toString: String = {
-      @tailrec def addLines(b: StringBuilder, label: String, seq: String, idx: Int): StringBuilder = {
-        @tailrec def addLine(idx: Int): Int =
-          if (idx >= seq.length) -1
+      @tailrec def addLines(builder: StringBuilder, label: String, s: String, index: Int): StringBuilder = {
+        @tailrec def addLine(index: Int): Int =
+          if (index >= s.length)
+            -1
           else {
-            val c = seq.charAt(idx)
-            b.append(c)
-            if (c == '\n') idx + 1
-            else addLine(idx + 1)
+            val c = s.charAt(index)
+            builder.append(c)
+            if (c == '\n')
+              index + 1
+            else
+              addLine(index + 1)
           }
-        b.append(label)
-        addLine(idx) match {
-          case -1     => b.append('\n')
-          case newIdx => addLines(b, label, seq, newIdx)
+
+        builder.append(label)
+        addLine(index) match {
+          case -1    => builder.append('\n')
+          case index => addLines(builder, label, s, index)
         }
       }
 
-      def addEvent(b: StringBuilder): StringBuilder =
+      def addData(builder: StringBuilder): StringBuilder =
+        addLines(builder, "data:", data, 0).append('\n')
+
+      def addEvent(builder: StringBuilder): StringBuilder =
         event match {
-          case Some(e) => addLines(b, "event:", e, 0)
-          case None    => b
+          case Some(e) => addLines(builder, "event:", e, 0)
+          case None    => builder
         }
 
-      def addData(b: StringBuilder): StringBuilder =
-        addLines(b, "data:", data, 0).append('\n')
-
       def newBuilder(): StringBuilder = {
-        //Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-        // We want powers to two both because they typically work better with the allocator,
-        // and because we want to minimize reallocations/buffer growth
+        // Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+        // We want powers of two both because they typically work better with the allocator,
+        // and because we want to minimize reallocations/buffer growth.
         def nextPowerOfTwoBiggerThan(i: Int): Int = {
           var v = i
-          v -= 1;
+          v -= 1
           v |= v >> 1
           v |= v >> 2
           v |= v >> 4
@@ -79,7 +82,7 @@ object Sse {
         // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
         //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
         // Why 7? "event:" + \n == 7 chars
-        new StringBuilder(nextPowerOfTwoBiggerThan(8 + event.fold(0)(_.length + 7) + data.length))
+        new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + event.fold(0)(_.length + 7)))
       }
 
       addData(addEvent(newBuilder())).toString
@@ -88,7 +91,7 @@ object Sse {
     /**
      * Convert to an `akka.util.ByteString`
      * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-     * @return converted message as a UTF-8 encoded ByteString
+     * @return message converted to UTF-8 encoded `ByteString`
      */
     def toByteString: ByteString =
       ByteString(toString, "UTF-8")
