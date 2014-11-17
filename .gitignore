@@ -17,6 +17,7 @@ target
 
 # IntelliJ
 .idea
+.idea_modules
 
 # ENSIME
 .ensime
