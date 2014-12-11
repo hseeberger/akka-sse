@@ -20,10 +20,13 @@ import akka.http.model.{ ContentType, HttpCharsets, MediaType }
 import akka.util.ByteString
 import scala.annotation.tailrec
 
+/**
+ * Defines an SSE message and a content type for SSE.
+ */
 object Sse {
 
   /**
-   * Reprsentation of a SSE message.
+   * Reprsentation of an SSE message.
    * @param data data which may span multiple lines
    * @param event optional event type, must not contain \n or \r
    */
@@ -33,7 +36,7 @@ object Sse {
     /**
      * Convert to a `java.lang.String`
      * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-     * @return message converted to `String`
+     * @return message converted to `java.lang.String`
      */
     override def toString: String = {
       @tailrec def addLines(builder: StringBuilder, label: String, s: String, index: Int): StringBuilder = {
@@ -85,20 +88,21 @@ object Sse {
         new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + event.fold(0)(_.length + 7)))
       }
 
-      addData(addEvent(newBuilder())).toString
+      addData(addEvent(newBuilder())).toString()
     }
 
     /**
      * Convert to an `akka.util.ByteString`
      * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-     * @return message converted to UTF-8 encoded `ByteString`
+     * @return message converted to UTF-8 encoded `akka.util.ByteString`
      */
     def toByteString: ByteString =
       ByteString(toString, "UTF-8")
   }
 
   /**
-   * SSE Content type as required by the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   * SSE content type as required by the
+   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    */
   val `text/event-stream`: ContentType =
     ContentType(MediaType.custom("text", "event-stream"), HttpCharsets.`UTF-8`)

@@ -17,11 +17,10 @@
 package de.heikoseeberger.akkasse
 
 import akka.actor.ActorSystem
-import akka.http.marshalling.{ Marshaller, ToResponseMarshallable }
+import akka.http.marshalling.ToResponseMarshallable
 import akka.http.model.HttpRequest
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.Source
-import org.scalactic.TypeCheckedTripleEquals
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -30,17 +29,21 @@ class SseMarshallingSpec
     extends WordSpec
     with Matchers
     with BeforeAndAfterAll
-    with TypeCheckedTripleEquals
     with SseMarshalling {
 
   import system.dispatcher
 
-  "A source of elements which can be viewed as SSS messages" should {
+  val system = ActorSystem()
+
+  implicit val flowMaterializer = FlowMaterializer()(system)
+
+  "A source of elements which can be viewed as SSE messages" should {
+
     "be marshallable to a HTTP response" in {
       implicit def itnToSseMessage(n: Int): Sse.Message =
         Sse.Message(n.toString)
       val elements = 1 to 666
-      val marshallable: ToResponseMarshallable = Source(elements)
+      val marshallable = Source(elements): ToResponseMarshallable
       val response = marshallable(HttpRequest()).flatMap { response =>
         response.entity.dataBytes
           .map(_.utf8String)
@@ -48,13 +51,9 @@ class SseMarshallingSpec
       }
       val actual = Await.result(response, 1 second)
       val expected = elements.map(n => Sse.Message(n.toString).toString)
-      actual should ===(expected)
+      actual shouldBe expected
     }
   }
-
-  lazy val system = ActorSystem()
-
-  implicit lazy val flowMaterializer = FlowMaterializer()(system)
 
   override protected def afterAll(): Unit = {
     super.afterAll()

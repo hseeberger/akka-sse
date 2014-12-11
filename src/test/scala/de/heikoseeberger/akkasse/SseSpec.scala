@@ -16,20 +16,19 @@
 
 package de.heikoseeberger.akkasse
 
-import org.scalactic.TypeCheckedTripleEquals
-import org.scalatest.prop.PropertyChecks
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{ Matchers, WordSpec }
 
 class SseSpec
     extends WordSpec
     with Matchers
-    with PropertyChecks
-    with TypeCheckedTripleEquals {
+    with GeneratorDrivenPropertyChecks {
 
   "Creating a message" should {
+
     "throw an IllegalArgumentException if the event contains a \n or \r character" in {
-      an[IllegalArgumentException] should be thrownBy { Sse.Message("data", Some("event\n")) }
-      an[IllegalArgumentException] should be thrownBy { Sse.Message("data", Some("event\revent")) }
+      an[IllegalArgumentException] should be thrownBy Sse.Message("data", Some("event\n"))
+      an[IllegalArgumentException] should be thrownBy Sse.Message("data", Some("event\revent"))
     }
   }
 
@@ -37,17 +36,17 @@ class SseSpec
 
     "return a single data line for single line message" in {
       val message = Sse.Message("line")
-      message.toString should ===("data:line\n\n")
+      message.toString shouldBe "data:line\n\n"
     }
 
     "return multiple data lines for a multi-line message" in {
       val message = Sse.Message("line1\nline2\n")
-      message.toString should ===("data:line1\ndata:line2\ndata:\n\n")
+      message.toString shouldBe "data:line1\ndata:line2\ndata:\n\n"
     }
 
     "return multiple data lines and an event line for a multi-line message with a defined event" in {
       val message = Sse.Message("line1\nline2", Some("evt"))
-      message.toString should ===("event:evt\ndata:line1\ndata:line2\n\n")
+      message.toString shouldBe "event:evt\ndata:line1\ndata:line2\n\n"
     }
   }
 
@@ -56,7 +55,7 @@ class SseSpec
     "return a correctly converted ByteString" in {
       forAll { (data: String) =>
         val message = Sse.Message(data)
-        message.toByteString.utf8String should ===(message.toString)
+        message.toByteString.utf8String shouldBe message.toString
       }
     }
   }

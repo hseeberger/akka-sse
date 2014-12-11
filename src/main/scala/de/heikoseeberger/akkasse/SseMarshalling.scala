@@ -21,6 +21,10 @@ import akka.http.model.{ HttpCharsets, HttpEntity, HttpResponse }
 import akka.stream.scaladsl.Source
 import scala.concurrent.ExecutionContext
 
+/**
+ * Mixing in this trait lets an `akka.stream.scaladsl.Source` of elements
+ * which can be viewed as [[Sse.Message]]s be marshallable to a `akka.http.model.HttpResponse`.
+ */
 trait SseMarshalling {
 
   type ToSseMessage[A] = A => Sse.Message
@@ -35,4 +39,8 @@ trait SseMarshalling {
     }
 }
 
+/**
+ * Importing [[SseMarshalling.toResponseMarshaller]] lets an `akka.stream.scaladsl.Source` of elements
+ * which can be viewed as [[Sse.Message]]s be marshallable to a `akka.http.model.HttpResponse`.
+ */
 object SseMarshalling extends SseMarshalling
