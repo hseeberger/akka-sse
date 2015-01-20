@@ -19,23 +19,23 @@ libraryDependencies ++= List(
 
 ## Usage
 
-First, mix `SseMarshalling` into your classes/actors defining routes (`akka.http.server.Route`), e.g.:
+First, mix `EventStreamMarshalling` into your request handling classes or actors, e.g.:
 
 ``` scala
 class HttpService
     extends Actor
-    with ScalaRoutingDSL
-    with SseMarshalling { ... }
+    with Directives
+    with EventStreamMarshalling { ... }
 ```
 
-Then, define an implicit view from your domain events to `Sse.Message`, e.g.:
+Then, define an implicit view from your domain events to `ServerSentEvent`s, e.g.:
 
 ``` scala
-implicit def flowEventToSseMessage(event: Flow.Event): Sse.Message =
+implicit def flowEventToServerSentEvent(event: Flow.Event): ServerSentEvent =
   event match {
     case messageAdded: Flow.MessageAdded =>
       val data = PrettyPrinter(jsonWriter[Flow.MessageAdded].write(messageAdded))
-      Sse.Message(data, Some("added"))
+      ServerSentEvent(data, Some("added"))
   }
 ```
 

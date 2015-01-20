@@ -29,8 +29,6 @@ object Build extends AutoPlugin {
         "-target:jvm-1.7",
         "-encoding", "UTF-8"
       ),
-      unmanagedSourceDirectories in Compile := List((scalaSource in Compile).value),
-      unmanagedSourceDirectories in Test := List((scalaSource in Test).value),
       licenses += ("APSL-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
       // Scalariform settings
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
