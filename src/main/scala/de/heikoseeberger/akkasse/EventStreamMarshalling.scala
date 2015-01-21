@@ -22,25 +22,21 @@ import akka.stream.scaladsl.Source
 import scala.concurrent.ExecutionContext
 
 /**
- * Mixing in this trait lets an `akka.stream.scaladsl.Source` of elements
- * which can be viewed as [[Sse.Message]]s be marshallable to a `akka.http.model.HttpResponse`.
+ * Importing [[EventStreamMarshalling.toResponseMarshaller]] lets an `akka.stream.scaladsl.Source` of elements
+ * which can be viewed as [[ServerSentEvent]]s be marshallable to a `akka.http.model.HttpResponse`.
  */
-trait SseMarshalling {
-
-  type ToSseMessage[A] = A => Sse.Message
-
-  implicit def toResponseMarshaller[A: ToSseMessage](implicit ec: ExecutionContext): ToResponseMarshaller[Source[A]] =
-    Marshaller.withFixedCharset(Sse.`text/event-stream`.mediaType, HttpCharsets.`UTF-8`) { messages =>
-      val entity = HttpEntity.CloseDelimited(
-        Sse.`text/event-stream`.mediaType,
-        messages.map(_.toByteString)
-      )
-      HttpResponse(entity = entity)
-    }
-}
+object EventStreamMarshalling extends EventStreamMarshalling
 
 /**
- * Importing [[SseMarshalling.toResponseMarshaller]] lets an `akka.stream.scaladsl.Source` of elements
- * which can be viewed as [[Sse.Message]]s be marshallable to a `akka.http.model.HttpResponse`.
+ * Mixing in this trait lets an `akka.stream.scaladsl.Source` of elements
+ * which can be viewed as [[ServerSentEvent]]s be marshallable to a `akka.http.model.HttpResponse`.
  */
-object SseMarshalling extends SseMarshalling
+trait EventStreamMarshalling {
+
+  type ToServerSentEvent[A] = A => ServerSentEvent
+
+  implicit def toResponseMarshaller[A: ToServerSentEvent](implicit ec: ExecutionContext): ToResponseMarshaller[Source[A]] =
+    Marshaller.withFixedCharset(`text/event-stream`, HttpCharsets.`UTF-8`) { messages =>
+      HttpResponse(entity = HttpEntity.CloseDelimited(`text/event-stream`, messages.map(_.toByteString)))
+    }
+}

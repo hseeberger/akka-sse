@@ -16,6 +16,8 @@
 
 package de.heikoseeberger
 
+import akka.http.model.MediaType
+
 package object akkasse {
 
   //format: OFF
@@ -27,4 +29,10 @@ package object akkasse {
 
   private[akkasse] type IndexedSeq[+A] = scala.collection.immutable.IndexedSeq[A]
   //format: ON
+
+  /**
+   * Media type for Server-Sent Events as required by the
+   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   */
+  private[akkasse] val `text/event-stream`: MediaType = MediaType.custom("text", "event-stream")
 }
