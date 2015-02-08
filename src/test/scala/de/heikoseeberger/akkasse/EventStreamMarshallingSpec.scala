@@ -19,7 +19,7 @@ package de.heikoseeberger.akkasse
 import akka.actor.ActorSystem
 import akka.http.marshalling.ToResponseMarshallable
 import akka.http.model.HttpRequest
-import akka.stream.FlowMaterializer
+import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl.Source
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 import scala.concurrent.Await
@@ -35,7 +35,7 @@ class EventStreamMarshallingSpec
 
   val system = ActorSystem()
 
-  implicit val flowMaterializer = FlowMaterializer()(system)
+  implicit val flowMaterializer = ActorFlowMaterializer()(system)
 
   "A source of elements which can be viewed as ServerSentEvents" should {
 
@@ -43,10 +43,10 @@ class EventStreamMarshallingSpec
       implicit def intToServerSentEvent(n: Int): ServerSentEvent = ServerSentEvent(n.toString)
       val elements = 1 to 666
       val marshallable = Source(elements): ToResponseMarshallable
-      val response = marshallable(HttpRequest()).flatMap { response =>
-        response.entity.dataBytes
+      val response = marshallable(HttpRequest()).flatMap {
+        _.entity.dataBytes
           .map(_.utf8String)
-          .fold(Vector.empty[String])(_ :+ _)
+          .runFold(Vector.empty[String])(_ :+ _)
       }
       val actual = Await.result(response, 1 second)
       val expected = elements.map(n => ServerSentEvent(n.toString).toString)
