@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Heiko Seeberger
+ * Copyright 2015 Martynas Mickevičius
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package de.heikoseeberger
+package de.heikoseeberger.akkasse.japi;
 
-package object akkasse {
+import akka.http.model.japi.MediaType;
 
-  //format: OFF
-  private[akkasse] type Traversable[+A] = scala.collection.immutable.Traversable[A]
-
-  private[akkasse] type Iterable[+A] = scala.collection.immutable.Iterable[A]
-
-  private[akkasse] type Seq[+A] = scala.collection.immutable.Seq[A]
-
-  private[akkasse] type IndexedSeq[+A] = scala.collection.immutable.IndexedSeq[A]
-  //format: ON
+public abstract class MediaTypes {
+  /**
+   * Media type for Server-Sent Events as required by the
+   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   */
+  public static final MediaType TEXT_EVENT_STREAM = de.heikoseeberger.akkasse.MediaTypes.text$divevent$minusstream();
 }
