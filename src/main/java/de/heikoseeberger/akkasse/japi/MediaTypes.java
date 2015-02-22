@@ -19,6 +19,7 @@ package de.heikoseeberger.akkasse.japi;
 import akka.http.model.japi.MediaType;
 
 public abstract class MediaTypes {
+
   /**
    * Media type for Server-Sent Events as required by the
    * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
