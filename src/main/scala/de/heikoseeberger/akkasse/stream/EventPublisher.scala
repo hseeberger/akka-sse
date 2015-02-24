@@ -35,7 +35,7 @@ abstract class EventPublisher[A](bufferSize: Int) extends ActorPublisher[A] {
   /**
    * Receive events via [[onEvent]] and `ActorPublisherMessage`s.
    */
-  final override def receive = receiveEvent.orElse {
+  override def receive = receiveEvent.orElse {
     case ActorPublisherMessage.Request(demand) => publish(demand)
     case msg: ActorPublisherMessage            => context.stop(self)
   }
@@ -43,7 +43,7 @@ abstract class EventPublisher[A](bufferSize: Int) extends ActorPublisher[A] {
   /**
    * To be implemented by invoking [[onEvent]].
    */
-  protected def receiveEvent: Receive
+  protected def receiveEvent: Receive = PartialFunction.empty
 
   /**
    * To be invoked when an event is received.
