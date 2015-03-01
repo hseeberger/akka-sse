@@ -21,6 +21,7 @@ import akka.actor.{ ActorSystem, Props }
 import akka.stream.ActorFlowMaterializer
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.Source
+import akka.testkit.TestProbe
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -32,20 +33,18 @@ class EventPublisherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 
   "An EventPublisher" should {
 
-    "be useful as a Source" in {
+    "receive 20 elements, discard the first 10 given a buffer size of 10 and then close down with the sink having closed" in {
       val eventPublisher = system.actorOf(Props(new EventPublisher[Int](10) {
-        context.system.scheduler.scheduleOnce(1 second, self, "stop")(context.dispatcher)
         override protected def receiveEvent = {
-          case n: Int =>
-            onEvent(n)
-          case "stop" =>
-            onComplete()
-            context.stop(self)
+          case n: Int => onEvent(n)
         }
       }))
       for (n <- 1 to 20) eventPublisher ! n
-      // As we are sending before materializing the flow, only the 10 last messages get buffered
-      Await.result(Source(ActorPublisher[Int](eventPublisher)).runFold(0)(_ + _), 2 seconds) shouldBe (11 to 20).sum
+      Await.result(Source(ActorPublisher[Int](eventPublisher)).take(10).runFold(0)(_ + _), 2.seconds) shouldBe (11 to 20).sum
+
+      val watcher = TestProbe()
+      watcher.watch(eventPublisher)
+      watcher.expectTerminated(eventPublisher)
     }
   }
 
