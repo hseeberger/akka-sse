@@ -17,22 +17,18 @@
 package de.heikoseeberger.akkasse
 package stream
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ ActorSystem, Props }
 import akka.stream.ActorFlowMaterializer
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.Source
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-class EventPublisherSpec
-    extends WordSpec
-    with Matchers
-    with BeforeAndAfterAll {
+class EventPublisherSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 
-  val system = ActorSystem()
-
-  implicit val flowMaterializer = ActorFlowMaterializer()(system)
+  implicit val system = ActorSystem()
+  implicit val flowMaterializer = ActorFlowMaterializer()
 
   "An EventPublisher" should {
 
@@ -53,8 +49,9 @@ class EventPublisherSpec
     }
   }
 
-  override protected def afterAll(): Unit = {
+  override protected def afterAll() = {
     super.afterAll()
     system.shutdown()
+    system.awaitTermination()
   }
 }
