@@ -81,10 +81,7 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
         else {
           val c = s.charAt(index)
           builder.append(c)
-          if (c == '\n')
-            index + 1
-          else
-            addLine(index + 1)
+          if (c == '\n') index + 1 else addLine(index + 1)
         }
       builder.append(label)
       addLine(index) match {
@@ -92,19 +89,16 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
         case index => addLines(builder, label, s, index)
       }
     }
-    def addData(builder: StringBuilder): StringBuilder =
-      addLines(builder, "data:", data, 0).append('\n')
-    def addEvent(builder: StringBuilder): StringBuilder =
-      eventType match {
-        case Some(e) => addLines(builder, "event:", e, 0)
-        case None    => builder
-      }
+    def addData(builder: StringBuilder): StringBuilder = addLines(builder, "data:", data, 0).append('\n')
+    def addEvent(builder: StringBuilder): StringBuilder = eventType match {
+      case Some(e) => addLines(builder, "event:", e, 0)
+      case None    => builder
+    }
     // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
     //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
     // Why 7? "event:" + \n == 7 chars
-    def newBuilder(): StringBuilder =
-      new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + eventType.fold(0)(_.length + 7)))
-    addData(addEvent(newBuilder())).toString()
+    val builder = new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + eventType.fold(0)(_.length + 7)))
+    addData(addEvent(builder)).toString()
   }
 
   /**

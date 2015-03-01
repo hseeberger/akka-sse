@@ -2,11 +2,11 @@ import sbt._
 
 object Version {
   val akka       = "2.3.9"
-  val akkaHttp   = "1.0-M3"
+  val akkaHttp   = "1.0-M4"
   val junit      = "4.12"
-  val scala      = "2.11.5"
+  val scala      = "2.11.6"
   val scalaCheck = "1.12.2"
-  val scalaTest  = "2.2.3"
+  val scalaTest  = "2.2.4"
 }
 
 object Library {

@@ -25,17 +25,12 @@ import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-class EventStreamMarshallingSpec
-    extends WordSpec
-    with Matchers
-    with BeforeAndAfterAll
-    with EventStreamMarshalling {
+class EventStreamMarshallingSpec extends WordSpec with Matchers with BeforeAndAfterAll with EventStreamMarshalling {
 
   import system.dispatcher
 
-  val system = ActorSystem()
-
-  implicit val flowMaterializer = ActorFlowMaterializer()(system)
+  implicit val system = ActorSystem()
+  implicit val flowMaterializer = ActorFlowMaterializer()
 
   "A source of elements which can be viewed as ServerSentEvents" should {
 
@@ -54,8 +49,9 @@ class EventStreamMarshallingSpec
     }
   }
 
-  override protected def afterAll(): Unit = {
+  override protected def afterAll() = {
     super.afterAll()
     system.shutdown()
+    system.awaitTermination()
   }
 }

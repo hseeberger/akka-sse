@@ -52,7 +52,7 @@ private def messages: Route =
   }
 ```
 
-A complete demo using akka-sse can is [Reactive Flows](https://github.com/hseeberger/reactive-flows).
+A complete demo using akka-sse is [Reactive Flows](https://github.com/hseeberger/reactive-flows).
 Have fun, and please report any issues, suggestions, complaints.
 
 ## Contribution policy ##

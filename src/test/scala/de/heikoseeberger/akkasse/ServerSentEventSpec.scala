@@ -19,10 +19,7 @@ package de.heikoseeberger.akkasse
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{ Matchers, WordSpec }
 
-class ServerSentEventSpec
-    extends WordSpec
-    with Matchers
-    with GeneratorDrivenPropertyChecks {
+class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPropertyChecks {
 
   "Creating a ServerSentEvent" should {
 
