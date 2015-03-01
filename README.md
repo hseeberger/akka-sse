@@ -6,7 +6,7 @@ akka-sse adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource/
 
 ## Installation
 
-akka-sse depends on akka-http 1.0-M3.
+akka-sse depends on akka-http 1.0-M4.
 
 Grab it while it's hot:
 
@@ -14,7 +14,7 @@ Grab it while it's hot:
 resolvers += "hseeberger at bintray" at "http://dl.bintray.com/hseeberger/maven"
 
 libraryDependencies ++= List(
-  "de.heikoseeberger" %% "akka-sse" % "0.5.0",
+  "de.heikoseeberger" %% "akka-sse" % "0.6.0",
   ...
 )
 ```
