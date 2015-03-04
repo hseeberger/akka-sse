@@ -81,8 +81,6 @@ object Build extends AutoPlugin {
           |
           |""".stripMargin
         )
-      ),
-      // Bintray settings
-      name in BintrayKeys.bintray := "akka-http-json"
+      )
     )
 }
