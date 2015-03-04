@@ -6,3 +6,5 @@ libraryDependencies ++= List(
 )
 
 initialCommands := """|import de.heikoseeberger.akkasse.example._""".stripMargin
+
+publishArtifact := false
