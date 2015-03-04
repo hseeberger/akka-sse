@@ -1,16 +1,17 @@
-lazy val akkaSse = project.in(file("."))
+lazy val root = project
+  .in(file("."))
+  .aggregate(akkaSse, akkaSseExample)
 
-name := "akka-sse"
+lazy val akkaSse = project
+  .in(file("akka-sse"))
 
-libraryDependencies ++= List(
-  Library.akkaHttp,
-  Library.junit       % "test",
-  Library.akkaTestkit % "test",
-  Library.scalaCheck  % "test",
-  Library.scalaTest   % "test"
-)
+lazy val akkaSseExample = project
+  .in(file("akka-sse-example"))
+  .dependsOn(akkaSse)
 
-initialCommands := """|import de.heikoseeberger.akkasse._""".stripMargin
+name := "root"
 
-// TODO Remove once Scala 2.11.6 has been fully released!
-resolvers += "Scala 2.11.6 staging repo" at "https://oss.sonatype.org/content/repositories/orgscala-lang-1184"
+unmanagedSourceDirectories in Compile := Nil
+unmanagedSourceDirectories in Test := Nil
+
+publishArtifact := false

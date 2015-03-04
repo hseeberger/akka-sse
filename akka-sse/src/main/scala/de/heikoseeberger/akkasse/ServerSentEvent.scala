@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Heiko Seeberger
+ * Copyright 2015 Heiko Seeberger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,18 @@ import scala.annotation.tailrec
 object ServerSentEvent {
 
   /**
+   * Creates a [[ServerSentEvent]] with event type.
+   * @param data data which may span multiple lines
+   * @param event event type, must not contain \n or \r
+   */
+  def apply(data: String, event: String) = new ServerSentEvent(data, Some(event))
+
+  /**
    * Java API.
    * Creates a [[ServerSentEvent]] without event type.
    * @param data data which may span multiple lines
    */
-  def create(data: String): ServerSentEvent = ServerSentEvent(data)
+  def create(data: String) = new ServerSentEvent(data)
 
   /**
    * Java API.
@@ -34,19 +41,12 @@ object ServerSentEvent {
    * @param data data which may span multiple lines
    * @param event event type, must not contain \n or \r
    */
-  def create(data: String, event: String): ServerSentEvent = new ServerSentEvent(data, Some(event))
-
-  /**
-   * Creates a [[ServerSentEvent]] with event type.
-   * @param data data which may span multiple lines
-   * @param event event type, must not contain \n or \r
-   */
-  def apply(data: String, event: String): ServerSentEvent = new ServerSentEvent(data, Some(event))
+  def create(data: String, event: String) = new ServerSentEvent(data, Some(event))
 
   // Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
   // We want powers of two both because they typically work better with the allocator,
   // and because we want to minimize reallocations/buffer growth.
-  private def nextPowerOfTwoBiggerThan(n: Int): Int = {
+  private def nextPowerOfTwoBiggerThan(n: Int) = {
     var m = n - 1
     m |= m >> 1
     m |= m >> 2
@@ -73,7 +73,7 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
    * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    * @return message converted to `java.lang.String`
    */
-  override def toString: String = {
+  override def toString = {
     @tailrec def addLines(builder: StringBuilder, label: String, s: String, index: Int): StringBuilder = {
       @tailrec def addLine(index: Int): Int =
         if (index >= s.length)
@@ -89,8 +89,8 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
         case index => addLines(builder, label, s, index)
       }
     }
-    def addData(builder: StringBuilder): StringBuilder = addLines(builder, "data:", data, 0).append('\n')
-    def addEvent(builder: StringBuilder): StringBuilder = eventType match {
+    def addData(builder: StringBuilder) = addLines(builder, "data:", data, 0).append('\n')
+    def addEvent(builder: StringBuilder) = eventType match {
       case Some(e) => addLines(builder, "event:", e, 0)
       case None    => builder
     }
@@ -106,5 +106,5 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
    * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    * @return message converted to UTF-8 encoded `akka.util.ByteString`
    */
-  def toByteString: ByteString = ByteString(toString, "UTF-8")
+  def toByteString = ByteString(toString, "UTF-8")
 }

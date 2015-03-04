@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Martynas Mickevičius
+ * Copyright 2015 Heiko Seeberger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,19 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.model.MediaType
+import akka.actor.ActorSystem
+import akka.stream.ActorFlowMaterializer
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 
-object MediaTypes {
+abstract class BaseSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 
-  /**
-   * Media type for Server-Sent Events as required by the
-   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-   */
-  val `text/event-stream`: MediaType = MediaType.custom("text", "event-stream")
+  implicit val system = ActorSystem()
+  implicit val ec = system.dispatcher
+  implicit val mat = ActorFlowMaterializer()
+
+  override protected def afterAll() = {
+    system.shutdown()
+    system.awaitTermination()
+    super.afterAll()
+  }
 }
