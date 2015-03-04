@@ -30,6 +30,18 @@ object Build extends AutoPlugin {
         "-encoding", "UTF-8"
       ),
       licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
+      pomExtra := <url>https://github.com/hseeberger/akka-sse</url>
+                  <scm>
+                    <url>https://github.com/hseeberger/akka-sse</url>
+                    <connection>scm:git:git://github.com/hseeberger/akka-sse.git</connection>
+                  </scm>
+                  <developers>
+                    <developer>
+                      <id>hseeberger</id>
+                      <name>Heiko Seeberger</name>
+                      <url>http://heikoseeberger.de</url>
+                    </developer>
+                  </developers>,
       // Scalariform settings
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
         .setPreference(AlignArguments, true)
