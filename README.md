@@ -12,6 +12,8 @@ akka-sse depends on akka-http 1.0-M4.
 Grab it while it's hot:
 
 ``` scala
+// All releases including intermediate ones are published here,
+// final ones are also published to Maven Central.
 resolvers += "hseeberger at bintray" at "http://dl.bintray.com/hseeberger/maven"
 
 libraryDependencies ++= List(
@@ -38,7 +40,7 @@ implicit def flowEventToServerSentEvent(event: Flow.Event): ServerSentEvent =
   event match {
     case messageAdded: Flow.MessageAdded =>
       val data = PrettyPrinter(jsonWriter[Flow.MessageAdded].write(messageAdded))
-      ServerSentEvent(data, Some("added"))
+      ServerSentEvent(data, "added")
   }
 ```
 
@@ -54,6 +56,8 @@ private def messages: Route =
     }
   }
 ```
+
+There's also early support for consuming server-side events via `EventStreamUnmarshalling`. Take a look at the example project for details.
 
 A complete demo using akka-sse is [Reactive Flows](https://github.com/hseeberger/reactive-flows).
 Have fun, and please report any issues, suggestions, complaints.
