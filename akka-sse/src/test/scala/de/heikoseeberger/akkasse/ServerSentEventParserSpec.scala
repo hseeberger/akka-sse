@@ -18,7 +18,6 @@ package de.heikoseeberger.akkasse
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import java.nio.charset.StandardCharsets.UTF_8
 import scala.collection.breakOut
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -38,8 +37,8 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |
                      |data: incomplete message
                      |""".stripMargin
-      val events = Source(input.split(f"%n").map(s => ByteString(s + "\n", UTF_8.name))(breakOut))
-        .transform(() => ServerSentEventParser())
+      val events = Source(input.split(f"%n").map(s => ByteString(s + "\n"))(breakOut))
+        .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(
         ServerSentEvent("message 1 line 1\nmessage 1 line 2"),

@@ -18,10 +18,9 @@ package de.heikoseeberger.akkasse
 
 import akka.stream.stage.{ Context, StatefulStage }
 import akka.util.ByteString
-import java.nio.charset.{ Charset, StandardCharsets }
 import scala.annotation.tailrec
 
-object ServerSentEventParser {
+private object ServerSentEventParser {
 
   private final val LF = "\n"
 
@@ -30,9 +29,6 @@ object ServerSentEventParser {
   private final val Event = "event"
 
   private val linePattern = """([^:]+): ?(.*)""".r
-
-  def apply(maxSize: Int = 1048576, charset: Charset = StandardCharsets.UTF_8) =
-    new ServerSentEventParser(maxSize, charset)
 
   private def parseServerSentEvent(content: String) = {
     val valuesByField = content
@@ -46,12 +42,11 @@ object ServerSentEventParser {
   }
 }
 
-final class ServerSentEventParser private (maxSize: Int, charset: Charset)
-    extends StatefulStage[ByteString, ServerSentEvent] {
+private final class ServerSentEventParser(maxSize: Int) extends StatefulStage[ByteString, ServerSentEvent] {
 
   import ServerSentEventParser._
 
-  private val separator = ByteString("\n\n", charset.name)
+  private val separator = ByteString("\n\n", "UTF-8")
 
   private val firstSeparatorByte = separator.head
 

@@ -22,7 +22,7 @@ import scala.annotation.tailrec
 object ServerSentEvent {
 
   /**
-   * Creates a [[ServerSentEvent]] with event type.
+   * Creates a [[ServerSentEvent]] with defined event type.
    * @param data data which may span multiple lines
    * @param event event type, must not contain \n or \r
    */

@@ -19,12 +19,16 @@ package de.heikoseeberger
 package object akkasse {
 
   //format: OFF
+  private[akkasse] val Traversable = scala.collection.immutable.Traversable
   private[akkasse] type Traversable[+A] = scala.collection.immutable.Traversable[A]
 
+  private[akkasse] val Iterable = scala.collection.immutable.Iterable
   private[akkasse] type Iterable[+A] = scala.collection.immutable.Iterable[A]
 
+  private[akkasse] val Seq = scala.collection.immutable.Seq
   private[akkasse] type Seq[+A] = scala.collection.immutable.Seq[A]
 
+  private[akkasse] val IndexedSeq = scala.collection.immutable.IndexedSeq
   private[akkasse] type IndexedSeq[+A] = scala.collection.immutable.IndexedSeq[A]
   //format: ON
 }
