@@ -10,6 +10,7 @@ object Version {
 }
 
 object Library {
+  val akkaActor   = "com.typesafe.akka" %% "akka-actor"             % Version.akka
   val akkaHttp    = "com.typesafe.akka" %% "akka-http-experimental" % Version.akkaHttp
   val akkaTestkit = "com.typesafe.akka" %% "akka-testkit"           % Version.akka
   val junit       = "junit"             %  "junit"                  % Version.junit

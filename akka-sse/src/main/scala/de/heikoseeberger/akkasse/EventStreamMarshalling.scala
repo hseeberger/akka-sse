@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Heiko Seeberger
+ * Copyright 2015 Heiko Seeberger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,9 @@ trait EventStreamMarshalling {
 
   type ToServerSentEvent[A] = A => ServerSentEvent
 
-  implicit def toResponseMarshaller[A: ToServerSentEvent](implicit ec: ExecutionContext): ToResponseMarshaller[Source[A, Unit]] =
+  implicit final def toResponseMarshaller[A: ToServerSentEvent, B](implicit ec: ExecutionContext): ToResponseMarshaller[Source[A, B]] =
     Marshaller.withFixedCharset(MediaTypes.`text/event-stream`, HttpCharsets.`UTF-8`) { messages =>
-      HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, messages.map(_.toByteString)))
+      val data = messages.mapMaterialized(_ => ()).map(_.toByteString) // TODO mapMaterialized might become obsolete once https://github.com/akka/akka/issues/16933 is fixed!
+      HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, data))
     }
 }

@@ -15,7 +15,6 @@
  */
 
 package de.heikoseeberger.akkasse
-package stream
 
 import akka.stream.actor.{ ActorPublisher, ActorPublisherMessage }
 

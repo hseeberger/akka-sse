@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Heiko Seeberger
+ * Copyright 2015 Heiko Seeberger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package de.heikoseeberger
+package de.heikoseeberger.akkasse
 
-package object akkasse {
+import akka.http.model.MediaType
 
-  //format: OFF
-  private[akkasse] type Traversable[+A] = scala.collection.immutable.Traversable[A]
+object MediaTypes {
 
-  private[akkasse] type Iterable[+A] = scala.collection.immutable.Iterable[A]
-
-  private[akkasse] type Seq[+A] = scala.collection.immutable.Seq[A]
-
-  private[akkasse] type IndexedSeq[+A] = scala.collection.immutable.IndexedSeq[A]
-  //format: ON
+  /**
+   * Media type for Server-Sent Events as required by the
+   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   */
+  val `text/event-stream` = MediaType.custom("text", "event-stream")
 }
