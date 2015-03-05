@@ -56,7 +56,7 @@ class HeartbeatSourceSpec extends WordSpec with Matchers with BeforeAndAfterAll 
 
       for (n <- 1 to 4) eventPublisher ! 42
 
-      whenReady(source.grouped(8).runWith(Sink.head()), Timeout(Span(300, Millis))) { result =>
+      whenReady(source.grouped(8).runWith(Sink.head()), Timeout(scaled(Span(300, Millis)))) { result =>
         val events = result.groupBy(_.data)
         events("42").size shouldBe 4
         events("heartbeat").size shouldBe 4
