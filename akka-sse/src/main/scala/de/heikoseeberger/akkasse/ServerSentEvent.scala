@@ -55,14 +55,20 @@ object ServerSentEvent {
     m |= m >> 16
     m + 1
   }
+
+  /**
+   * A comment event used for sending heartbeats to the client.
+   */
+  final val Heartbeat = ServerSentEvent("heartbeat", comment = true)
 }
 
 /**
- * Reprsentation of a Server-Sent Event.
+ * Representation of a Server-Sent Event.
  * @param data data which may span multiple lines
  * @param eventType optional event type, must not contain \n or \r
+ * @param comment determines if this event is a comment, i.e. has no field name
  */
-final case class ServerSentEvent(data: String, eventType: Option[String] = None) {
+final case class ServerSentEvent private[akkasse] (data: String, eventType: Option[String] = None, comment: Boolean = false) {
 
   import ServerSentEvent._
 
@@ -89,7 +95,8 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
         case index => addLines(builder, label, s, index)
       }
     }
-    def addData(builder: StringBuilder) = addLines(builder, "data:", data, 0).append('\n')
+    def addData(builder: StringBuilder) =
+      addLines(builder, (if (comment) "" else "data") + ":", data, 0).append('\n')
     def addEvent(builder: StringBuilder) = eventType match {
       case Some(e) => addLines(builder, "event:", e, 0)
       case None    => builder
