@@ -48,8 +48,6 @@ object Build extends AutoPlugin {
                       <url>http://heikoseeberger.de</url>
                     </developer>
                   </developers>,
-      // TODO Remove once Scala 2.11.6 has been fully released!
-      resolvers += "Scala 2.11.6 staging repo" at "https://oss.sonatype.org/content/repositories/orgscala-lang-1184",
       // Scalariform settings
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
         .setPreference(AlignArguments, true)
