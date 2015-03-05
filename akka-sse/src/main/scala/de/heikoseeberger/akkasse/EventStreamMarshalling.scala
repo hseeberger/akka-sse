@@ -44,4 +44,11 @@ trait EventStreamMarshalling {
       val data = messages.mapMaterialized(_ => ()).map(_.toByteString) // TODO mapMaterialized might become obsolete once https://github.com/akka/akka/issues/16933 is fixed!
       HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, data))
     }
+
+  /**
+   * Convert a [[Source]] of user events to a [[Source]] of [[ServerSentEvent]].
+   * Useful when combining such sources in akka-stream FlowGraphs.
+   */
+  implicit final def toServerSentEventStream[A: ToServerSentEvent, M](source: Source[A, M]): Source[ServerSentEvent, M] =
+    source.map(implicitly[ToServerSentEvent[A]])
 }
