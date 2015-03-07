@@ -20,37 +20,31 @@ import akka.actor.ActorSystem
 import akka.http.Http
 import akka.http.server.Directives
 import akka.stream.ActorFlowMaterializer
-import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.{ EventStreamMarshalling, ServerSentEvent }
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{ Duration, DurationInt }
 
-object TimeServer {
-
-  import Directives._
-  import EventStreamMarshalling._
+object TimeServer extends Directives with EventStreamMarshalling {
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
-    import system.dispatcher
     implicit val mat = ActorFlowMaterializer()
+    import system.dispatcher
 
     // TODO Once https://github.com/akka/akka/issues/16972 is fixed, simplify this with `bindAndHandle` or such!
     Http()
       .bind("127.0.0.1", 9000)
-      .to(Sink.foreach(_.flow.join(route).run()))
-      .run()
+      .runForeach(_.flow.join(route).run())
   }
 
   private implicit def dateTimeToServerSentEvent(dateTime: LocalTime): ServerSentEvent =
     ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(dateTime))
 
   private def route(implicit ec: ExecutionContext, mat: ActorFlowMaterializer) =
-    path("") {
-      get {
-        complete(Source(250 millis, 1 second, None).map(_ => LocalTime.now()))
-      }
+    get {
+      complete(Source(Duration.Zero, 2 seconds, None).map(_ => LocalTime.now()))
     }
 }

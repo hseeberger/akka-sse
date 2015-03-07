@@ -26,18 +26,16 @@ import de.heikoseeberger.akkasse.{ EventStreamUnmarshalling, ServerSentEvent }
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-object TimeClient {
-
-  import EventStreamUnmarshalling._
+object TimeClient extends EventStreamUnmarshalling {
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
-    import system.dispatcher
     implicit val mat = ActorFlowMaterializer()
+    import system.dispatcher
 
     Source.single(Get())
       .via(Http().outgoingConnection("127.0.0.1", 9000))
-      .mapAsync(response => Unmarshal(response).to[Source[LocalTime, Unit]])
+      .mapAsync(Unmarshal(_).to[Source[LocalTime, Unit]])
       .runForeach(_.runForeach(println))
   }
 
