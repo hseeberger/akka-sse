@@ -23,7 +23,7 @@ object Build extends AutoPlugin {
       // Core settings
       organization := "de.heikoseeberger",
       scalaVersion := Version.scala,
-      crossScalaVersions := List(scalaVersion.value),
+      crossScalaVersions := Version.crossScala,
       scalacOptions ++= List(
         "-unchecked",
         "-deprecation",

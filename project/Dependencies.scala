@@ -5,6 +5,7 @@ object Version {
   val akkaHttp   = "1.0-M4"
   val junit      = "4.12"
   val scala      = "2.11.6"
+  val crossScala = List(scala, "2.10.5")
   val scalaCheck = "1.12.2"
   val scalaTest  = "2.2.4"
 }
