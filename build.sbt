@@ -4,10 +4,12 @@ lazy val root = project
 
 lazy val akkaSse = project
   .in(file("akka-sse"))
+  .enablePlugins(AutomateHeaderPlugin)
 
 lazy val akkaSseExample = project
   .in(file("akka-sse-example"))
   .dependsOn(akkaSse)
+  .enablePlugins(AutomateHeaderPlugin)
 
 name := "root"
 
