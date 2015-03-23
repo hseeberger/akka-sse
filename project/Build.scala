@@ -1,7 +1,9 @@
-import bintray. { Keys => BintrayKeys }
-import bintray.Plugin._
-import com.typesafe.sbt.SbtGit._
-import com.typesafe.sbt.SbtScalariform._
+import bintray.{ Keys => BintrayKeys }
+import bintray.Plugin.bintrayPublishSettings
+import com.typesafe.sbt.GitPlugin
+import com.typesafe.sbt.SbtPgp
+import com.typesafe.sbt.SbtScalariform
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import de.heikoseeberger.sbtheader.license.Apache2_0
 import sbt._
@@ -10,30 +12,14 @@ import scalariform.formatter.preferences._
 
 object Build extends AutoPlugin {
 
-  override def requires = plugins.JvmPlugin
+  override def requires = plugins.JvmPlugin && HeaderPlugin && GitPlugin && SbtPgp
 
   override def trigger = allRequirements
 
   override def projectSettings =
-    scalariformSettings ++
-    versionWithGit ++
-    bintrayPublishSettings ++
+    // Core settings
     List(
-      // Core settings
       organization := "de.heikoseeberger",
-      scalaVersion := Version.scala,
-      crossScalaVersions := Version.crossScala,
-      scalacOptions ++= List(
-        "-unchecked",
-        "-deprecation",
-        "-language:_",
-        "-target:jvm-1.7",
-        "-encoding", "UTF-8"
-      ),
-      javacOptions ++= List(
-        "-source", "1.8",
-        "-target", "1.8"
-      ),
       licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
       pomExtra := <url>https://github.com/hseeberger/akka-sse</url>
                   <scm>
@@ -47,16 +33,38 @@ object Build extends AutoPlugin {
                       <url>http://heikoseeberger.de</url>
                     </developer>
                   </developers>,
-      // Scalariform settings
+      scalaVersion := Version.scala,
+      crossScalaVersions := Version.crossScala,
+      scalacOptions ++= List(
+        "-unchecked",
+        "-deprecation",
+        "-language:_",
+        "-target:jvm-1.7",
+        "-encoding", "UTF-8"
+      ),
+      javacOptions ++= List(
+        "-source", "1.8",
+        "-target", "1.8"
+      ),
+      unmanagedSourceDirectories.in(Compile) := List(scalaSource.in(Compile).value),
+      unmanagedSourceDirectories.in(Test) := List(scalaSource.in(Test).value)
+    ) ++
+    // Scalariform settings
+    SbtScalariform.scalariformSettings ++
+    List(
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
-        .setPreference(AlignArguments, true)
-        .setPreference(AlignParameters, true)
         .setPreference(AlignSingleLineCaseStatements, true)
         .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
-        .setPreference(DoubleIndentClassDeclaration, true),
-      // Git settings
-      git.baseVersion := "0.8.0",
-      // Header settings
+        .setPreference(DoubleIndentClassDeclaration, true)
+    ) ++
+    // Git settings
+    List(
+      GitPlugin.autoImport.git.baseVersion := "0.8.0"
+    ) ++
+    // Header settings
+    List(
       HeaderPlugin.autoImport.headers := Map("scala" -> Apache2_0("2015", "Heiko Seeberger"))
-    )
+    ) ++
+    // Bintray settings
+    bintrayPublishSettings
 }
