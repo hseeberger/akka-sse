@@ -21,10 +21,11 @@ object Build extends AutoPlugin {
     List(
       organization := "de.heikoseeberger",
       licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
-      pomExtra := <url>https://github.com/hseeberger/akka-sse</url>
-                  <scm>
+      homepage := Some(url("https://github.com/hseeberger/akka-sse")),
+      pomIncludeRepository := (_ => false),
+      pomExtra := <scm>
                     <url>https://github.com/hseeberger/akka-sse</url>
-                    <connection>scm:git:git://github.com/hseeberger/akka-sse.git</connection>
+                    <connection>scm:git:git@github.com:hseeberger/akka-sse.git</connection>
                   </scm>
                   <developers>
                     <developer>
