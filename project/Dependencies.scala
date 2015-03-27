@@ -2,7 +2,7 @@ import sbt._
 
 object Version {
   val akka       = "2.3.9"
-  val akkaHttp   = "1.0-M4"
+  val akkaHttp   = "1.0-M5"
   val junit      = "4.12"
   val scala      = "2.11.6"
   val crossScala = List(scala, "2.10.5")

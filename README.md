@@ -7,7 +7,7 @@ akka-sse adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource/
 
 ## Installation
 
-akka-sse depends on akka-http 1.0-M4.
+akka-sse depends on akka-http 1.0-M5.
 
 Grab it while it's hot:
 
