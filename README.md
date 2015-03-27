@@ -17,7 +17,7 @@ Grab it while it's hot:
 resolvers += "hseeberger at bintray" at "http://dl.bintray.com/hseeberger/maven"
 
 libraryDependencies ++= List(
-  "de.heikoseeberger" %% "akka-sse" % "0.7.1",
+  "de.heikoseeberger" %% "akka-sse" % "0.8.0",
   ...
 )
 ```
