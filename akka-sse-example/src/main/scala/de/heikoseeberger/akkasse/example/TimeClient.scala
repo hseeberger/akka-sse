@@ -35,10 +35,10 @@ object TimeClient extends EventStreamUnmarshalling {
 
     Source.single(Get())
       .via(Http().outgoingConnection("127.0.0.1", 9000))
-      .mapAsync(Unmarshal(_).to[Source[LocalTime, Unit]])
-      .runForeach(_.runForeach(println))
+      .mapAsync(xxx => Unmarshal(xxx).to[Source[ServerSentEvent, Unit]])
+      .runForeach(_.map(serverSentEventToDateTime).runForeach(println))
   }
 
-  private implicit def serverSentEventToDateTime(event: ServerSentEvent): LocalTime =
+  private def serverSentEventToDateTime(event: ServerSentEvent): LocalTime =
     LocalTime.parse(event.data, DateTimeFormatter.ISO_LOCAL_TIME)
 }

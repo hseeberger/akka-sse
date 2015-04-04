@@ -36,11 +36,11 @@ object TimeServer extends Directives with EventStreamMarshalling {
     Http().bindAndHandle(route, "127.0.0.1", 9000)
   }
 
-  private implicit def dateTimeToServerSentEvent(dateTime: LocalTime): ServerSentEvent =
-    ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(dateTime))
-
   private def route(implicit ec: ExecutionContext, mat: FlowMaterializer) =
     get {
-      complete(Source(Duration.Zero, 2 seconds, None).map(_ => LocalTime.now()))
+      complete(Source(Duration.Zero, 2 seconds, None).map(_ => dateTimeToServerSentEvent(LocalTime.now())))
     }
+
+  private def dateTimeToServerSentEvent(dateTime: LocalTime) =
+    ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(dateTime))
 }

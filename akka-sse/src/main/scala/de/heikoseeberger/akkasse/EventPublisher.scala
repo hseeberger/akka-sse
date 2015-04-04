@@ -27,7 +27,9 @@ import akka.stream.actor.{ ActorPublisher, ActorPublisherMessage }
  * demand and other `ActorPublisherMessage`s (e.g. `Cancel`) stop this actor.
  * @param bufferSize the maximum number of events (messages) to be buffered
  */
-abstract class EventPublisher[A](bufferSize: Int) extends ActorPublisher[A] {
+abstract class EventPublisher[A: ToServerSentEvent](bufferSize: Int) extends ActorPublisher[ServerSentEvent] {
+
+  private val toServerSentEvent = implicitly[ToServerSentEvent[A]]
 
   private var events = Vector.empty[A]
 
@@ -53,8 +55,8 @@ abstract class EventPublisher[A](bufferSize: Int) extends ActorPublisher[A] {
   }
 
   private def publish(demand: Long) = {
-    val (requested, remaining) = events.splitAt(demand.toInt)
-    requested.foreach(onNext)
-    events = remaining
+    val (requestedEvents, remainingEvents) = events.splitAt(demand.toInt)
+    requestedEvents.foreach(toServerSentEvent.andThen(onNext))
+    events = remainingEvents
   }
 }

@@ -22,24 +22,22 @@ import akka.stream.scaladsl.Source
 import scala.concurrent.ExecutionContext
 
 /**
- * Importing [[EventStreamMarshalling.toResponseMarshaller]] lets an `akka.stream.scaladsl.Source` of elements
- * which can be viewed as [[ServerSentEvent]]s be marshallable to an `akka.http.model.HttpResponse`.
+ * Importing [[EventStreamMarshalling.toResponseMarshaller]] lets an `akka.stream.scaladsl.Source` of
+ * [[ServerSentEvent]]s be marshallable to an `akka.http.model.HttpResponse`.
  *
  * ``Attention``: An implicit `scala.concurrent.ExecutionContext` has to be in scope!
  */
 object EventStreamMarshalling extends EventStreamMarshalling
 
 /**
- * Mixing in this trait lets an `akka.stream.scaladsl.Source` of elements
- * which can be viewed as [[ServerSentEvent]]s be marshallable to a `akka.http.model.HttpResponse`.
+ * Importing [[EventStreamMarshalling.toResponseMarshaller]] lets an `akka.stream.scaladsl.Source` of
+ * [[ServerSentEvent]]s be marshallable to an `akka.http.model.HttpResponse`.
  *
  * ``Attention``: An implicit `scala.concurrent.ExecutionContext` has to be in scope!
  */
 trait EventStreamMarshalling {
 
-  type ToServerSentEvent[A] = A => ServerSentEvent
-
-  implicit final def toResponseMarshaller[A: ToServerSentEvent, B](implicit ec: ExecutionContext): ToResponseMarshaller[Source[A, B]] =
+  implicit final def toResponseMarshaller[A](implicit ec: ExecutionContext): ToResponseMarshaller[Source[ServerSentEvent, A]] =
     Marshaller.withFixedCharset(MediaTypes.`text/event-stream`, HttpCharsets.`UTF-8`) { messages =>
       val data = messages.mapMaterialized(_ => ()).map(_.toByteString) // TODO mapMaterialized might become obsolete once https://github.com/akka/akka/issues/16933 is fixed!
       HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, data))

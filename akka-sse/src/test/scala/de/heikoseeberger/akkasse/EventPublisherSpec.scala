@@ -27,14 +27,16 @@ class EventPublisherSpec extends BaseSpec {
 
   "An EventPublisher" should {
 
-    "receive 20 elements, discard the first 10 given a buffer size of 10 and then close down with the sink having closed" in {
+    "receive 20 elements, discard the first 10 given a buffer size of 10 and then stop with the sink having stopped" in {
+      implicit def intToServerSentEvent(n: Int): ServerSentEvent = ServerSentEvent(n.toString)
       val eventPublisher = system.actorOf(Props(new EventPublisher[Int](10) {
         override protected def receiveEvent = {
           case n: Int => onEvent(n)
         }
       }))
       for (n <- 1 to 20) eventPublisher ! n
-      Await.result(Source(ActorPublisher[Int](eventPublisher)).take(10).runFold(0)(_ + _), 2.seconds) shouldBe (11 to 20).sum
+      val source = Source(ActorPublisher[ServerSentEvent](eventPublisher))
+      Await.result(source.take(10).runFold(0)(_ + _.data.toInt), 2.seconds) shouldBe (11 to 20).sum
 
       val watcher = TestProbe()
       watcher.watch(eventPublisher)
