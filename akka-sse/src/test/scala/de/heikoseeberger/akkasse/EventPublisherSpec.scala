@@ -43,4 +43,16 @@ class EventPublisherSpec extends BaseSpec {
       watcher.expectTerminated(eventPublisher)
     }
   }
+
+  "send heartbeats if so configured" in {
+    implicit def intToServerSentEvent(n: Int): ServerSentEvent = ServerSentEvent(n.toString)
+    val eventPublisher = system.actorOf(Props(new EventPublisher[Int](10, 100 millis) {
+      context.system.scheduler.scheduleOnce(250 millis, self, 0)
+      override protected def receiveEvent = {
+        case 0 => context.stop(self)
+      }
+    }))
+    val source = Source(ActorPublisher[ServerSentEvent](eventPublisher))
+    Await.result(source.runFold(Vector.empty[ServerSentEvent])(_ :+ _), 2.seconds) shouldBe Vector.fill(2)(ServerSentEvent.heartbeat)
+  }
 }

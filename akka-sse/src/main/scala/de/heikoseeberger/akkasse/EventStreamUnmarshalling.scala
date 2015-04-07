@@ -33,7 +33,7 @@ object EventStreamUnmarshalling extends EventStreamUnmarshalling
  * Mixing in this trait lets an `akka.http.model.HttpEntity`
  * with a `text/event-stream` media type be unmarshallable to an `akka.stream.scaladsl.Source[ServerSentEvent]`.
  *
- * ``Attention``: An implicit `scala.concurrent.ExecutionContext` has to be in scope!
+ * '''Attention''': An implicit scala.concurrent.ExecutionContext` has to be in scope!
  */
 trait EventStreamUnmarshalling {
 

@@ -34,11 +34,11 @@ private object ServerSentEventParser {
     val valuesByField = content
       .split(LF)
       .toVector
-      .collect { case linePattern(field, value) if field == Data || field == Event => field -> value }
+      .collect { case linePattern(field @ (Data | Event), value) => field -> value }
       .groupBy(_._1)
     val data = valuesByField.getOrElse(Data, Vector.empty).map(_._2).mkString(LF)
     val event = valuesByField.getOrElse(Event, Vector.empty).lastOption.map(_._2)
-    if (data.isEmpty) None else Some(ServerSentEvent(data, event))
+    ServerSentEvent(data, event)
   }
 }
 
@@ -79,10 +79,7 @@ private final class ServerSentEventParser(maxSize: Int) extends StatefulStage[By
           val content = buffer.slice(0, size).utf8String
           buffer = buffer.drop(size)
           nextPossibleMatch -= size
-          parseServerSentEvent(content) match {
-            case Some(event) => parse(events :+ event)
-            case None        => parse(events)
-          }
+          parse(events :+ parseServerSentEvent(content))
         } else {
           nextPossibleMatch += 1
           parse(events)

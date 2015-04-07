@@ -35,6 +35,10 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |event: Only the last event should be considered
                      |event: message 2 event
                      |
+                     |data:
+                     |
+                     |event: message 4 event
+                     |
                      |data: incomplete message
                      |""".stripMargin
       val events = Source(input.split(f"%n").map(s => ByteString(s + "\n"))(breakOut))
@@ -42,7 +46,9 @@ class ServerSentEventParserSpec extends BaseSpec {
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(
         ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
-        ServerSentEvent("message 2", "message 2 event")
+        ServerSentEvent("message 2", "message 2 event"),
+        ServerSentEvent.heartbeat,
+        ServerSentEvent("", "message 4 event")
       )
     }
   }

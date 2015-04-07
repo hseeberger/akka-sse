@@ -22,6 +22,11 @@ import scala.annotation.tailrec
 object ServerSentEvent {
 
   /**
+   * An "empty" [[ServerSentEvent]] that can be used as a heartbeat.
+   */
+  implicit def heartbeat: ServerSentEvent = new ServerSentEvent("")
+
+  /**
    * Creates a [[ServerSentEvent]] with defined event type.
    * @param data data which may span multiple lines
    * @param eventType event type, must not contain \n or \r
@@ -30,6 +35,7 @@ object ServerSentEvent {
 
   /**
    * Java API.
+   *
    * Creates a [[ServerSentEvent]] without event type.
    * @param data data which may span multiple lines
    */
@@ -37,6 +43,7 @@ object ServerSentEvent {
 
   /**
    * Java API.
+   *
    * Creates a [[ServerSentEvent]] with event type.
    * @param data data which may span multiple lines
    * @param eventType event type, must not contain \n or \r
@@ -59,7 +66,7 @@ object ServerSentEvent {
 
 /**
  * Representation of a Server-Sent Event.
- * @param data data which may span multiple lines
+ * @param data data which may be empty or span multiple lines
  * @param eventType optional event type, must not contain \n or \r
  */
 final case class ServerSentEvent(data: String, eventType: Option[String] = None) {
@@ -69,14 +76,14 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
   require(eventType.forall(_.forall(c => c != '\n' && c != '\r')), "Event type must not contain \\n or \\r!")
 
   /**
-   * Convert to an `akka.util.ByteString`
+   * Converts to an `akka.util.ByteString`
    * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    * @return message converted to UTF-8 encoded `akka.util.ByteString`
    */
   def toByteString: ByteString = ByteString(toString, "UTF-8")
 
   /**
-   * Convert to a `java.lang.String`
+   * Converts to a `java.lang.String`
    * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    * @return message converted to `java.lang.String`
    */
@@ -105,6 +112,6 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
     //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
     // Why 7? "event:" + \n == 7 chars
     val builder = new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + eventType.fold(0)(_.length + 7)))
-    addData(addEvent(builder)).toString()
+    addData(addEvent(builder)).toString
   }
 }

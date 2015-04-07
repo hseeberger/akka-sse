@@ -24,7 +24,6 @@ import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.{ EventStreamUnmarshalling, ServerSentEvent }
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 object TimeClient extends EventStreamUnmarshalling {
 
@@ -35,10 +34,7 @@ object TimeClient extends EventStreamUnmarshalling {
 
     Source.single(Get())
       .via(Http().outgoingConnection("127.0.0.1", 9000))
-      .mapAsync(xxx => Unmarshal(xxx).to[Source[ServerSentEvent, Unit]])
-      .runForeach(_.map(serverSentEventToDateTime).runForeach(println))
+      .mapAsync(Unmarshal(_).to[Source[ServerSentEvent, Unit]])
+      .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
   }
-
-  private def serverSentEventToDateTime(event: ServerSentEvent): LocalTime =
-    LocalTime.parse(event.data, DateTimeFormatter.ISO_LOCAL_TIME)
 }

@@ -18,6 +18,9 @@ package de.heikoseeberger.akkasse
 
 import akka.http.model.MediaType
 
+/**
+ * Media types for Server-Sent Events.
+ */
 object MediaTypes {
 
   /**

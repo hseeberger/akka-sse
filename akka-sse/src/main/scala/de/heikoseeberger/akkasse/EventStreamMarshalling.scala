@@ -30,10 +30,10 @@ import scala.concurrent.ExecutionContext
 object EventStreamMarshalling extends EventStreamMarshalling
 
 /**
- * Importing [[EventStreamMarshalling.toResponseMarshaller]] lets an `akka.stream.scaladsl.Source` of
+ * Mixing in this trait lets an `akka.stream.scaladsl.Source` of
  * [[ServerSentEvent]]s be marshallable to an `akka.http.model.HttpResponse`.
  *
- * ``Attention``: An implicit `scala.concurrent.ExecutionContext` has to be in scope!
+ * '''Attention''': An implicit `scala.concurrent.ExecutionContext` has to be in scope!
  */
 trait EventStreamMarshalling {
 
