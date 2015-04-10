@@ -16,27 +16,46 @@
 
 package de.heikoseeberger.akkasse
 
+import akka.actor.ReceiveTimeout
 import akka.stream.actor.{ ActorPublisher, ActorPublisherMessage }
+import scala.concurrent.duration.Duration
 
 /**
- * Base class for an actor publishing events. Concrete subclasses must implement [[receiveEvent]] which becomes part of
+ * Base class for an actor publishing events.
+ *
+ * Concrete subclasses must implement [[receiveEvent]] which becomes part of
  * the initial behavior, i.e. gets called by the provided [[receive]] implementation. Typically `receiveEvent` would
  * be implemented simply be invoking [[onEvent]] which fist appends the received event (message) to the buffer which
  * is limited by the `bufferSize` parameter and then publishes the buffered events up to the total demand if this
- * publisher is active. `ActorPublisherMessage.Request` is handled by publishing the buffered events up to the requested
- * demand and other `ActorPublisherMessage`s (e.g. `Cancel`) stop this actor.
+ * publisher is active.
+ *
+ * `ActorPublisherMessage.Request` is handled by publishing the buffered events up to the requested demand and
+ * other `ActorPublisherMessage`s (e.g. `Cancel`) stop this actor.
+ *
+ * If the `heartbeatInterval` is defined, a [[ServerSentEvent.heartbeat]] will be published if no other event has
+ * been received within that interval.
+ *
+ * '''Attention''': An implicit view A => ServerSentEvent` has to be in scope!
+ *
  * @param bufferSize the maximum number of events (messages) to be buffered
+ * @param heartbeatInterval the interval for heartbeats; if `Undefined`, which is the default, no heartbeats are published
  */
-abstract class EventPublisher[A](bufferSize: Int) extends ActorPublisher[A] {
+abstract class EventPublisher[A: ToServerSentEvent](bufferSize: Int, heartbeatInterval: Duration = Duration.Undefined)
+    extends ActorPublisher[ServerSentEvent] {
+
+  private val toServerSentEvent = implicitly[ToServerSentEvent[A]]
 
   private var events = Vector.empty[A]
+
+  context.setReceiveTimeout(heartbeatInterval)
 
   /**
    * Receive events via [[onEvent]] and `ActorPublisherMessage`s.
    */
   final override def receive = receiveEvent.orElse {
-    case ActorPublisherMessage.Request(demand) => publish(demand)
-    case msg: ActorPublisherMessage            => context.stop(self)
+    case ActorPublisherMessage.Request(demand)         => publish(demand)
+    case msg: ActorPublisherMessage                    => context.stop(self)
+    case ReceiveTimeout if isActive && totalDemand > 0 => onNext(ServerSentEvent.heartbeat)
   }
 
   /**
@@ -53,8 +72,8 @@ abstract class EventPublisher[A](bufferSize: Int) extends ActorPublisher[A] {
   }
 
   private def publish(demand: Long) = {
-    val (requested, remaining) = events.splitAt(demand.toInt)
-    requested.foreach(onNext)
-    events = remaining
+    val (requestedEvents, remainingEvents) = events.splitAt(demand.toInt)
+    requestedEvents.foreach(toServerSentEvent.andThen(onNext))
+    events = remainingEvents
   }
 }

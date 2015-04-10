@@ -22,26 +22,33 @@ import scala.annotation.tailrec
 object ServerSentEvent {
 
   /**
+   * An "empty" [[ServerSentEvent]] that can be used as a heartbeat.
+   */
+  implicit def heartbeat: ServerSentEvent = new ServerSentEvent("")
+
+  /**
    * Creates a [[ServerSentEvent]] with defined event type.
    * @param data data which may span multiple lines
-   * @param event event type, must not contain \n or \r
+   * @param eventType event type, must not contain \n or \r
    */
-  def apply(data: String, event: String) = new ServerSentEvent(data, Some(event))
+  def apply(data: String, eventType: String): ServerSentEvent = new ServerSentEvent(data, Some(eventType))
 
   /**
    * Java API.
+   *
    * Creates a [[ServerSentEvent]] without event type.
    * @param data data which may span multiple lines
    */
-  def create(data: String) = new ServerSentEvent(data)
+  def create(data: String): ServerSentEvent = new ServerSentEvent(data)
 
   /**
    * Java API.
+   *
    * Creates a [[ServerSentEvent]] with event type.
    * @param data data which may span multiple lines
-   * @param event event type, must not contain \n or \r
+   * @param eventType event type, must not contain \n or \r
    */
-  def create(data: String, event: String) = new ServerSentEvent(data, Some(event))
+  def create(data: String, eventType: String): ServerSentEvent = new ServerSentEvent(data, Some(eventType))
 
   // Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
   // We want powers of two both because they typically work better with the allocator,
@@ -58,18 +65,25 @@ object ServerSentEvent {
 }
 
 /**
- * Reprsentation of a Server-Sent Event.
- * @param data data which may span multiple lines
+ * Representation of a Server-Sent Event.
+ * @param data data which may be empty or span multiple lines
  * @param eventType optional event type, must not contain \n or \r
  */
 final case class ServerSentEvent(data: String, eventType: Option[String] = None) {
 
   import ServerSentEvent._
 
-  require(eventType.forall(_.forall(c => c != '\n' && c != '\r')), "Event must not contain \\n or \\r!")
+  require(eventType.forall(_.forall(c => c != '\n' && c != '\r')), "Event type must not contain \\n or \\r!")
 
   /**
-   * Convert to a `java.lang.String`
+   * Converts to an `akka.util.ByteString`
+   * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   * @return message converted to UTF-8 encoded `akka.util.ByteString`
+   */
+  def toByteString: ByteString = ByteString(toString, "UTF-8")
+
+  /**
+   * Converts to a `java.lang.String`
    * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    * @return message converted to `java.lang.String`
    */
@@ -85,8 +99,8 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
         }
       builder.append(label)
       addLine(index) match {
-        case -1    => builder.append('\n')
-        case index => addLines(builder, label, s, index)
+        case -1 => builder.append('\n')
+        case i  => addLines(builder, label, s, i)
       }
     }
     def addData(builder: StringBuilder) = addLines(builder, "data:", data, 0).append('\n')
@@ -98,13 +112,6 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
     //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
     // Why 7? "event:" + \n == 7 chars
     val builder = new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + eventType.fold(0)(_.length + 7)))
-    addData(addEvent(builder)).toString()
+    addData(addEvent(builder)).toString
   }
-
-  /**
-   * Convert to an `akka.util.ByteString`
-   * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-   * @return message converted to UTF-8 encoded `akka.util.ByteString`
-   */
-  def toByteString = ByteString(toString, "UTF-8")
 }

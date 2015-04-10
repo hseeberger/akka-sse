@@ -27,9 +27,9 @@ class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling {
   "A source of elements which can be viewed as ServerSentEvents" should {
 
     "be marshallable to a HTTP response" in {
-      implicit def intToServerSentEvent(n: Int): ServerSentEvent = ServerSentEvent(n.toString)
+      def intToServerSentEvent(n: Int): ServerSentEvent = ServerSentEvent(n.toString)
       val elements = 1 to 666
-      val marshallable = Source(elements): ToResponseMarshallable
+      val marshallable = Source(elements).map(intToServerSentEvent): ToResponseMarshallable
       val response = marshallable(HttpRequest()).flatMap {
         _.entity
           .dataBytes

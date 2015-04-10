@@ -23,9 +23,9 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
 
   "Creating a ServerSentEvent" should {
 
-    "throw an IllegalArgumentException if the event contains a \n or \r character" in {
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event\n")
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event\revent")
+    "throw an IllegalArgumentException if the event type contains a \n or \r character" in {
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event-type\n")
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event-type\revent-type")
     }
   }
 
@@ -41,9 +41,9 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
       event.toString shouldBe "data:line1\ndata:line2\ndata:\n\n"
     }
 
-    "return multiple data lines and an event line for a multi-line message with a defined event" in {
-      val event = ServerSentEvent("line1\nline2", "evt")
-      event.toString shouldBe "event:evt\ndata:line1\ndata:line2\n\n"
+    "return multiple data lines and an event line for a multi-line message with a defined event type" in {
+      val event = ServerSentEvent("line1\nline2", "event-type")
+      event.toString shouldBe "event:event-type\ndata:line1\ndata:line2\n\n"
     }
   }
 

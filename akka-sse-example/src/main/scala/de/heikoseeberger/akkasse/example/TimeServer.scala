@@ -16,31 +16,42 @@
 
 package de.heikoseeberger.akkasse.example
 
-import akka.actor.ActorSystem
+import akka.actor.{ ActorSystem, Props }
 import akka.http.Http
 import akka.http.server.Directives
-import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
+import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.Source
-import de.heikoseeberger.akkasse.{ EventStreamMarshalling, ServerSentEvent }
+import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
+import de.heikoseeberger.akkasse.{ EventPublisher, EventStreamMarshalling, ServerSentEvent }
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.{ Duration, DurationInt }
+import scala.concurrent.duration.DurationInt
 
 object TimeServer extends Directives with EventStreamMarshalling {
+
+  private class TimeEventPublisher extends EventPublisher[LocalTime](10, 1 second) {
+
+    import context.dispatcher
+
+    context.system.scheduler.schedule(2 seconds, 2 seconds, self, "now")
+
+    override protected def receiveEvent = {
+      case "now" => onEvent(LocalTime.now())
+    }
+  }
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
     implicit val mat = ActorFlowMaterializer()
     import system.dispatcher
-    Http().bindAndHandle(route, "127.0.0.1", 9000)
+    Http().bindAndHandle(route(system), "127.0.0.1", 9000)
   }
 
-  private implicit def dateTimeToServerSentEvent(dateTime: LocalTime): ServerSentEvent =
-    ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(dateTime))
+  private def route(system: ActorSystem)(implicit ec: ExecutionContext, mat: FlowMaterializer) = get {
+    complete(Source(ActorPublisher[ServerSentEvent](system.actorOf(Props(new TimeEventPublisher)))))
+  }
 
-  private def route(implicit ec: ExecutionContext, mat: FlowMaterializer) =
-    get {
-      complete(Source(Duration.Zero, 2 seconds, None).map(_ => LocalTime.now()))
-    }
+  private implicit def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent =
+    ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(time))
 }

@@ -23,8 +23,7 @@ import scala.concurrent.ExecutionContext
 
 /**
  * Importing [[EventStreamUnmarshalling.fromEntityUnmarshaller]] lets an `akka.http.model.HttpEntity`
- * with a `text/event-stream` media type be unmarshallable to an `akka.stream.scaladsl.Source[A]`
- * if `A` can be viewed as [[ServerSentEvent]].
+ * with a `text/event-stream` media type be unmarshallable to an `akka.stream.scaladsl.Source[ServerSentEvent]`.
  *
  * ``Attention``: An implicit `scala.concurrent.ExecutionContext` has to be in scope!
  */
@@ -32,21 +31,15 @@ object EventStreamUnmarshalling extends EventStreamUnmarshalling
 
 /**
  * Mixing in this trait lets an `akka.http.model.HttpEntity`
- * with a `text/event-stream` media type be unmarshallable to an `akka.stream.scaladsl.Source[A]`
- * if `A` can be viewed as [[ServerSentEvent]].
+ * with a `text/event-stream` media type be unmarshallable to an `akka.stream.scaladsl.Source[ServerSentEvent]`.
  *
- * ``Attention``: An implicit `scala.concurrent.ExecutionContext` has to be in scope!
+ * '''Attention''': An implicit scala.concurrent.ExecutionContext` has to be in scope!
  */
 trait EventStreamUnmarshalling {
 
-  type ToA[A] = ServerSentEvent => A
-
-  implicit final def fromEntityUnmarshaller[A: ToA](implicit ec: ExecutionContext): FromEntityUnmarshaller[Source[A, Unit]] = {
-    val unmarshaller: FromEntityUnmarshaller[Source[A, Unit]] = Unmarshaller { entity =>
-      FastFuture.successful(entity
-        .dataBytes
-        .transform(() => new ServerSentEventParser(1048576)) // TODO Really hard-coded?
-        .map(implicitly[ToA[A]]))
+  implicit final def fromEntityUnmarshaller(implicit ec: ExecutionContext): FromEntityUnmarshaller[Source[ServerSentEvent, Unit]] = {
+    val unmarshaller: FromEntityUnmarshaller[Source[ServerSentEvent, Unit]] = Unmarshaller { entity =>
+      FastFuture.successful(entity.dataBytes.transform(() => new ServerSentEventParser(1048576))) // TODO Really hard-coded?
     }
     unmarshaller.forContentTypes(MediaTypes.`text/event-stream`)
   }
