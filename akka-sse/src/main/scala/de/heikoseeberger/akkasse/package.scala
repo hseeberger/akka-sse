@@ -16,6 +16,17 @@
 
 package de.heikoseeberger
 
+import akka.stream.scaladsl.Source
+
 package object akkasse {
+
+  /**
+   * View from `A` to [[ServerSentEvent]].
+   */
   type ToServerSentEvent[A] = A => ServerSentEvent
+
+  /**
+   * Just a slightly nicer name for `Source[ServerSentEvent, Unit]`.
+   */
+  type ServerSentEventSource = Source[ServerSentEvent, Unit]
 }

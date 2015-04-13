@@ -37,8 +37,8 @@ object EventStreamUnmarshalling extends EventStreamUnmarshalling
  */
 trait EventStreamUnmarshalling {
 
-  implicit final def fromEntityUnmarshaller(implicit ec: ExecutionContext): FromEntityUnmarshaller[Source[ServerSentEvent, Unit]] = {
-    val unmarshaller: FromEntityUnmarshaller[Source[ServerSentEvent, Unit]] = Unmarshaller { entity =>
+  implicit final def fromEntityUnmarshaller(implicit ec: ExecutionContext): FromEntityUnmarshaller[ServerSentEventSource] = {
+    val unmarshaller: FromEntityUnmarshaller[ServerSentEventSource] = Unmarshaller { entity =>
       FastFuture.successful(entity.dataBytes.transform(() => new ServerSentEventParser(1048576))) // TODO Really hard-coded?
     }
     unmarshaller.forContentTypes(MediaTypes.`text/event-stream`)
