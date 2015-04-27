@@ -60,7 +60,7 @@ object Build extends AutoPlugin {
     ) ++
     // Git settings
     List(
-      GitPlugin.autoImport.git.baseVersion := "0.11.0"
+      GitPlugin.autoImport.git.baseVersion := "0.12.0"
     ) ++
     // Header settings
     List(
