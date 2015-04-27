@@ -35,7 +35,7 @@ import scala.concurrent.duration.Duration
  * If the `heartbeatInterval` is defined, a [[ServerSentEvent.heartbeat]] will be published if no other event has
  * been received within that interval.
  *
- * '''Attention''': An implicit view A => ServerSentEvent` has to be in scope!
+ * '''Attention''': An implicit view `A => ServerSentEvent` has to be in scope!
  *
  * @param bufferSize the maximum number of events (messages) to be buffered
  * @param heartbeatInterval the interval for heartbeats; if `Undefined`, which is the default, no heartbeats are published

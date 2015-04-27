@@ -16,8 +16,8 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.marshalling.ToResponseMarshallable
-import akka.http.model.HttpRequest
+import akka.http.scaladsl.marshalling.ToResponseMarshallable
+import akka.http.scaladsl.model.HttpRequest
 import akka.stream.scaladsl.Source
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt

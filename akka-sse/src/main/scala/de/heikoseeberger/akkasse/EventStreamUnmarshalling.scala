@@ -16,9 +16,8 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
-import akka.http.util.FastFuture
-import akka.stream.scaladsl.Source
+import akka.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
+import akka.http.scaladsl.util.FastFuture
 import scala.concurrent.ExecutionContext
 
 /**
@@ -33,13 +32,20 @@ object EventStreamUnmarshalling extends EventStreamUnmarshalling
  * Mixing in this trait lets an `akka.http.model.HttpEntity`
  * with a `text/event-stream` media type be unmarshallable to an `akka.stream.scaladsl.Source[ServerSentEvent]`.
  *
- * '''Attention''': An implicit scala.concurrent.ExecutionContext` has to be in scope!
+ * '''Attention''': An implicit `scala.concurrent.ExecutionContext` has to be in scope!
  */
 trait EventStreamUnmarshalling {
 
+  private val maxSize = bufferMaxSize
+
+  /**
+   * The maximum buffer size for the event Stream parser; 8KiB by default.
+   */
+  def bufferMaxSize: Int = 8192
+
   implicit final def fromEntityUnmarshaller(implicit ec: ExecutionContext): FromEntityUnmarshaller[ServerSentEventSource] = {
     val unmarshaller: FromEntityUnmarshaller[ServerSentEventSource] = Unmarshaller { entity =>
-      FastFuture.successful(entity.dataBytes.transform(() => new ServerSentEventParser(1048576))) // TODO Really hard-coded?
+      FastFuture.successful(entity.dataBytes.transform(() => new ServerSentEventParser(maxSize)))
     }
     unmarshaller.forContentTypes(MediaTypes.`text/event-stream`)
   }
