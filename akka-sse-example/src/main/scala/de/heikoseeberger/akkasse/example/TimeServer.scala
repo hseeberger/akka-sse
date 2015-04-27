@@ -17,8 +17,8 @@
 package de.heikoseeberger.akkasse.example
 
 import akka.actor.{ ActorSystem, Props }
-import akka.http.Http
-import akka.http.server.Directives
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.Source
 import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }

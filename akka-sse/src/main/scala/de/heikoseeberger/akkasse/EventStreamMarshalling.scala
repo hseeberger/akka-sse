@@ -16,8 +16,8 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.marshalling.{ Marshaller, ToResponseMarshaller }
-import akka.http.model.{ HttpCharsets, HttpEntity, HttpResponse }
+import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
+import akka.http.scaladsl.model.{ HttpCharsets, HttpEntity, HttpResponse }
 import akka.stream.scaladsl.Source
 import scala.concurrent.ExecutionContext
 
@@ -39,7 +39,7 @@ trait EventStreamMarshalling {
 
   implicit final def toResponseMarshaller[A](implicit ec: ExecutionContext): ToResponseMarshaller[Source[ServerSentEvent, A]] =
     Marshaller.withFixedCharset(MediaTypes.`text/event-stream`, HttpCharsets.`UTF-8`) { messages =>
-      val data = messages.mapMaterialized(_ => ()).map(_.toByteString) // TODO mapMaterialized might become obsolete once https://github.com/akka/akka/issues/16933 is fixed!
+      val data = messages.map(_.toByteString)
       HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, data))
     }
 }

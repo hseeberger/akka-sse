@@ -35,7 +35,7 @@ object Build extends AutoPlugin {
                     </developer>
                   </developers>,
       scalaVersion := Version.scala,
-      crossScalaVersions := Version.crossScala,
+      crossScalaVersions := List(Version.scala, "2.10.5"),
       scalacOptions ++= List(
         "-unchecked",
         "-deprecation",
