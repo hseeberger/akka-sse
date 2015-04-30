@@ -34,7 +34,7 @@ object TimeClient extends EventStreamUnmarshalling {
 
     Source.single(Get())
       .via(Http().outgoingConnection("127.0.0.1", 9000))
-      .mapAsync(1, Unmarshal(_).to[ServerSentEventSource])
+      .mapAsync(1)(Unmarshal(_).to[ServerSentEventSource])
       .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
   }
 }
