@@ -1,5 +1,3 @@
-import bintray.{ Keys => BintrayKeys }
-import bintray.Plugin.bintrayPublishSettings
 import com.typesafe.sbt.GitPlugin
 import com.typesafe.sbt.SbtPgp
 import com.typesafe.sbt.SbtScalariform
@@ -65,7 +63,5 @@ object Build extends AutoPlugin {
     // Header settings
     List(
       HeaderPlugin.autoImport.headers := Map("scala" -> Apache2_0("2015", "Heiko Seeberger"))
-    ) ++
-    // Bintray settings
-    bintrayPublishSettings
+    )
 }
