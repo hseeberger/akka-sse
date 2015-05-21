@@ -16,7 +16,7 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.stream.stage.{ Context, StatefulStage }
+import akka.stream.stage.{ PushStage, Context, StatefulStage }
 import akka.util.ByteString
 import scala.annotation.tailrec
 
@@ -30,10 +30,8 @@ private object ServerSentEventParser {
 
   private val linePattern = """([^:]+): ?(.*)""".r
 
-  private def parseServerSentEvent(content: String) = {
-    val valuesByField = content
-      .split(LF)
-      .toVector
+  private def parseServerSentEvent(lines: Seq[String]) = {
+    val valuesByField = lines
       .collect { case linePattern(field @ (Data | Event), value) => field -> value }
       .groupBy(_._1)
     val data = valuesByField.getOrElse(Data, Vector.empty).map(_._2).mkString(LF)
@@ -42,49 +40,21 @@ private object ServerSentEventParser {
   }
 }
 
-private final class ServerSentEventParser(maxSize: Int) extends StatefulStage[ByteString, ServerSentEvent] {
-
+private final class ServerSentEventParser(maxSize: Int) extends PushStage[String, ServerSentEvent] {
   import ServerSentEventParser._
 
-  private val separator = ByteString("\n\n", "UTF-8")
+  private var lines = Vector.empty[String]
 
-  private val firstSeparatorByte = separator.head
-
-  private var buffer = ByteString.empty
-
-  private var nextPossibleMatch = 0
-
-  override def initial = new State {
-
-    override def onPush(bytes: ByteString, ctx: Context[ServerSentEvent]) = {
-      buffer ++= bytes
-      if (buffer.size > maxSize)
+  override def onPush(line: String, ctx: Context[ServerSentEvent]) =
+    if (line.nonEmpty) {
+      lines :+= line
+      if (lines.map(_.length).sum > maxSize)
         ctx.fail(new IllegalStateException(s"maxSize of $maxSize exceeded!"))
       else
-        emit(parse().iterator, ctx)
+        ctx.pull()
+    } else {
+      val event = parseServerSentEvent(lines)
+      lines = Vector.empty
+      ctx.push(event)
     }
-
-    @tailrec
-    private def parse(events: Vector[ServerSentEvent] = Vector.empty): Vector[ServerSentEvent] = {
-      val possibleMatch = buffer.indexOf(firstSeparatorByte, nextPossibleMatch)
-      if (possibleMatch == -1) {
-        nextPossibleMatch = buffer.size
-        events
-      } else {
-        val size = possibleMatch + separator.size
-        if (size > buffer.size) {
-          nextPossibleMatch = possibleMatch
-          events
-        } else if (buffer.slice(possibleMatch, size) == separator) {
-          val content = buffer.slice(0, size).utf8String
-          buffer = buffer.drop(size)
-          nextPossibleMatch -= size
-          parse(events :+ parseServerSentEvent(content))
-        } else {
-          nextPossibleMatch += 1
-          parse(events)
-        }
-      }
-    }
-  }
 }
