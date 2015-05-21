@@ -26,7 +26,7 @@ class ServerSentEventParserSpec extends BaseSpec {
 
   "A ServerSentEventParser" should {
 
-    "parse ServerSentEvents" in {
+    "parse ServerSentEvents correctly" in {
       val input = """|data: message 1 line 1
                      |data:message 1 line 2
                      |
@@ -41,7 +41,9 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |
                      |data: incomplete message
                      |""".stripMargin
-      val events = Source(input.split(f"%n").map(s => ByteString(s + "\n"))(breakOut))
+      val chunkSize = input.length / 5
+      val events = Source(input.sliding(chunkSize, chunkSize).map(ByteString(_)).toList)
+        .transform(() => new LineParser(1048576))
         .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(
@@ -50,6 +52,24 @@ class ServerSentEventParserSpec extends BaseSpec {
         ServerSentEvent.heartbeat,
         ServerSentEvent("", "message 4 event")
       )
+    }
+
+    "handle all sorts of EOL delimiters" in {
+      val input = "data: line1\ndata: line2\rdata: line3\r\n\n"
+      val events = Source.single(ByteString(input))
+        .transform(() => new LineParser(1048576))
+        .transform(() => new ServerSentEventParser(1048576))
+        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("line1\nline2\nline3"))
+    }
+
+    "work for issue 36" in {
+      val input = "data: stuff\r\ndata: more\r\ndata: extra\n\n"
+      val events = Source.single(ByteString(input))
+        .transform(() => new LineParser(1048576))
+        .transform(() => new ServerSentEventParser(1048576))
+        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff\nmore\nextra"))
     }
   }
 }
