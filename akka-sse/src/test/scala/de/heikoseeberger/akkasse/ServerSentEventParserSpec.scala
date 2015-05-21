@@ -18,7 +18,6 @@ package de.heikoseeberger.akkasse
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import scala.collection.breakOut
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 

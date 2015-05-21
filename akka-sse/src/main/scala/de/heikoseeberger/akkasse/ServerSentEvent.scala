@@ -70,9 +70,7 @@ object ServerSentEvent {
  * @param eventType optional event type, must not contain \n or \r
  */
 final case class ServerSentEvent(data: String, eventType: Option[String] = None) {
-
   import ServerSentEvent._
-
   require(eventType.forall(_.forall(c => c != '\n' && c != '\r')), "Event type must not contain \\n or \\r!")
 
   /**
@@ -80,7 +78,7 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
    * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    * @return message converted to UTF-8 encoded `akka.util.ByteString`
    */
-  def toByteString: ByteString = ByteString(toString, "UTF-8")
+  def toByteString: ByteString = ByteString(toString)
 
   /**
    * Converts to a `java.lang.String`

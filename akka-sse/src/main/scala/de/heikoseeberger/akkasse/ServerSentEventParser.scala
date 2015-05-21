@@ -16,9 +16,7 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.stream.stage.{ PushStage, Context, StatefulStage }
-import akka.util.ByteString
-import scala.annotation.tailrec
+import akka.stream.stage.{ Context, PushStage }
 
 private object ServerSentEventParser {
 

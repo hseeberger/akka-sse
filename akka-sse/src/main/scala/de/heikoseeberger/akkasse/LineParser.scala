@@ -20,7 +20,9 @@ import akka.stream.stage.{ Context, StatefulStage }
 import akka.util.ByteString
 
 private object LineParser {
+
   final val CR = '\r'.toByte
+
   final val LF = '\n'.toByte
 }
 
