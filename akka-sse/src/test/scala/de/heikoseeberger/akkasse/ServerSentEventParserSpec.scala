@@ -26,20 +26,21 @@ class ServerSentEventParserSpec extends BaseSpec {
   "A ServerSentEventParser" should {
 
     "parse ServerSentEvents correctly" in {
-      val input = """|data: message 1 line 1
-                     |data:message 1 line 2
-                     |
-                     |data: message 2
-                     |:This is a comment and must be ignored
-                     |event: Only the last event should be considered
-                     |event: message 2 event
-                     |
-                     |data:
-                     |
-                     |event: message 4 event
-                     |
-                     |data: incomplete message
-                     |""".stripMargin
+      val input = List(
+        "data: message 1 line 1",
+        "data:message 1 line 2",
+        "",
+        "data: message 2",
+        ":This is a comment and must be ignored",
+        "event: Only the last event should be considered",
+        "event: message 2 event",
+        "",
+        "data:",
+        "",
+        "event: message 4 event",
+        "",
+        "data: incomplete message",
+        "").mkString("\n")
       val chunkSize = input.length / 5
       val events = Source(input.sliding(chunkSize, chunkSize).map(ByteString(_)).toList)
         .transform(() => new LineParser(1048576))
