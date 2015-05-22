@@ -43,8 +43,8 @@ trait EventStreamUnmarshalling {
    */
   def bufferMaxSize: Int = 8192
 
-  implicit final def fromEntityUnmarshaller(implicit ec: ExecutionContext): FromEntityUnmarshaller[ServerSentEventSource] = {
-    val unmarshaller: FromEntityUnmarshaller[ServerSentEventSource] = Unmarshaller { entity =>
+  implicit final def fromEntityUnmarshaller: FromEntityUnmarshaller[ServerSentEventSource] = {
+    val unmarshaller: FromEntityUnmarshaller[ServerSentEventSource] = Unmarshaller { ec => entity =>
       FastFuture.successful(entity
         .dataBytes
         .transform(() => new LineParser(maxSize))

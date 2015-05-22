@@ -42,8 +42,8 @@ object Build extends AutoPlugin {
         "-encoding", "UTF-8"
       ),
       javacOptions ++= List(
-        "-source", "1.8",
-        "-target", "1.8"
+        "-source", "1.7",
+        "-target", "1.7"
       ),
       unmanagedSourceDirectories.in(Compile) := List(scalaSource.in(Compile).value),
       unmanagedSourceDirectories.in(Test) := List(scalaSource.in(Test).value)
