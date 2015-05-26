@@ -33,10 +33,14 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |:This is a comment and must be ignored
                      |event: Only the last event should be considered
                      |event: message 2 event
+                     |id: Only the last id should be considered
+                     |id: 42
+                     |retry: 512
                      |
                      |data:
                      |
                      |event: message 4 event
+                     |id
                      |
                      |data: incomplete message
                      |""".stripMargin
@@ -45,11 +49,12 @@ class ServerSentEventParserSpec extends BaseSpec {
         .transform(() => new LineParser(1048576))
         .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      val eventsThere = Await.result(events, 1 second)
       Await.result(events, 1 second) shouldBe Vector(
         ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
-        ServerSentEvent("message 2", "message 2 event"),
+        ServerSentEvent("message 2", "message 2 event", "42", 512),
         ServerSentEvent.heartbeat,
-        ServerSentEvent("", "message 4 event")
+        ServerSentEvent("", Some("message 4 event"), ServerSentEvent.emptyId)
       )
     }
 
@@ -60,6 +65,15 @@ class ServerSentEventParserSpec extends BaseSpec {
         .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("line1\nline2\nline3"))
+    }
+
+    "ignore unparsable retry fields" in {
+      val input = "data: stuff\nretry: ten\n\n"
+      val events = Source.single(ByteString(input))
+        .transform(() => new LineParser(1048576))
+        .transform(() => new ServerSentEventParser(1048576))
+        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff", retry = None))
     }
 
     "work for issue 36" in {

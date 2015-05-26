@@ -26,6 +26,8 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
     "throw an IllegalArgumentException if the event type contains a \n or \r character" in {
       an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event-type\n")
       an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event-type\revent-type")
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", id = Some("id\n"))
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", retry = Some(-1))
     }
   }
 
@@ -44,6 +46,21 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
     "return multiple data lines and an event line for a multi-line message with a defined event type" in {
       val event = ServerSentEvent("line1\nline2", "event-type")
       event.toString shouldBe "event:event-type\ndata:line1\ndata:line2\n\n"
+    }
+
+    "return a single id field after the data fields" in {
+      val event = ServerSentEvent("line1", eventType = None, id = Some("1"))
+      event.toString shouldBe "data:line1\nid:1\n\n"
+    }
+
+    "return a single id reset field after the data fields" in {
+      val event = ServerSentEvent("line1", eventType = None, id = ServerSentEvent.emptyId)
+      event.toString shouldBe "data:line1\nid\n\n"
+    }
+
+    "return a single retry field after the data fields" in {
+      val event = ServerSentEvent("line1", eventType = None, id = None, retry = Some(42))
+      event.toString shouldBe "data:line1\nretry:42\n\n"
     }
   }
 

@@ -22,6 +22,12 @@ import scala.annotation.tailrec
 object ServerSentEvent {
 
   /**
+   * An eventId which resets the last event ID to the empty string.
+   * Meaning no `Last-Event-ID` header will be sent in the event of a reconnection being attempted.
+   */
+  val emptyId: Option[String] = Some("")
+
+  /**
    * An "empty" [[ServerSentEvent]] that can be used as a heartbeat.
    */
   implicit def heartbeat: ServerSentEvent = new ServerSentEvent("")
@@ -32,6 +38,23 @@ object ServerSentEvent {
    * @param eventType event type, must not contain \n or \r
    */
   def apply(data: String, eventType: String): ServerSentEvent = new ServerSentEvent(data, Some(eventType))
+
+  /**
+   * Creates a [[ServerSentEvent]] with defined event type and id.
+   * @param data data which may span multiple lines
+   * @param eventType event type, must not contain \n or \r
+   * @param id event id, must not contain \n or \r
+   */
+  def apply(data: String, eventType: String, id: String): ServerSentEvent = new ServerSentEvent(data, Some(eventType), Some(id))
+
+  /**
+   * Creates a [[ServerSentEvent]] with defined event type, id and retry interval.
+   * @param data data which may span multiple lines
+   * @param eventType event type, must not contain \n or \r
+   * @param id event id, must not contain \n or \r
+   * @param retry the reconnection time in milliseconds.
+   */
+  def apply(data: String, eventType: String, id: String, retry: Int): ServerSentEvent = new ServerSentEvent(data, Some(eventType), Some(id), Some(retry))
 
   /**
    * Java API.
@@ -49,6 +72,16 @@ object ServerSentEvent {
    * @param eventType event type, must not contain \n or \r
    */
   def create(data: String, eventType: String): ServerSentEvent = new ServerSentEvent(data, Some(eventType))
+
+  /**
+   * Java API.
+   *
+   * Creates a [[ServerSentEvent]] with event type and id.
+   * @param data data which may span multiple lines
+   * @param eventType event type, must not contain \n or \r
+   * @param id event id, must not contain \n or \r
+   */
+  def create(data: String, eventType: String, id: String): ServerSentEvent = new ServerSentEvent(data, Some(eventType), Some(id))
 
   // Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
   // We want powers of two both because they typically work better with the allocator,
@@ -68,10 +101,14 @@ object ServerSentEvent {
  * Representation of a Server-Sent Event.
  * @param data data which may be empty or span multiple lines
  * @param eventType optional event type, must not contain \n or \r
+ * @param id event id, must not contain \n or \r
+ * @param retry the reconnection time in milliseconds.
  */
-final case class ServerSentEvent(data: String, eventType: Option[String] = None) {
+final case class ServerSentEvent(data: String, eventType: Option[String] = None, id: Option[String] = None, retry: Option[Int] = None) {
   import ServerSentEvent._
   require(eventType.forall(_.forall(c => c != '\n' && c != '\r')), "Event type must not contain \\n or \\r!")
+  require(id.forall(_.forall(c => c != '\n' && c != '\r')), "Id must not contain \\n or \\r!")
+  require(retry.forall(_ > 0L), "Retry must be a positive number!")
 
   /**
    * Converts to an `akka.util.ByteString`
@@ -101,15 +138,26 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None)
         case i  => addLines(builder, label, s, i)
       }
     }
-    def addData(builder: StringBuilder) = addLines(builder, "data:", data, 0).append('\n')
+    def addData(builder: StringBuilder) = addLines(builder, "data:", data, 0)
     def addEvent(builder: StringBuilder) = eventType match {
       case Some(e) => addLines(builder, "event:", e, 0)
       case None    => builder
     }
+    def addId(builder: StringBuilder) = id match {
+      case Some("") => builder.append("id\n")
+      case Some(id) => addLines(builder, "id:", id, 0)
+      case None     => builder
+    }
+    def addRetry(builder: StringBuilder) = retry match {
+      case Some(r) => addLines(builder, "retry:", r.toString, 0)
+      case None    => builder
+    }
+
     // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
     //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
     // Why 7? "event:" + \n == 7 chars
-    val builder = new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + eventType.fold(0)(_.length + 7)))
-    addData(addEvent(builder)).toString
+    // Why 17? "retry:" + \n + Integer.Max decimal places
+    val builder = new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + eventType.fold(0)(_.length + 7) + retry.fold(0)(_ + 17)))
+    addRetry(addId(addData(addEvent(builder)))).append('\n').toString
   }
 }
