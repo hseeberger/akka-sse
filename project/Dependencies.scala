@@ -4,8 +4,8 @@ object Version {
   val akka       = "2.3.11"
   val akkaHttp   = "1.0-RC3"
   val junit      = "4.12"
-  val scala      = "2.11.6"
-  val scalaCheck = "1.12.2"
+  val scala      = "2.11.7"
+  val scalaCheck = "1.12.4"
   val scalaTest  = "2.2.5"
 }
 
