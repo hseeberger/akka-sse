@@ -20,7 +20,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding.Get
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.{ EventStreamUnmarshalling, ServerSentEventSource }
 import java.time.LocalTime
@@ -29,7 +29,7 @@ object TimeClient extends EventStreamUnmarshalling {
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
-    implicit val mat = ActorFlowMaterializer()
+    implicit val mat = ActorMaterializer()
     import system.dispatcher
 
     Source.single(Get())

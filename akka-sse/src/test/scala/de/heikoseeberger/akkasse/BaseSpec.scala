@@ -17,14 +17,14 @@
 package de.heikoseeberger.akkasse
 
 import akka.actor.ActorSystem
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 
 abstract class BaseSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 
   implicit val system = ActorSystem()
   implicit val ec = system.dispatcher
-  implicit val mat = ActorFlowMaterializer()
+  implicit val mat = ActorMaterializer()
 
   override protected def afterAll() = {
     system.shutdown()
