@@ -21,7 +21,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.Source
-import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
+import akka.stream.{ ActorMaterializer, Materializer }
 import de.heikoseeberger.akkasse.{ EventPublisher, EventStreamMarshalling, ServerSentEvent }
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -43,12 +43,12 @@ object TimeServer extends Directives with EventStreamMarshalling {
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
-    implicit val mat = ActorFlowMaterializer()
+    implicit val mat = ActorMaterializer()
     import system.dispatcher
     Http().bindAndHandle(route(system), "127.0.0.1", 9000)
   }
 
-  private def route(system: ActorSystem)(implicit ec: ExecutionContext, mat: FlowMaterializer) = get {
+  private def route(system: ActorSystem)(implicit ec: ExecutionContext, mat: Materializer) = get {
     complete(Source(ActorPublisher[ServerSentEvent](system.actorOf(Props(new TimeEventPublisher)))))
   }
 
