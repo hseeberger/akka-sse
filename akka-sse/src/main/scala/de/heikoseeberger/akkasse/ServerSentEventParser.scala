@@ -26,15 +26,29 @@ private object ServerSentEventParser {
 
   private final val Event = "event"
 
+  private final val Id = "id"
+
+  private final val Retry = "retry"
+
   private val linePattern = """([^:]+): ?(.*)""".r
 
   private def parseServerSentEvent(lines: Seq[String]) = {
     val valuesByField = lines
-      .collect { case linePattern(field @ (Data | Event), value) => field -> value }
+      .collect {
+        case linePattern(field @ (Data | Event | Id | Retry), value) => field -> value
+        case Id                                                      => Id -> ""
+      }
       .groupBy(_._1)
     val data = valuesByField.getOrElse(Data, Vector.empty).map(_._2).mkString(LF)
     val event = valuesByField.getOrElse(Event, Vector.empty).lastOption.map(_._2)
-    ServerSentEvent(data, event)
+    val idField = valuesByField.getOrElse(Id, Vector.empty).lastOption.map(_._2)
+    val retry = valuesByField.getOrElse(Retry, Vector.empty).lastOption.map(_._2)
+      .flatMap {
+        s =>
+          try { Some(s.trim.toInt) }
+          catch { case _: NumberFormatException => None }
+      }
+    ServerSentEvent(data, event, idField, retry)
   }
 }
 
