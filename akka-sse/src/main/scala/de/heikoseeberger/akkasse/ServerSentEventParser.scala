@@ -36,17 +36,23 @@ private object ServerSentEventParser {
     val valuesByField = lines
       .collect {
         case linePattern(field @ (Data | Event | Id | Retry), value) => field -> value
-        case Id                                                      => Id -> ""
+        case field if field.nonEmpty                                 => field -> ""
       }
       .groupBy(_._1)
-    val data = valuesByField.getOrElse(Data, Vector.empty).map(_._2).mkString(LF)
-    val event = valuesByField.getOrElse(Event, Vector.empty).lastOption.map(_._2)
-    val idField = valuesByField.getOrElse(Id, Vector.empty).lastOption.map(_._2)
-    val retry = valuesByField.getOrElse(Retry, Vector.empty).lastOption.map(_._2)
-      .flatMap {
-        s =>
-          try { Some(s.trim.toInt) }
-          catch { case _: NumberFormatException => None }
+    def values(field: String) = valuesByField
+      .getOrElse(field, Vector.empty)
+      .map(_._2)
+    val data = values(Data).mkString(LF)
+    val event = values(Event).lastOption
+    val idField = values(Id).lastOption
+    val retry = values(Retry)
+      .lastOption
+      .flatMap { s =>
+        try
+          Some(s.trim.toInt)
+        catch {
+          case _: NumberFormatException => None
+        }
       }
     ServerSentEvent(data, event, idField, retry)
   }

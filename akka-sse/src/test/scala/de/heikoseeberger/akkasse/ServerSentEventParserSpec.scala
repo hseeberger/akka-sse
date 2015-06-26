@@ -40,6 +40,9 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |data:
                      |
                      |event: message 4 event
+                     |id:
+                     |
+                     |data
                      |id
                      |
                      |data: incomplete message
@@ -54,7 +57,8 @@ class ServerSentEventParserSpec extends BaseSpec {
         ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
         ServerSentEvent("message 2", "message 2 event", "42", 512),
         ServerSentEvent.heartbeat,
-        ServerSentEvent("", Some("message 4 event"), ServerSentEvent.emptyId)
+        ServerSentEvent("", Some("message 4 event"), ServerSentEvent.emptyId),
+        ServerSentEvent("", None, ServerSentEvent.emptyId)
       )
     }
 
