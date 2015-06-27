@@ -152,7 +152,6 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None,
       case Some(r) => addLines(builder, "retry:", r.toString, 0)
       case None    => builder
     }
-
     // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
     //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
     // Why 7? "event:" + \n == 7 chars

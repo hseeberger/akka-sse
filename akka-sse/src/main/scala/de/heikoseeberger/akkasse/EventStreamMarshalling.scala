@@ -37,7 +37,7 @@ object EventStreamMarshalling extends EventStreamMarshalling
  */
 trait EventStreamMarshalling {
 
-  implicit final def toResponseMarshaller[A](implicit ec: ExecutionContext): ToResponseMarshaller[Source[ServerSentEvent, A]] =
+  implicit final def toResponseMarshaller(implicit ec: ExecutionContext): ToResponseMarshaller[Source[ServerSentEvent, Any]] =
     Marshaller.withFixedCharset(MediaTypes.`text/event-stream`, HttpCharsets.`UTF-8`) { messages =>
       val data = messages.map(_.toByteString)
       HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, data))

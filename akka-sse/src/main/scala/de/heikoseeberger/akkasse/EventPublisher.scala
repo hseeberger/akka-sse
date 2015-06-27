@@ -26,8 +26,8 @@ import scala.concurrent.duration.Duration
  * Concrete subclasses must implement [[receiveEvent]] which becomes part of
  * the initial behavior, i.e. gets called by the provided [[receive]] implementation. Typically `receiveEvent` would
  * be implemented simply be invoking [[onEvent]] which fist appends the received event (message) to the buffer which
- * is limited by the `bufferSize` parameter and then publishes the buffered events up to the total demand if this
- * publisher is active.
+ * is limited by the `bufferSize` paramete – old events are discarded – and then publishes the buffered events up to the
+ * total demand if this publisher is active.
  *
  * `ActorPublisherMessage.Request` is handled by publishing the buffered events up to the requested demand and
  * other `ActorPublisherMessage`s (e.g. `Cancel`) stop this actor.
@@ -38,7 +38,8 @@ import scala.concurrent.duration.Duration
  * '''Attention''': An implicit view `A => ServerSentEvent` has to be in scope!
  *
  * @param bufferSize the maximum number of events (messages) to be buffered
- * @param heartbeatInterval the interval for heartbeats; if `Undefined`, which is the default, no heartbeats are published
+ * @param heartbeatInterval the interval for heartbeats; if `Undefined`, which is the default, no heartbeats are
+ *                          published
  */
 abstract class EventPublisher[A: ToServerSentEvent](bufferSize: Int, heartbeatInterval: Duration = Duration.Undefined)
     extends ActorPublisher[ServerSentEvent] {

@@ -16,8 +16,10 @@
 
 package de.heikoseeberger.akkasse
 
+import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
 import akka.http.scaladsl.util.FastFuture
+import akka.stream.scaladsl.Source
 import scala.concurrent.ExecutionContext
 
 /**
@@ -44,13 +46,14 @@ trait EventStreamUnmarshalling {
    */
   protected def bufferMaxSize: Int = 8192
 
-  implicit final def fromEntityUnmarshaller: FromEntityUnmarshaller[ServerSentEventSource] = {
-    val unmarshaller: FromEntityUnmarshaller[ServerSentEventSource] = Unmarshaller { ec => entity =>
-      FastFuture.successful(entity
+  implicit final def fromEntityUnmarshaller: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
+    def source(entity: HttpEntity) = {
+      val source = entity
         .dataBytes
         .transform(() => new LineParser(maxSize))
-        .transform(() => new ServerSentEventParser(maxSize)))
+        .transform(() => new ServerSentEventParser(maxSize))
+      FastFuture.successful(source)
     }
-    unmarshaller.forContentTypes(MediaTypes.`text/event-stream`)
+    Unmarshaller(_ => source).forContentTypes(MediaTypes.`text/event-stream`)
   }
 }

@@ -16,7 +16,7 @@
 
 package de.heikoseeberger.akkasse.example
 
-import akka.actor.{ ActorSystem, Props }
+import akka.actor.{ ActorRef, ActorSystem, Props }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives
 import akka.stream.actor.ActorPublisher
@@ -28,13 +28,16 @@ import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
-object TimeServer extends Directives with EventStreamMarshalling {
+object TimeServer {
 
-  private class TimeEventPublisher extends EventPublisher[LocalTime](10, 1 second) {
+  object TimeEventPublisher {
+    def props: Props = Props(new TimeEventPublisher)
+  }
 
+  class TimeEventPublisher extends EventPublisher[LocalTime](10, 1.second) {
     import context.dispatcher
 
-    context.system.scheduler.schedule(2 seconds, 2 seconds, self, "now")
+    context.system.scheduler.schedule(2.seconds, 2.seconds, self, "now")
 
     override protected def receiveEvent = {
       case "now" => onEvent(LocalTime.now())
@@ -48,10 +51,18 @@ object TimeServer extends Directives with EventStreamMarshalling {
     Http().bindAndHandle(route(system), "127.0.0.1", 9000)
   }
 
-  private def route(system: ActorSystem)(implicit ec: ExecutionContext, mat: Materializer) = get {
-    complete(Source(ActorPublisher[ServerSentEvent](system.actorOf(Props(new TimeEventPublisher)))))
+  def route(system: ActorSystem)(implicit ec: ExecutionContext, mat: Materializer) = {
+    import Directives._
+    import EventStreamMarshalling._
+    get {
+      complete {
+        val timeEventPublisher = system.actorOf(TimeEventPublisher.props)
+        Source(ActorPublisher[ServerSentEvent](timeEventPublisher))
+      }
+    }
   }
 
-  private implicit def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent =
-    ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(time))
+  implicit def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent = ServerSentEvent(
+    DateTimeFormatter.ISO_LOCAL_TIME.format(time)
+  )
 }

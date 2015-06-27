@@ -24,9 +24,4 @@ package object akkasse {
    * View from `A` to [[ServerSentEvent]].
    */
   type ToServerSentEvent[A] = A => ServerSentEvent
-
-  /**
-   * Just a slightly nicer name for `Source[ServerSentEvent, Any]`.
-   */
-  type ServerSentEventSource = Source[ServerSentEvent, Any]
 }
