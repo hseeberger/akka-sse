@@ -5,7 +5,7 @@
 
 akka-sse adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource) (SSE) – a lightweight and standardized technology for pushing notifications from a HTTP server to a HTTP client – to akka-http. In contrast to [WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way communication, SSE only allows for one-way communication from the server to the client. If that's all you need, SSE offers advantages, because it's much simpler and relies on HTTP only.
 
-The latest release of akka-sse is 0.14.0 and depends on akka-http 1.0-RC4.
+The latest release of akka-sse is 1.0.0-RC1 and depends on akka-http 1.0-RC4.
 
 ## Getting akka-sse
 
@@ -17,7 +17,7 @@ akka-sse is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= List(
-  "de.heikoseeberger" %% "akka-sse" % "0.14.0",
+  "de.heikoseeberger" %% "akka-sse" % "1.0.0-RC1",
   ...
 )
 ```
