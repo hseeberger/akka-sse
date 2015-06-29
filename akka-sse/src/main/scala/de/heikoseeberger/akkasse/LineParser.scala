@@ -26,7 +26,7 @@ private object LineParser {
   final val LF = '\n'.toByte
 }
 
-private final class LineParser(maxSize: Int) extends StatefulStage[ByteString, String] {
+private final class LineParser(maxLineSize: Int) extends StatefulStage[ByteString, String] {
   import LineParser._
 
   private var buffer = ByteString.empty
@@ -34,10 +34,13 @@ private final class LineParser(maxSize: Int) extends StatefulStage[ByteString, S
   override def initial = new State {
     override def onPush(bytes: ByteString, ctx: Context[String]) = {
       buffer ++= bytes
-      if (buffer.size > maxSize)
-        ctx.fail(new IllegalStateException(s"maxSize of $maxSize exceeded!"))
+
+      val parsedLines = lines().iterator
+
+      if (buffer.size > maxLineSize)
+        ctx.fail(new IllegalStateException(s"maxSize of $maxLineSize exceeded!"))
       else
-        emit(lines().iterator, ctx)
+        emit(parsedLines, ctx)
     }
 
     private def lines(): Vector[String] = {
