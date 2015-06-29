@@ -38,20 +38,26 @@ object EventStreamUnmarshalling extends EventStreamUnmarshalling
  */
 trait EventStreamUnmarshalling {
 
-  private val maxSize = bufferMaxSize
+  private val _maxEventSize = maxEventSize
+
+  private val _maxLineSize = maxLineSize
 
   /**
-   * The maximum buffer size for the event Stream parser; 8KiB by default. It bounds the line size of individual
-   * events, i.e. the number of bytes before a line break.
+   * The maximum size of a server-sent event for the event Stream parser; 8KiB by default.
    */
-  protected def bufferMaxSize: Int = 8192
+  protected def maxEventSize: Int = 8192
+
+  /**
+   * The maximum size of a line for the event Stream parser; 8KiB by default.
+   */
+  protected def maxLineSize: Int = 8192
 
   implicit final def fromEntityUnmarshaller: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
     def source(entity: HttpEntity) = {
       val source = entity
         .dataBytes
-        .transform(() => new LineParser(maxSize))
-        .transform(() => new ServerSentEventParser(maxSize))
+        .transform(() => new LineParser(_maxLineSize))
+        .transform(() => new ServerSentEventParser(_maxEventSize))
       FastFuture.successful(source)
     }
     Unmarshaller(_ => source).forContentTypes(MediaTypes.`text/event-stream`)

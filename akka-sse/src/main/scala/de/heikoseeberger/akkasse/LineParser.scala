@@ -34,11 +34,9 @@ private final class LineParser(maxLineSize: Int) extends StatefulStage[ByteStrin
   override def initial = new State {
     override def onPush(bytes: ByteString, ctx: Context[String]) = {
       buffer ++= bytes
-
       val parsedLines = lines().iterator
-
       if (buffer.size > maxLineSize)
-        ctx.fail(new IllegalStateException(s"maxSize of $maxLineSize exceeded!"))
+        ctx.fail(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
       else
         emit(parsedLines, ctx)
     }
