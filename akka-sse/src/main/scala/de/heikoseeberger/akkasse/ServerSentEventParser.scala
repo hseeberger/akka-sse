@@ -58,7 +58,7 @@ private object ServerSentEventParser {
   }
 }
 
-private final class ServerSentEventParser(maxLineSize: Int) extends PushStage[String, ServerSentEvent] {
+private final class ServerSentEventParser(maxEventSize: Int) extends PushStage[String, ServerSentEvent] {
   import ServerSentEventParser._
 
   private var lines = Vector.empty[String]
@@ -66,8 +66,8 @@ private final class ServerSentEventParser(maxLineSize: Int) extends PushStage[St
   override def onPush(line: String, ctx: Context[ServerSentEvent]) =
     if (line.nonEmpty) {
       lines :+= line
-      if (lines.map(_.length).sum > maxLineSize)
-        ctx.fail(new IllegalStateException(s"maxSize of $maxLineSize exceeded!"))
+      if (lines.map(_.length).sum > maxEventSize)
+        ctx.fail(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
       else
         ctx.pull()
     } else {
