@@ -30,7 +30,7 @@ object ServerSentEvent {
   /**
    * An "empty" [[ServerSentEvent]] that can be used as a heartbeat.
    */
-  implicit def heartbeat: ServerSentEvent = new ServerSentEvent("")
+  val heartbeat: ServerSentEvent = new ServerSentEvent("")
 
   /**
    * Creates a [[ServerSentEvent]] with defined event type.
