@@ -1,7 +1,6 @@
 name := "akka-sse-example"
 
 libraryDependencies ++= List(
-  Library.akkaActor,
   Library.akkaHttp
 )
 
