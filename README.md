@@ -3,9 +3,14 @@
 [![Join the chat at https://gitter.im/hseeberger/akka-sse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hseeberger/akka-sse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/hseeberger/akka-sse.svg?branch=master)](https://travis-ci.org/hseeberger/akka-sse)
 
-akka-sse adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource) (SSE) – a lightweight and standardized technology for pushing notifications from a HTTP server to a HTTP client – to akka-http. In contrast to [WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way communication, SSE only allows for one-way communication from the server to the client. If that's all you need, SSE offers advantages, because it's much simpler and relies on HTTP only.
+akka-sse adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource) (SSE) – a lightweight and standardized
+technology for pushing notifications from a HTTP server to a HTTP client – to akka-http. In contrast to
+[WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way communication, SSE only allows for one-way
+communication from the server to the client. If that's all you need, SSE offers advantages, because it's much simpler
+and relies on HTTP only.
 
-The latest release of akka-sse is 1.0.0 and depends on akka-http 1.0.
+The latest release of akka-sse is version 1.0.0 which depends on akka-http 1.0. There's also version 1.1.0 in the
+making, intermediate releases are available on Bintray.
 
 ## Getting akka-sse
 
@@ -24,18 +29,21 @@ libraryDependencies ++= List(
 
 ## Usage – basics
 
-akka-sse models server-sent events as `Source[ServerSentEvent, Any]` with `Source` from Akka Streams and `ServerSentEvent` from akka-sse. `ServerSentEvent` is a case class with the following fields:
+akka-sse models server-sent events as `Source[ServerSentEvent, Any]` with `Source` from Akka Streams and
+`ServerSentEvent` from akka-sse. `ServerSentEvent` is a case class with the following fields:
 
 - `data` of type `String`: payload, may be empty
-- `eventType` of type `Option[String]` with default `None`: handler to be invoked, e.g. "message" (default), "added", etc.
+- `eventType` of type `Option[String]` with default `None`: handler to be invoked, e.g. "message", "added", etc.
 - `id` of type `Option[String]` with default `None`: sets the client's last event ID string
 - `retry` of type `Option[Int]` with default `None`: set the client's reconnection time
 
-More info about the above fields can be found in the  [Server-Sent Events specification](http://www.w3.org/TR/eventsource).
+More info about the above fields can be found in the  [specification](http://www.w3.org/TR/eventsource).
 
 ## Usage – server-side
 
-In order to produce server-sent events on the server as a response to a HTTP request, you have to bring the implicit `toResponseMarshaller` defined by the `EventStreamMarshalling` trait or object into scope where you define your respective route. Then you complete the HTTP request with a `Source[ServerSentEvent]`:
+In order to produce server-sent events on the server as a response to a HTTP request, you have to bring the implicit
+`toResponseMarshaller` defined by the `EventStreamMarshalling` trait or object into scope where you define your
+respective route. Then you complete the HTTP request with a `Source[ServerSentEvent]`:
 
 ``` scala
 object TimeServer {
@@ -47,45 +55,33 @@ object TimeServer {
     import EventStreamMarshalling._
     get {
       complete {
-        val timeEventPublisher = system.actorOf(TimeEventPublisher.props)
-        Source(ActorPublisher[ServerSentEvent](timeEventPublisher))
+        Source(2.seconds, 2.seconds, Unit)
+          .map(_ => LocalTime.now())
+          .map(dateTimeToServerSentEvent)
       }
     }
   }
 }
 ```
 
-Like shown above, in order to ease creating a `Source[ServerSentEvent]` you can extend an `EventPublisher[A: ToServerSentEvent]` which itself extends `ActorPublisher[ServerSentEvent]`. As you can see from the context bound on the type parameter of `EventPublisher`, an implicit value of `ToServerSentEvent[A]`, which translates to `A => ServerSentEvent`, has to be in scope – in other words there has to be an implicit conversion from `A` to `ServerSentEvent`. Within an `EventPublisher` a server-sent event is published – given that the stream is active and there is demand – by calling `onEvent`:
+Notice that since version 1.1.0 `EventPublisher` has been deprecated. Instead create a `Source[ServerSentEvent]` from a
+source of your domain events and `map` a function transforming these to `ServerSentEvent`s over it as shown above.
+
+If you need periodic heartbeats connect the `Source[ServerSentEvents]` to a flow created with `WithHeartbeats`:
 
 ``` scala
-object TimeServer {
-
-  object TimeEventPublisher {
-    def props: Props = Props(new TimeEventPublisher)
-  }
-
-  class TimeEventPublisher extends EventPublisher[LocalTime](10, 1.second) {
-    import context.dispatcher
-
-    context.system.scheduler.schedule(2.seconds, 2.seconds, self, "now")
-
-    override protected def receiveEvent = {
-      case "now" => onEvent(LocalTime.now())
-    }
-  }
-
-  implicit def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent = ServerSentEvent(
-    DateTimeFormatter.ISO_LOCAL_TIME.format(time)
-
-  ...
+Source(2.seconds, 2.seconds, Unit)
+  .map(_ => LocalTime.now())
+  .map(dateTimeToServerSentEvent)
+  .via(WithHeartbeats(1.second))
 }
 ```
 
-An `EventPublisher` is parameterized with a `bufferSize` of type `Int` and a `heartbeatInterval` of type `Duration` with a default value of `Duration.Undefined`. The `bufferSize` is needed, because as long as the stream is not active or when there's no demand from downstream, the `EventPublisher` buffers events. If the `bufferSize` is reached and a new event received, the oldest event is discarded. If the `heartbeatInterval` is defined, a `ServerSentEvent.heartbeat` will be published if no other event has been received within that interval.
-
 ## Usage – client-side
 
-In order to consume server-sent events on the client as part of a HTTP response, you have to bring the implicit `fromEntityUnmarshaller` defined by the `EventStreamUnmarshalling` trait or object into scope where you define your response handling.
+In order to consume server-sent events on the client as part of a HTTP response, you have to bring the implicit
+`fromEntityUnmarshaller` defined by the `EventStreamUnmarshalling` trait or object into scope where you define your
+response handling.
 
 ``` scala
 object TimeClient {

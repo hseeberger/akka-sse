@@ -20,13 +20,13 @@ import akka.stream.scaladsl.{ FlowGraph, Source, Zip }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-class HeartbeatsSpec extends BaseSpec {
+class WithHeartbeatsSpec extends BaseSpec {
 
   "Heartbeats" should {
     "emit elements from the attached source and heartbeats" in {
       val events = Source() { implicit builder =>
         import FlowGraph.Implicits._
-        val ticks = builder.add(Source(50.millis, 100.millis, None))
+        val ticks = builder.add(Source(100.millis, 200.millis, None))
         val numbers = builder.add(Source(() => Iterator.from(1)))
         val zip = builder.add(Zip[None.type, Int]())
         ticks ~> zip.in0
@@ -34,11 +34,11 @@ class HeartbeatsSpec extends BaseSpec {
         zip.out.map(pair => intToServerSentEvent(pair._2)).outlet
       }
       val result = events
-        .via(Heartbeats(100.millis))
-        .take(20)
+        .via(WithHeartbeats(200.millis))
+        .take(10)
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       val actual = Await.result(result, 2.seconds)
-      val expected = 1.to(10).to[Vector].flatMap { n => Vector(intToServerSentEvent(n), ServerSentEvent.heartbeat) }
+      val expected = 1.to(5).to[Vector].flatMap { n => Vector(intToServerSentEvent(n), ServerSentEvent.heartbeat) }
       actual shouldBe expected
     }
   }
