@@ -16,8 +16,6 @@
 
 package de.heikoseeberger
 
-import akka.stream.scaladsl.Source
-
 package object akkasse {
 
   /**

@@ -20,7 +20,6 @@ import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.Source
-import scala.concurrent.ExecutionContext
 
 /**
  * Importing [[EventStreamUnmarshalling.fromEntityUnmarshaller]] lets an `akka.http.model.HttpEntity`

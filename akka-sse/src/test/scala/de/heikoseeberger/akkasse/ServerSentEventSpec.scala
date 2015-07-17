@@ -22,7 +22,6 @@ import org.scalatest.{ Matchers, WordSpec }
 class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPropertyChecks {
 
   "Creating a ServerSentEvent" should {
-
     "throw an IllegalArgumentException if the event type contains a \n or \r character" in {
       an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event-type\n")
       an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event-type\revent-type")
@@ -32,7 +31,6 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
   }
 
   "Calling toString" should {
-
     "return a single data line for single line message" in {
       val event = ServerSentEvent("line")
       event.toString shouldBe "data:line\n\n"
@@ -65,7 +63,6 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
   }
 
   "Calling toByteString" should {
-
     "return a correctly converted ByteString" in {
       forAll { (data: String) =>
         val event = ServerSentEvent(data)

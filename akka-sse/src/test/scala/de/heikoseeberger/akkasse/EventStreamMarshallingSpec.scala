@@ -18,16 +18,15 @@ package de.heikoseeberger.akkasse
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpRequest
-import akka.stream.scaladsl.Source
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.scaladsl.{ FlowGraph, Source, Zip }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling {
+class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling with EventStreamUnmarshalling {
 
   "A source of elements which can be viewed as ServerSentEvents" should {
-
     "be marshallable to a HTTP response" in {
-      def intToServerSentEvent(n: Int): ServerSentEvent = ServerSentEvent(n.toString)
       val elements = 1 to 666
       val marshallable = Source(elements).map(intToServerSentEvent): ToResponseMarshallable
       val response = marshallable(HttpRequest()).flatMap {
@@ -36,9 +35,33 @@ class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling {
           .map(_.utf8String)
           .runFold(Vector.empty[String])(_ :+ _)
       }
-      val actual = Await.result(response, 1 second)
+      val actual = Await.result(response, 1.second)
       val expected = elements.map(n => ServerSentEvent(n.toString).toString)
       actual shouldBe expected
     }
+
+    "remain the same after marshalling and unmarshalling" in {
+      val elements = 1 to 666
+      val expected = Source(elements).map(intToServerSentEvent)
+      val marshallable = expected: ToResponseMarshallable
+      val actual = Await.result(
+        marshallable(HttpRequest()).flatMap(response => Unmarshal(response).to[Source[ServerSentEvent, Any]]),
+        1.second
+      )
+      val expectedAndActual = Source() { implicit builder =>
+        import FlowGraph.Implicits._
+        val zip = builder.add(Zip[ServerSentEvent, ServerSentEvent]())
+        expected ~> zip.in0
+        actual ~> zip.in1
+        zip.out
+      }
+      val isExpectedEqualActual = Await.result(
+        expectedAndActual.runFold(true) { case (acc, (l, r)) => acc && (l == r) },
+        1.second
+      )
+      isExpectedEqualActual shouldBe true
+    }
   }
+
+  def intToServerSentEvent(n: Int): ServerSentEvent = ServerSentEvent(n.toString)
 }

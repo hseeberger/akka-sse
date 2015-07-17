@@ -24,7 +24,6 @@ import scala.concurrent.duration.DurationInt
 class ServerSentEventParserSpec extends BaseSpec {
 
   "A ServerSentEventParser" should {
-
     "parse ServerSentEvents correctly" in {
       val input = """|data: message 1 line 1
                      |data:message 1 line 2
@@ -52,7 +51,6 @@ class ServerSentEventParserSpec extends BaseSpec {
         .transform(() => new LineParser(1048576))
         .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      val eventsThere = Await.result(events, 1 second)
       Await.result(events, 1 second) shouldBe Vector(
         ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
         ServerSentEvent("message 2", "message 2 event", "42", 512),
