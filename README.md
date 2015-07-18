@@ -1,20 +1,20 @@
-# akka-sse #
+# Akka SSE #
 
 [![Join the chat at https://gitter.im/hseeberger/akka-sse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hseeberger/akka-sse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/hseeberger/akka-sse.svg?branch=master)](https://travis-ci.org/hseeberger/akka-sse)
 
-akka-sse adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource) (SSE) – a lightweight and standardized
+Akka SSE adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource) (SSE) – a lightweight and standardized
 technology for pushing notifications from a HTTP server to a HTTP client – to akka-http. In contrast to
 [WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way communication, SSE only allows for one-way
 communication from the server to the client. If that's all you need, SSE offers advantages, because it's much simpler
 and relies on HTTP only.
 
-The latest release of akka-sse is version 1.0.0 which depends on akka-http 1.0. There's also version 1.1.0 in the
-making, intermediate releases are available on Bintray.
+The latest release of Akka SSE is version 1.0.0 which depends on akka-http 1.0. There's also version 1.1.0 in the
+making, intermediate releases are available on Bintray, the latest is 1.1.0-4dd887e10bad23189baf2a331a1986bae915bc07.
 
-## Getting akka-sse
+## Getting Akka SSE
 
-akka-sse is published to Bintray and Maven Central.
+Akka SSE is published to Bintray and Maven Central.
 
 ``` scala
 // All releases including intermediate ones are published here,
@@ -23,14 +23,15 @@ resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= List(
   "de.heikoseeberger" %% "akka-sse" % "1.0.0",
+//"de.heikoseeberger" %% "akka-sse" % "1.1.0-4dd887e10bad23189baf2a331a1986bae915bc07",
   ...
 )
 ```
 
 ## Usage – basics
 
-akka-sse models server-sent events as `Source[ServerSentEvent, Any]` with `Source` from Akka Streams and
-`ServerSentEvent` from akka-sse. `ServerSentEvent` is a case class with the following fields:
+Akka SSE models server-sent events as `Source[ServerSentEvent, Any]` with `Source` from Akka Streams and
+`ServerSentEvent` from Akka SSE. `ServerSentEvent` is a case class with the following fields:
 
 - `data` of type `String`: payload, may be empty
 - `eventType` of type `Option[String]` with default `None`: handler to be invoked, e.g. "message", "added", etc.
