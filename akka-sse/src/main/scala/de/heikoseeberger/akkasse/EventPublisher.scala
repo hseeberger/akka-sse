@@ -41,6 +41,7 @@ import scala.concurrent.duration.Duration
  * @param heartbeatInterval the interval for heartbeats; if `Undefined`, which is the default, no heartbeats are
  *                          published
  */
+@deprecated("Use a `Source[<domain events>]`, `map` it to `Source[ServerSentEvent]` and optionally use `via(WithHeartbeats(<duration>))` instead!", "1.1.0")
 abstract class EventPublisher[A: ToServerSentEvent](bufferSize: Int, heartbeatInterval: Duration = Duration.Undefined)
     extends ActorPublisher[ServerSentEvent] {
 

@@ -22,27 +22,13 @@ import akka.http.scaladsl.server.Directives
 import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.Source
 import akka.stream.{ ActorMaterializer, Materializer }
-import de.heikoseeberger.akkasse.{ EventPublisher, EventStreamMarshalling, ServerSentEvent }
+import de.heikoseeberger.akkasse.{ WithHeartbeats, EventPublisher, EventStreamMarshalling, ServerSentEvent }
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
 object TimeServer {
-
-  object TimeEventPublisher {
-    def props: Props = Props(new TimeEventPublisher)
-  }
-
-  class TimeEventPublisher extends EventPublisher[LocalTime](10, 1.second) {
-    import context.dispatcher
-
-    context.system.scheduler.schedule(2.seconds, 2.seconds, self, "now")
-
-    override protected def receiveEvent = {
-      case "now" => onEvent(LocalTime.now())
-    }
-  }
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
@@ -56,13 +42,15 @@ object TimeServer {
     import EventStreamMarshalling._
     get {
       complete {
-        val timeEventPublisher = system.actorOf(TimeEventPublisher.props)
-        Source(ActorPublisher[ServerSentEvent](timeEventPublisher))
+        Source(2.seconds, 2.seconds, Unit)
+          .map(_ => LocalTime.now())
+          .map(dateTimeToServerSentEvent)
+          .via(WithHeartbeats(1.second))
       }
     }
   }
 
-  implicit def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent = ServerSentEvent(
+  def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent = ServerSentEvent(
     DateTimeFormatter.ISO_LOCAL_TIME.format(time)
   )
 }

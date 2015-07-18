@@ -22,8 +22,8 @@ import scala.annotation.tailrec
 object ServerSentEvent {
 
   /**
-   * An eventId which resets the last event ID to the empty string.
-   * Meaning no `Last-Event-ID` header will be sent in the event of a reconnection being attempted.
+   * An eventId which resets the last event ID to the empty string, meaning no `Last-Event-ID` header will be sent
+   * in the event of a reconnection being attempted.
    */
   val emptyId: Option[String] = Some("")
 
@@ -33,14 +33,16 @@ object ServerSentEvent {
   val heartbeat: ServerSentEvent = new ServerSentEvent("")
 
   /**
-   * Creates a [[ServerSentEvent]] with defined event type.
+   * Creates a [[ServerSentEvent]] with event type.
+   *
    * @param data data which may span multiple lines
    * @param eventType event type, must not contain \n or \r
    */
   def apply(data: String, eventType: String): ServerSentEvent = new ServerSentEvent(data, Some(eventType))
 
   /**
-   * Creates a [[ServerSentEvent]] with defined event type and id.
+   * Creates a [[ServerSentEvent]] with event type and id.
+   *
    * @param data data which may span multiple lines
    * @param eventType event type, must not contain \n or \r
    * @param id event id, must not contain \n or \r
@@ -48,7 +50,8 @@ object ServerSentEvent {
   def apply(data: String, eventType: String, id: String): ServerSentEvent = new ServerSentEvent(data, Some(eventType), Some(id))
 
   /**
-   * Creates a [[ServerSentEvent]] with defined event type, id and retry interval.
+   * Creates a [[ServerSentEvent]] with event type, id and retry interval.
+   *
    * @param data data which may span multiple lines
    * @param eventType event type, must not contain \n or \r
    * @param id event id, must not contain \n or \r
@@ -60,6 +63,7 @@ object ServerSentEvent {
    * Java API.
    *
    * Creates a [[ServerSentEvent]] without event type.
+   *
    * @param data data which may span multiple lines
    */
   def create(data: String): ServerSentEvent = new ServerSentEvent(data)
@@ -68,6 +72,7 @@ object ServerSentEvent {
    * Java API.
    *
    * Creates a [[ServerSentEvent]] with event type.
+   *
    * @param data data which may span multiple lines
    * @param eventType event type, must not contain \n or \r
    */
@@ -77,6 +82,7 @@ object ServerSentEvent {
    * Java API.
    *
    * Creates a [[ServerSentEvent]] with event type and id.
+   *
    * @param data data which may span multiple lines
    * @param eventType event type, must not contain \n or \r
    * @param id event id, must not contain \n or \r
@@ -99,6 +105,7 @@ object ServerSentEvent {
 
 /**
  * Representation of a Server-Sent Event.
+ *
  * @param data data which may be empty or span multiple lines
  * @param eventType optional event type, must not contain \n or \r
  * @param id event id, must not contain \n or \r
@@ -111,15 +118,16 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None,
   require(retry.forall(_ > 0L), "Retry must be a positive number!")
 
   /**
-   * Converts to an `akka.util.ByteString`
-   * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   * Converts to an `akka.util.ByteString` according to the
+   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   *
    * @return message converted to UTF-8 encoded `akka.util.ByteString`
    */
   def toByteString: ByteString = ByteString(toString)
 
   /**
-   * Converts to a `java.lang.String`
-   * according to the [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   * Converts to a `java.lang.String` according to the
+   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    * @return message converted to `java.lang.String`
    */
   override def toString = {

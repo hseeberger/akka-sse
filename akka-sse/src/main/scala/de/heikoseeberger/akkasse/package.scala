@@ -21,5 +21,6 @@ package object akkasse {
   /**
    * View from `A` to [[ServerSentEvent]].
    */
+  @deprecated("See deprecation of `EventPublisher`", "1.1.0")
   type ToServerSentEvent[A] = A => ServerSentEvent
 }
