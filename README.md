@@ -9,8 +9,7 @@ technology for pushing notifications from a HTTP server to a HTTP client – to 
 communication from the server to the client. If that's all you need, SSE offers advantages, because it's much simpler
 and relies on HTTP only.
 
-The latest release of Akka SSE is version 1.0.0 which depends on akka-http 1.0. There's also version 1.1.0 in the
-making, intermediate releases are available on Bintray, the latest is 1.1.0-4dd887e10bad23189baf2a331a1986bae915bc07.
+The latest release of Akka SSE is version 1.1.0 which depends on akka-http 1.0.
 
 ## Getting Akka SSE
 
@@ -22,8 +21,7 @@ Akka SSE is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= List(
-  "de.heikoseeberger" %% "akka-sse" % "1.0.0",
-//"de.heikoseeberger" %% "akka-sse" % "1.1.0-4dd887e10bad23189baf2a331a1986bae915bc07",
+  "de.heikoseeberger" %% "akka-sse" % "1.1.0",
   ...
 )
 ```
