@@ -41,7 +41,7 @@ object TimeServer {
     import EventStreamMarshalling._
     get {
       complete {
-        Source.tick(2.seconds, 2.seconds, Unit)
+        Source.tick(2.seconds, 2.seconds, ())
           .map(_ => LocalTime.now())
           .map(dateTimeToServerSentEvent)
           .via(WithHeartbeats(1.second))

@@ -54,7 +54,7 @@ object TimeServer {
     import EventStreamMarshalling._
     get {
       complete {
-        Source(2.seconds, 2.seconds, Unit)
+        Source.tick(2.seconds, 2.seconds, ())
           .map(_ => LocalTime.now())
           .map(dateTimeToServerSentEvent)
       }
@@ -66,7 +66,7 @@ object TimeServer {
 If you need periodic heartbeats connect the `Source[ServerSentEvents]` to a flow created with `WithHeartbeats`:
 
 ``` scala
-Source(2.seconds, 2.seconds, Unit)
+Source.tick(2.seconds, 2.seconds, Unit)
   .map(_ => LocalTime.now())
   .map(dateTimeToServerSentEvent)
   .via(WithHeartbeats(1.second))
