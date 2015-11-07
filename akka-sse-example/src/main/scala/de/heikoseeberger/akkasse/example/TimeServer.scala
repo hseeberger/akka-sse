@@ -16,13 +16,12 @@
 
 package de.heikoseeberger.akkasse.example
 
-import akka.actor.{ ActorRef, ActorSystem, Props }
+import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives
-import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.Source
 import akka.stream.{ ActorMaterializer, Materializer }
-import de.heikoseeberger.akkasse.{ WithHeartbeats, EventPublisher, EventStreamMarshalling, ServerSentEvent }
+import de.heikoseeberger.akkasse.{ EventStreamMarshalling, ServerSentEvent, WithHeartbeats }
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
