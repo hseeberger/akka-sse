@@ -14,7 +14,7 @@ lazy val akkaSseExample = project
 
 name := "root"
 
-unmanagedSourceDirectories in Compile := Nil
-unmanagedSourceDirectories in Test := Nil
+unmanagedSourceDirectories.in(Compile) := Nil
+unmanagedSourceDirectories.in(Test) := Nil
 
 publishArtifact := false
