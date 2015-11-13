@@ -5,7 +5,7 @@ object Version {
   val akkaHttp   = "2.0-M1"
   val junit      = "4.12"
   val scala      = "2.11.7"
-  val scalaCheck = "1.12.4"
+  val scalaCheck = "1.12.5"
   val scalaTest  = "2.2.5"
 }
 
