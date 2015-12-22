@@ -16,8 +16,8 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.stream.{ Attributes, Outlet, FlowShape, Inlet }
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
+import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.util.ByteString
 
 private object LineParser {
@@ -30,45 +30,44 @@ private object LineParser {
 private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[ByteString, String]] {
   import LineParser._
 
-  private var buffer = ByteString.empty
+  private val in = Inlet[ByteString]("line-parser.in")
 
-  private val in = Inlet[ByteString]("LineParser.in")
-  private val out = Outlet[String]("LineParser.out")
+  private val out = Outlet[String]("line-parser.out")
+
   override val shape = FlowShape.of(in, out)
 
-  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
-    new GraphStageLogic(shape) {
-      setHandler(in, new InHandler {
-        override def onPush(): Unit = {
-          buffer ++= grab(in)
-          val parsedLines = lines()
-          if (buffer.size > maxLineSize)
-            failStage(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
-          else
-            emitMultiple(out, parsedLines)
+  private var buffer = ByteString.empty
+
+  override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
+    setHandler(in, new InHandler {
+      override def onPush() = {
+        def parseLines(): Vector[String] = {
+          val (lines, nrOfConsumedBytes, _) = (buffer :+ 0)
+            .zipWithIndex
+            .sliding(2)
+            .collect {
+              case Seq((CR, n), (LF, _)) => (n, 2)
+              case Seq((CR, n), _)       => (n, 1)
+              case Seq((LF, n), _)       => (n, 1)
+            }
+            .foldLeft((Vector.empty[String], 0, false)) {
+              case ((slices, from, false), (until, k)) => (slices :+ buffer.slice(from, until).utf8String, until + k, k == 2)
+              case ((slices, _, _), (until, _))        => (slices, until + 1, false)
+            }
+          buffer = buffer.drop(nrOfConsumedBytes)
+          lines
         }
-      })
-
-      setHandler(out, new OutHandler {
-        override def onPull(): Unit =
-          pull(in)
-      })
-
-      private def lines(): Vector[String] = {
-        val (lines, nrOfConsumedBytes, _) = (buffer :+ 0)
-          .zipWithIndex
-          .sliding(2)
-          .collect {
-            case Seq((CR, n), (LF, _)) => (n, 2)
-            case Seq((CR, n), _)       => (n, 1)
-            case Seq((LF, n), _)       => (n, 1)
-          }
-          .foldLeft((Vector.empty[String], 0, false)) {
-            case ((slices, from, false), (until, k)) => (slices :+ buffer.slice(from, until).utf8String, until + k, k == 2)
-            case ((slices, _, _), (until, _))        => (slices, until + 1, false)
-          }
-        buffer = buffer.drop(nrOfConsumedBytes)
-        lines
+        buffer ++= grab(in)
+        val parsedLines = parseLines()
+        if (buffer.size > maxLineSize)
+          failStage(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
+        else
+          emitMultiple(out, parsedLines)
       }
-    }
+    })
+
+    setHandler(out, new OutHandler {
+      override def onPull() = pull(in)
+    })
+  }
 }
