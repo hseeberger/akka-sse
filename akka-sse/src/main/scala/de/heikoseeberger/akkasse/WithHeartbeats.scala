@@ -17,7 +17,7 @@
 package de.heikoseeberger.akkasse
 
 import akka.stream.FlowShape
-import akka.stream.scaladsl.{ Flow, FlowGraph, MergePreferred, Source }
+import akka.stream.scaladsl.{ Flow, GraphDSL, Source, MergePreferred }
 import scala.concurrent.duration.FiniteDuration
 
 /**
@@ -32,8 +32,8 @@ object WithHeartbeats {
    * @return with-heartbeats flow to be connected to a `Source[ServerSentEvents]`
    */
   def apply(interval: FiniteDuration): Flow[ServerSentEvent, ServerSentEvent, Unit] =
-    Flow.fromGraph(FlowGraph.create() { implicit builder =>
-      import FlowGraph.Implicits._
+    Flow.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
       val heartbeats = builder.add(Source.tick(interval, interval, ServerSentEvent.heartbeat))
       val merge = builder.add(MergePreferred[ServerSentEvent](1))
       heartbeats ~> merge.in(0)

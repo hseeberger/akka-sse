@@ -55,7 +55,7 @@ trait EventStreamUnmarshalling {
     def source(entity: HttpEntity) = {
       val source = entity
         .dataBytes
-        .transform(() => new LineParser(_maxLineSize))
+        .via(new LineParser(_maxLineSize))
         .transform(() => new ServerSentEventParser(_maxEventSize))
       FastFuture.successful(source)
     }

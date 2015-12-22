@@ -27,9 +27,9 @@ object MediaTypes {
    * Media type for Server-Sent Events as required by the
    * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
    */
-  val `text/event-stream`: MediaType = MediaType.custom(
+  val `text/event-stream`: MediaType.WithFixedCharset = MediaType.customWithFixedCharset(
     "text",
     "event-stream",
-    MediaType.Encoding.Fixed(HttpCharsets.`UTF-8`)
+    HttpCharsets.`UTF-8`
   )
 }

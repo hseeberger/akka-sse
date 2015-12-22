@@ -20,7 +20,7 @@ import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.SourceShape
-import akka.stream.scaladsl.{ FlowGraph, Source, Zip }
+import akka.stream.scaladsl.{ GraphDSL, Source, Zip }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
@@ -49,8 +49,8 @@ class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling wi
         marshallable(HttpRequest()).flatMap(response => Unmarshal(response).to[Source[ServerSentEvent, Any]]),
         1.second
       )
-      val expectedAndActual = Source.fromGraph(FlowGraph.create() { implicit builder =>
-        import FlowGraph.Implicits._
+      val expectedAndActual = Source.fromGraph(GraphDSL.create() { implicit builder =>
+        import GraphDSL.Implicits._
         val zip = builder.add(Zip[ServerSentEvent, ServerSentEvent]())
         expected ~> zip.in0
         actual ~> zip.in1
