@@ -17,7 +17,7 @@
 package de.heikoseeberger.akkasse
 
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
-import akka.http.scaladsl.model.{ HttpCharsets, HttpEntity, HttpResponse }
+import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
 import akka.stream.scaladsl.Source
 import scala.concurrent.ExecutionContext
 
@@ -38,7 +38,7 @@ object EventStreamMarshalling extends EventStreamMarshalling
 trait EventStreamMarshalling {
 
   implicit final def toResponseMarshaller(implicit ec: ExecutionContext): ToResponseMarshaller[Source[ServerSentEvent, Any]] =
-    Marshaller.withFixedCharset(MediaTypes.`text/event-stream`, HttpCharsets.`UTF-8`) { messages =>
+    Marshaller.withFixedContentType(MediaTypes.`text/event-stream`) { messages =>
       val data = messages.map(_.toByteString)
       HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, data))
     }

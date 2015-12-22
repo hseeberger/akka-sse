@@ -28,7 +28,7 @@ class LineParserSpec extends BaseSpec {
     "parse lines terminated with either CR, LF or CRLF" in {
       val input = "line1\nline2\rline3\r\n\n"
       val lines = Source.single(ByteString(input))
-        .transform(() => new LineParser(1048576))
+        .via(new LineParser(1048576))
         .runFold(Vector.empty[String])(_ :+ _)
       Await.result(lines, 1 second) shouldBe Vector("line1", "line2", "line3", "")
     }
@@ -36,7 +36,7 @@ class LineParserSpec extends BaseSpec {
     "ignore a trailing non-terminated line" in {
       val input = "line1\nline2\rline3\r\n\nincomplete"
       val lines = Source.single(ByteString(input))
-        .transform(() => new LineParser(1048576))
+        .via(new LineParser(1048576))
         .runFold(Vector.empty[String])(_ :+ _)
       Await.result(lines, 1 second) shouldBe Vector("line1", "line2", "line3", "")
     }

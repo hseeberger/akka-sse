@@ -17,7 +17,7 @@
 package de.heikoseeberger.akkasse
 
 import akka.stream.SourceShape
-import akka.stream.scaladsl.{ FlowGraph, Source, Zip }
+import akka.stream.scaladsl.{ GraphDSL, Source, Zip }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
@@ -25,10 +25,11 @@ class WithHeartbeatsSpec extends BaseSpec {
 
   "Heartbeats" should {
     "emit elements from the attached source and heartbeats" in {
-      val events = Source.fromGraph(FlowGraph.create() { implicit builder =>
-        import FlowGraph.Implicits._
+      val events = Source.fromGraph(GraphDSL.create() { implicit builder =>
+        import GraphDSL.Implicits._
+
         val ticks = builder.add(Source.tick(100.millis, 200.millis, None))
-        val numbers = builder.add(Source(() => Iterator.from(1)))
+        val numbers = builder.add(Source.fromIterator(() => Iterator.from(1)))
         val zip = builder.add(Zip[None.type, Int]())
         ticks ~> zip.in0
         numbers ~> zip.in1

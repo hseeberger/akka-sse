@@ -48,7 +48,7 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |""".stripMargin
       val chunkSize = input.length / 5
       val events = Source(input.sliding(chunkSize, chunkSize).map(ByteString(_)).toList)
-        .transform(() => new LineParser(1048576))
+        .via(new LineParser(1048576))
         .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(
@@ -63,7 +63,7 @@ class ServerSentEventParserSpec extends BaseSpec {
     "handle all sorts of EOL delimiters" in {
       val input = "data: line1\ndata: line2\rdata: line3\r\n\n"
       val events = Source.single(ByteString(input))
-        .transform(() => new LineParser(1048576))
+        .via(new LineParser(1048576))
         .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("line1\nline2\nline3"))
@@ -72,7 +72,7 @@ class ServerSentEventParserSpec extends BaseSpec {
     "ignore unparsable retry fields" in {
       val input = "data: stuff\nretry: ten\n\n"
       val events = Source.single(ByteString(input))
-        .transform(() => new LineParser(1048576))
+        .via(new LineParser(1048576))
         .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff", retry = None))
@@ -81,7 +81,7 @@ class ServerSentEventParserSpec extends BaseSpec {
     "work for issue 36" in {
       val input = "data: stuff\r\ndata: more\r\ndata: extra\n\n"
       val events = Source.single(ByteString(input))
-        .transform(() => new LineParser(1048576))
+        .via(new LineParser(1048576))
         .transform(() => new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff\nmore\nextra"))
