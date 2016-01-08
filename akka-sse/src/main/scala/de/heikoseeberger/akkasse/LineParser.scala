@@ -42,17 +42,17 @@ private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[By
     setHandler(in, new InHandler {
       override def onPush() = {
         def parseLines(): Vector[String] = {
-          val (lines, nrOfConsumedBytes, _) = (buffer :+ 0)
+          val (lines, nrOfConsumedBytes, _) = (buffer :+ 0) // The trailing 0 makes sure sliding windows have size 2 for all bytes
             .zipWithIndex
             .sliding(2)
-            .collect {
+            .collect { // Collect the delimiters with their (start) position
               case Seq((CR, n), (LF, _)) => (n, 2)
               case Seq((CR, n), _)       => (n, 1)
               case Seq((LF, n), _)       => (n, 1)
             }
-            .foldLeft((Vector.empty[String], 0, false)) {
-              case ((slices, from, false), (until, k)) => (slices :+ buffer.slice(from, until).utf8String, until + k, k == 2)
-              case ((slices, _, _), (until, _))        => (slices, until + 1, false)
+            .foldLeft((Vector.empty[String], 0, 1)) { // The 3rd value is for knowing if the last delimiter was \r\n in which case the next (\r) must be ignored
+              case ((slices, from, 1), (until, k)) => (slices :+ buffer.slice(from, until).utf8String, until + k, k)
+              case ((slices, from, _), _)          => (slices, from, 1)
             }
           buffer = buffer.drop(nrOfConsumedBytes)
           lines
