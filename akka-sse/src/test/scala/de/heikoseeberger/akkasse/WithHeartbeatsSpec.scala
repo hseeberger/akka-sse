@@ -28,19 +28,21 @@ class WithHeartbeatsSpec extends BaseSpec {
       val events = Source.fromGraph(GraphDSL.create() { implicit builder =>
         import GraphDSL.Implicits._
 
-        val ticks = builder.add(Source.tick(100.millis, 200.millis, None))
-        val numbers = builder.add(Source.fromIterator(() => Iterator.from(1)))
-        val zip = builder.add(Zip[None.type, Int]())
+        val ticks = builder.add(Source.tick(100.millis, 200.millis, ()))
+        val numbers = builder.add(Source.fromIterator(() => Iterator.from(1)).take(5))
+        val zip = builder.add(Zip[Unit, Int]())
         ticks ~> zip.in0
         numbers ~> zip.in1
         SourceShape(zip.out.map(pair => intToServerSentEvent(pair._2)).outlet)
       })
       val result = events
         .via(WithHeartbeats(200.millis))
-        .take(10)
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       val actual = Await.result(result, 2.seconds)
-      val expected = 1.to(5).to[Vector].flatMap { n => Vector(intToServerSentEvent(n), ServerSentEvent.heartbeat) }
+      val expected = 1.to(5)
+        .to[Vector]
+        .flatMap { n => Vector(intToServerSentEvent(n), ServerSentEvent.heartbeat) }
+        .init // Once the events have completed, no more heartbeats should be sent
       actual shouldBe expected
     }
   }

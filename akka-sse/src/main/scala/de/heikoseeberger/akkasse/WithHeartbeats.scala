@@ -21,7 +21,7 @@ import akka.stream.scaladsl.{ Flow, GraphDSL, Source, MergePreferred }
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Connect a `Source[ServerSentEvents]` to a with-heartbeats flow to merge it with periodic heartbeats.
+ * Factory for a flow of periodic heartbeats to be connected to a `Source[ServerSentEvents]`.
  */
 object WithHeartbeats {
 
@@ -35,7 +35,7 @@ object WithHeartbeats {
     Flow.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
       val heartbeats = builder.add(Source.tick(interval, interval, ServerSentEvent.heartbeat))
-      val merge = builder.add(MergePreferred[ServerSentEvent](1))
+      val merge = builder.add(MergePreferred[ServerSentEvent](1, true))
       heartbeats ~> merge.in(0)
       FlowShape(merge.preferred, merge.out)
     })
