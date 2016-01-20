@@ -63,13 +63,13 @@ object TimeServer {
 }
 ```
 
-If you need periodic heartbeats connect the `Source[ServerSentEvents]` to a flow created with `WithHeartbeats`:
+If you need periodic heartbeats, simply use the `keepAlive` standard stage with a `ServerSentEvent.heartbeat`:
 
 ``` scala
 Source.tick(2.seconds, 2.seconds, Unit)
   .map(_ => LocalTime.now())
   .map(dateTimeToServerSentEvent)
-  .via(WithHeartbeats(1.second))
+  .keepAlive(1.second, () => ServerSentEvent.heartbeat)
 }
 ```
 
