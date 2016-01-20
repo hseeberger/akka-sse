@@ -21,7 +21,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives
 import akka.stream.scaladsl.Source
 import akka.stream.{ ActorMaterializer, Materializer }
-import de.heikoseeberger.akkasse.{ EventStreamMarshalling, ServerSentEvent, WithHeartbeats }
+import de.heikoseeberger.akkasse.{ EventStreamMarshalling, ServerSentEvent }
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
@@ -44,7 +44,7 @@ object TimeServer {
         Source.tick(2.seconds, 2.seconds, ())
           .map(_ => LocalTime.now())
           .map(dateTimeToServerSentEvent)
-          .via(WithHeartbeats(1.second))
+          .keepAlive(1.second, () => ServerSentEvent.heartbeat)
       }
     }
   }
