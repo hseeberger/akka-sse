@@ -19,6 +19,7 @@ package de.heikoseeberger.akkasse
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import scala.util.Try
+import scala.util.control.NonFatal
 
 private object ServerSentEventParser {
 
@@ -32,22 +33,20 @@ private object ServerSentEventParser {
 
   private final val Retry = "retry"
 
-  private val LinePattern = """([^:]+): ?(.*)""".r
-
-  private val emptyLineMap = Map.empty[String, Vector[String]].withDefault(_ => Vector.empty)
+  private val linePattern = """([^:]+): ?(.*)""".r
 
   private def parseServerSentEvent(lines: Vector[String]): ServerSentEvent = {
-    val values = lines
-      .foldLeft(emptyLineMap) {
-        case (m, "")                                                      => m
-        case (m, LinePattern(field @ (Data | Event | Id | Retry), value)) => m.updated(field, m(field) :+ value)
-        case (m, field)                                                   => m.updated(field, m(field) :+ "")
-      }
+    val values = lines.foldLeft(Map.empty[String, Vector[String]].withDefault(_ => Vector.empty)) {
+      case (m, "")                                                      => m
+      case (m, linePattern(field @ (Data | Event | Id | Retry), value)) => m.updated(field, m(field) :+ value)
+      case (m, field)                                                   => m.updated(field, m(field) :+ "")
+    }
+    def toInt(s: String) = try Some(s.trim.toInt) catch { case NonFatal(_) => None }
     ServerSentEvent(
       data = values(Data).mkString(LF),
       eventType = values(Event).lastOption,
       id = values(Id).lastOption,
-      retry = values(Retry).lastOption.flatMap { s => Try(s.trim.toInt).toOption }
+      retry = values(Retry).lastOption.flatMap(toInt)
     )
   }
 }
@@ -55,30 +54,28 @@ private object ServerSentEventParser {
 private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[FlowShape[String, ServerSentEvent]] {
   import ServerSentEventParser._
 
-  private val in = Inlet[String]("server-sent-event-parser.in")
-
-  private val out = Outlet[ServerSentEvent]("server-sent-event-parser.out")
-
-  override val shape = FlowShape(in, out)
+  override val shape = FlowShape(Inlet[String]("in"), Outlet[ServerSentEvent]("out"))
 
   override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
+    import shape._
+
     private var lines = Vector.empty[String]
+
     private var linesSize = 0L
 
     setHandler(in, new InHandler {
       override def onPush() = {
-        val (newLines, newSize) =
-          grab(in) match {
-            case "" => // A server-sent event is terminated with a new line, i.e. an empty line
-              emit(out, parseServerSentEvent(lines))
-              (Vector.empty, 0L)
-            case line if linesSize + line.length > maxEventSize =>
-              failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
-              (Vector.empty, 0L)
-            case line =>
-              pull(in)
-              (lines :+ line, linesSize + line.length)
-          }
+        val (newLines, newSize) = grab(in) match {
+          case "" => // A server-sent event is terminated with a new line, i.e. an empty line
+            emit(out, parseServerSentEvent(lines))
+            (Vector.empty, 0L)
+          case line if linesSize + line.length > maxEventSize =>
+            failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
+            (Vector.empty, 0L)
+          case line =>
+            pull(in)
+            (lines :+ line, linesSize + line.length)
+        }
         lines = newLines
         linesSize = newSize
       }
