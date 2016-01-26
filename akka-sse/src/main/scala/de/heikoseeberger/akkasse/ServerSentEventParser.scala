@@ -18,6 +18,7 @@ package de.heikoseeberger.akkasse
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
+import scala.util.Try
 
 private object ServerSentEventParser {
 
@@ -31,31 +32,23 @@ private object ServerSentEventParser {
 
   private final val Retry = "retry"
 
-  private val linePattern = """([^:]+): ?(.*)""".r
+  private val LinePattern = """([^:]+): ?(.*)""".r
 
-  private def parseServerSentEvent(lines: Seq[String]) = {
-    val valuesByField = lines
-      .collect {
-        case linePattern(field @ (Data | Event | Id | Retry), value) => field -> value
-        case field if field.nonEmpty                                 => field -> ""
+  private val emptyLineMap = Map.empty[String, Vector[String]].withDefault(_ => Vector.empty)
+
+  private def parseServerSentEvent(lines: Vector[String]): ServerSentEvent = {
+    val values = lines
+      .foldLeft(emptyLineMap) {
+        case (m, "")                                                      => m
+        case (m, LinePattern(field @ (Data | Event | Id | Retry), value)) => m.updated(field, m(field) :+ value)
+        case (m, field)                                                   => m.updated(field, m(field) :+ "")
       }
-      .groupBy(_._1)
-    def values(field: String) = valuesByField
-      .getOrElse(field, Vector.empty)
-      .map(_._2)
-    val data = values(Data).mkString(LF)
-    val event = values(Event).lastOption
-    val idField = values(Id).lastOption
-    val retry = values(Retry)
-      .lastOption
-      .flatMap { s =>
-        try
-          Some(s.trim.toInt)
-        catch {
-          case _: NumberFormatException => None
-        }
-      }
-    ServerSentEvent(data, event, idField, retry)
+    ServerSentEvent(
+      data = values(Data).mkString(LF),
+      eventType = values(Event).lastOption,
+      id = values(Id).lastOption,
+      retry = values(Retry).lastOption.flatMap { s => Try(s.trim.toInt).toOption }
+    )
   }
 }
 
@@ -68,24 +61,26 @@ private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[
 
   override val shape = FlowShape(in, out)
 
-  private var lines = Vector.empty[String]
-
   override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
+    private var lines = Vector.empty[String]
+    private var linesSize = 0L
 
     setHandler(in, new InHandler {
       override def onPush() = {
-        val line = grab(in)
-        if (line.nonEmpty) { // A server-sent event is terminated with a new line, i.e. an empty line
-          lines :+= line
-          if (lines.map(_.length).sum > maxEventSize)
-            failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
-          else
-            pull(in)
-        } else {
-          val event = parseServerSentEvent(lines)
-          lines = Vector.empty
-          emit(out, event)
-        }
+        val (newLines, newSize) =
+          grab(in) match {
+            case "" => // A server-sent event is terminated with a new line, i.e. an empty line
+              emit(out, parseServerSentEvent(lines))
+              (Vector.empty, 0L)
+            case line if linesSize + line.length > maxEventSize =>
+              failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
+              (Vector.empty, 0L)
+            case line =>
+              pull(in)
+              (lines :+ line, linesSize + line.length)
+          }
+        lines = newLines
+        linesSize = newSize
       }
     })
 
@@ -93,17 +88,4 @@ private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[
       override def onPull() = pull(in)
     })
   }
-
-  //  override def onPush(line: String, ctx: Context[ServerSentEvent]) =
-  //    if (line.nonEmpty) {
-  //      lines :+= line
-  //      if (lines.map(_.length).sum > maxEventSize)
-  //        ctx.fail(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
-  //      else
-  //        ctx.pull()
-  //    } else {
-  //      val event = parseServerSentEvent(lines)
-  //      lines = Vector.empty
-  //      ctx.push(event)
-  //    }
 }
