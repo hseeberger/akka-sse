@@ -16,7 +16,8 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.stream.stage.{ Context, PushStage }
+import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
+import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 
 private object ServerSentEventParser {
 
@@ -58,21 +59,51 @@ private object ServerSentEventParser {
   }
 }
 
-private final class ServerSentEventParser(maxEventSize: Int) extends PushStage[String, ServerSentEvent] {
+private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[FlowShape[String, ServerSentEvent]] {
   import ServerSentEventParser._
+
+  private val in = Inlet[String]("server-sent-event-parser.in")
+
+  private val out = Outlet[ServerSentEvent]("server-sent-event-parser.out")
+
+  override val shape = FlowShape(in, out)
 
   private var lines = Vector.empty[String]
 
-  override def onPush(line: String, ctx: Context[ServerSentEvent]) =
-    if (line.nonEmpty) {
-      lines :+= line
-      if (lines.map(_.length).sum > maxEventSize)
-        ctx.fail(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
-      else
-        ctx.pull()
-    } else {
-      val event = parseServerSentEvent(lines)
-      lines = Vector.empty
-      ctx.push(event)
-    }
+  override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
+
+    setHandler(in, new InHandler {
+      override def onPush() = {
+        val line = grab(in)
+        if (line.nonEmpty) { // A server-sent event is terminated with a new line, i.e. an empty line
+          lines :+= line
+          if (lines.map(_.length).sum > maxEventSize)
+            failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
+          else
+            pull(in)
+        } else {
+          val event = parseServerSentEvent(lines)
+          lines = Vector.empty
+          emit(out, event)
+        }
+      }
+    })
+
+    setHandler(out, new OutHandler {
+      override def onPull() = pull(in)
+    })
+  }
+
+  //  override def onPush(line: String, ctx: Context[ServerSentEvent]) =
+  //    if (line.nonEmpty) {
+  //      lines :+= line
+  //      if (lines.map(_.length).sum > maxEventSize)
+  //        ctx.fail(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
+  //      else
+  //        ctx.pull()
+  //    } else {
+  //      val event = parseServerSentEvent(lines)
+  //      lines = Vector.empty
+  //      ctx.push(event)
+  //    }
 }
