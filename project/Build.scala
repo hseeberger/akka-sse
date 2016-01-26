@@ -33,17 +33,17 @@ object Build extends AutoPlugin {
                     </developer>
                   </developers>,
       scalaVersion := Version.scala,
-      crossScalaVersions := List(Version.scala, "2.10.5"),
+      crossScalaVersions := List(Version.scala),
       scalacOptions ++= List(
         "-unchecked",
         "-deprecation",
         "-language:_",
-        "-target:jvm-1.7",
+        "-target:jvm-1.8",
         "-encoding", "UTF-8"
       ),
       javacOptions ++= List(
-        "-source", "1.7",
-        "-target", "1.7"
+        "-source", "1.8",
+        "-target", "1.8"
       ),
       unmanagedSourceDirectories.in(Compile) := List(scalaSource.in(Compile).value),
       unmanagedSourceDirectories.in(Test) := List(scalaSource.in(Test).value)

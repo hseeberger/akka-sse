@@ -49,7 +49,7 @@ class ServerSentEventParserSpec extends BaseSpec {
       val chunkSize = input.length / 5
       val events = Source(input.sliding(chunkSize, chunkSize).map(ByteString(_)).toList)
         .via(new LineParser(1048576))
-        .transform(() => new ServerSentEventParser(1048576))
+        .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(
         ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
@@ -64,7 +64,7 @@ class ServerSentEventParserSpec extends BaseSpec {
       val input = "data: line1\ndata: line2\rdata: line3\r\n\n"
       val events = Source.single(ByteString(input))
         .via(new LineParser(1048576))
-        .transform(() => new ServerSentEventParser(1048576))
+        .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("line1\nline2\nline3"))
     }
@@ -73,7 +73,7 @@ class ServerSentEventParserSpec extends BaseSpec {
       val input = "data: stuff\nretry: ten\n\n"
       val events = Source.single(ByteString(input))
         .via(new LineParser(1048576))
-        .transform(() => new ServerSentEventParser(1048576))
+        .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff", retry = None))
     }
@@ -82,7 +82,7 @@ class ServerSentEventParserSpec extends BaseSpec {
       val input = "data: stuff\r\ndata: more\r\ndata: extra\n\n"
       val events = Source.single(ByteString(input))
         .via(new LineParser(1048576))
-        .transform(() => new ServerSentEventParser(1048576))
+        .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff\nmore\nextra"))
     }

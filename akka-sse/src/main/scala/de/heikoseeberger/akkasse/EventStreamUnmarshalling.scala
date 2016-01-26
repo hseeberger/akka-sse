@@ -56,7 +56,7 @@ trait EventStreamUnmarshalling {
       val source = entity
         .dataBytes
         .via(new LineParser(_maxLineSize))
-        .transform(() => new ServerSentEventParser(_maxEventSize))
+        .via(new ServerSentEventParser(_maxEventSize))
       FastFuture.successful(source)
     }
     Unmarshaller(_ => source).forContentTypes(MediaTypes.`text/event-stream`)

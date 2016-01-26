@@ -19,6 +19,8 @@ package de.heikoseeberger.akkasse
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 abstract class BaseSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 
@@ -27,8 +29,7 @@ abstract class BaseSpec extends WordSpec with Matchers with BeforeAndAfterAll {
   implicit val mat = ActorMaterializer()
 
   override protected def afterAll() = {
-    system.shutdown()
-    system.awaitTermination()
+    Await.ready(system.terminate(), Duration.Inf)
     super.afterAll()
   }
 }
