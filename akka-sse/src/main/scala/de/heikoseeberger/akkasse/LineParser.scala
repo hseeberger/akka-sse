@@ -34,15 +34,15 @@ private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[By
 
   private val out = Outlet[String]("line-parser.out")
 
-  override val shape = FlowShape.of(in, out)
-
-  private var buffer = ByteString.empty
+  override val shape = FlowShape(in, out)
 
   override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
+    private var buffer = ByteString.empty
     setHandler(in, new InHandler {
       override def onPush() = {
-        def parseLines(): Vector[String] = {
+        def parseLines(buffer: ByteString): (ByteString, Vector[String]) = {
           val (lines, nrOfConsumedBytes, _) = (buffer :+ 0) // The trailing 0 makes sure sliding windows have size 2 for all bytes
+            .iterator
             .zipWithIndex
             .sliding(2)
             .collect { // Collect the delimiters with their (start) position
@@ -54,15 +54,18 @@ private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[By
               case ((slices, from, 1), (until, k)) => (slices :+ buffer.slice(from, until).utf8String, until + k, k)
               case ((slices, from, _), _)          => (slices, from, 1)
             }
-          buffer = buffer.drop(nrOfConsumedBytes)
-          lines
+          (buffer.drop(nrOfConsumedBytes), lines)
         }
-        buffer ++= grab(in)
-        val parsedLines = parseLines()
-        if (buffer.size > maxLineSize)
-          failStage(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
-        else
-          emitMultiple(out, parsedLines)
+
+        buffer =
+          parseLines(buffer ++ grab(in)) match {
+            case (buf, _) if buf.size > maxLineSize =>
+              failStage(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
+              ByteString.empty // Clear buffer
+            case (buf, parsedLines) =>
+              emitMultiple(out, parsedLines)
+              buf
+          }
       }
     })
 
