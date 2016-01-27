@@ -18,7 +18,6 @@ package de.heikoseeberger.akkasse
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
-import scala.util.Try
 import scala.util.control.NonFatal
 
 private object ServerSentEventParser {

@@ -1,4 +1,4 @@
-lazy val root = project
+lazy val akkaSseRoot = project
   .in(file("."))
   .aggregate(akkaSse, akkaSseExample)
   .enablePlugins(GitVersioning)
@@ -12,9 +12,14 @@ lazy val akkaSseExample = project
   .dependsOn(akkaSse)
   .enablePlugins(AutomateHeaderPlugin)
 
-name := "root"
+lazy val akkaSseJmh = project
+  .in(file("akka-sse-jmh"))
+  .dependsOn(akkaSse)
+  .enablePlugins(JmhPlugin)
+
+name := "akka-sse-root"
 
 unmanagedSourceDirectories.in(Compile) := Nil
-unmanagedSourceDirectories.in(Test) := Nil
+unmanagedSourceDirectories.in(Test)    := Nil
 
 publishArtifact := false

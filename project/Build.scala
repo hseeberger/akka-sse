@@ -50,7 +50,7 @@ object Build extends AutoPlugin {
     ) ++
     // Scalariform settings
     List(
-      SbtScalariform.autoImport.preferences := SbtScalariform.autoImport.preferences.value
+      SbtScalariform.autoImport.scalariformPreferences := SbtScalariform.autoImport.scalariformPreferences.value
         .setPreference(AlignSingleLineCaseStatements, true)
         .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
         .setPreference(DoubleIndentClassDeclaration, true)
