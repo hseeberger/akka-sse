@@ -19,6 +19,7 @@ package de.heikoseeberger.akkasse
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.util.ByteString
+import scala.annotation.tailrec
 
 private object LineParser {
 
@@ -28,41 +29,41 @@ private object LineParser {
 }
 
 private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[ByteString, String]] {
-  import LineParser._
-
-  override val shape = FlowShape(Inlet[ByteString]("in"), Outlet[String]("out"))
+  override val shape = FlowShape(Inlet[ByteString]("LineParser.in"), Outlet[String]("LineParser.out"))
 
   override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
-    import shape._
-
-    private var buffer = ByteString.empty
+    import shape.{ in, out }
+    import LineParser.{ CR, LF }
 
     setHandler(in, new InHandler {
-      override def onPush() = {
-        def parseLines(buffer: ByteString) = {
-          val (lines, nrOfConsumedBytes, _) = (buffer :+ 0) // The trailing 0 makes sure sliding windows have size 2 for all bytes
-            .iterator
-            .zipWithIndex
-            .sliding(2)
-            .collect { // Collect the delimiters with their (start) position
-              case Seq((CR, n), (LF, _)) => (n, 2)
-              case Seq((CR, n), _)       => (n, 1)
-              case Seq((LF, n), _)       => (n, 1)
-            }
-            .foldLeft((Vector.empty[String], 0, 1)) { // The 3rd value is for knowing if the last delimiter was \r\n in which case the next (\r) must be ignored
-              case ((slices, from, 1), (until, k)) => (slices :+ buffer.slice(from, until).utf8String, until + k, k)
-              case ((slices, from, _), _)          => (slices, from, 1)
-            }
-          (buffer.drop(nrOfConsumedBytes), lines)
+      private var buffer = ByteString.empty
+
+      @tailrec private def parseLines(
+        buf: ByteString,
+        from: Int = 0,
+        at: Int = 0,
+        parsed: Vector[String] = Vector.empty
+      ): (ByteString, Vector[String]) =
+        if (at >= buf.length) (buf.drop(from), parsed)
+        else buf(at) match {
+          case CR if buf(math.min(at + 1, buf.length - 1)) == LF => // Lookahead for LF after CR
+            parseLines(buf, at + 2, at + 2, parsed :+ buf.slice(from, at).utf8String)
+          case CR if buf(math.max(at - 1, 0)) == LF => // Ignore first CR after a CRLF sequence
+            parseLines(buf, at + 1, at + 1, parsed)
+          case CR | LF => // a CR or LF means we found a new slice
+            parseLines(buf, at + 1, at + 1, parsed :+ buf.slice(from, at).utf8String)
+          case _ => // for other input, simply advance
+            parseLines(buf, from, at + 1, parsed)
         }
 
+      override def onPush() = {
         buffer = parseLines(buffer ++ grab(in)) match {
-          case (buf, _) if buf.size > maxLineSize =>
+          case (remaining, _) if remaining.size > maxLineSize =>
             failStage(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
             ByteString.empty // Clear buffer
-          case (buf, parsedLines) =>
+          case (remaining, parsedLines) =>
             emitMultiple(out, parsedLines)
-            buf
+            remaining
         }
       }
     })
