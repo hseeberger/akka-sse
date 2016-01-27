@@ -55,12 +55,11 @@ private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[
 
   override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
     import ServerSentEventParser._
-    import shape.{ in, out }
+    import shape._
 
     setHandler(in, new InHandler {
       private var lines = Vector.empty[String]
       private var linesSize = 0L
-
       override def onPush() = {
         val (newLines, newSize) = grab(in) match {
           case "" => // A server-sent event is terminated with a new line, i.e. an empty line
