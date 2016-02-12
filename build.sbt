@@ -1,6 +1,6 @@
 lazy val akkaSseRoot = project
   .in(file("."))
-  .aggregate(akkaSse, akkaSseExample)
+  .aggregate(akkaSse, akkaSseExample, akkaSseJmh)
   .enablePlugins(GitVersioning)
 
 lazy val akkaSse = project
