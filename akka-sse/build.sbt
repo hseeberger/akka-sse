@@ -1,6 +1,6 @@
 name := "akka-sse"
 
-libraryDependencies ++= List(
+libraryDependencies ++= Vector(
   Library.akkaHttp,
   Library.junit       % "test",
   Library.akkaTestkit % "test",

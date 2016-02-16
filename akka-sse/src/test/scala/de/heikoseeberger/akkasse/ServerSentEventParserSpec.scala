@@ -46,7 +46,7 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |
                      |data: incomplete message
                      |""".stripMargin
-      val events = Source(input.split(f"%n").toList)
+      val events = Source(input.split(f"%n").toVector)
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(
@@ -62,7 +62,7 @@ class ServerSentEventParserSpec extends BaseSpec {
       val input = """|data: stuff
                      |retry: ten
                      |""".stripMargin
-      val events = Source(input.split(f"%n", -1).toList)
+      val events = Source(input.split(f"%n", -1).toVector)
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff", retry = None))
