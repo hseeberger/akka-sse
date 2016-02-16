@@ -1,6 +1,6 @@
 name := "akka-sse-jmh"
 
-libraryDependencies ++= List(
+libraryDependencies ++= Vector(
   Library.akkaStream
 )
 

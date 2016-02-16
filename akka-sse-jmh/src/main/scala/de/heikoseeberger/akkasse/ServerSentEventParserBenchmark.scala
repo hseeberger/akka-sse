@@ -31,7 +31,7 @@ class ServerSentEventParserBenchmark {
     implicit val system = state.system
     implicit val mat = state.mat
     val done = Source
-      .fromIterator(() => Iterator.fill(50000)(List("event:foo", "data:bar", "data:baz", "")))
+      .fromIterator(() => Iterator.fill(50000)(Vector("event:foo", "data:bar", "data:baz", "")))
       .mapConcat(identity)
       .take(50000)
       .via(new ServerSentEventParser(1048576))

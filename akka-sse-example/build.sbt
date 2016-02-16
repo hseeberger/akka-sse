@@ -1,6 +1,6 @@
 name := "akka-sse-example"
 
-libraryDependencies ++= List(
+libraryDependencies ++= Vector(
   Library.akkaHttp
 )
 
