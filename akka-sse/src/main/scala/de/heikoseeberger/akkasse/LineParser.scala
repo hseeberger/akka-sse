@@ -59,7 +59,12 @@ private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[By
             failStage(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
             ByteString.empty // Clear buffer
           case (remaining, parsedLines) =>
-            emitMultiple(out, parsedLines)
+            if (parsedLines.nonEmpty) {
+              emitMultiple(out, parsedLines)
+            } else {
+              pull(in)
+            }
+
             remaining
         }
       }
