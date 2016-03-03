@@ -21,6 +21,7 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.SourceShape
 import akka.stream.scaladsl.{ GraphDSL, Source, Zip }
+import akka.testkit.TestDuration
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
@@ -36,7 +37,7 @@ class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling wi
           .map(_.utf8String)
           .runFold(Vector.empty[String])(_ :+ _)
       }
-      val actual = Await.result(response, 1.second)
+      val actual = Await.result(response, 1.second.dilated)
       val expected = elements.map(n => ServerSentEvent(n.toString).toString)
       actual shouldBe expected
     }
@@ -47,7 +48,7 @@ class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling wi
       val marshallable = expected: ToResponseMarshallable
       val actual = Await.result(
         marshallable(HttpRequest()).flatMap(response => Unmarshal(response).to[Source[ServerSentEvent, Any]]),
-        1.second
+        1.second.dilated
       )
       val expectedAndActual = Source.fromGraph(GraphDSL.create() { implicit builder =>
         import GraphDSL.Implicits._
@@ -58,7 +59,7 @@ class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling wi
       })
       val isExpectedEqualActual = Await.result(
         expectedAndActual.runFold(true) { case (acc, (l, r)) => acc && (l == r) },
-        1.second
+        1.second.dilated
       )
       isExpectedEqualActual shouldBe true
     }
