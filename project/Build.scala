@@ -1,5 +1,4 @@
 import com.typesafe.sbt.GitPlugin
-import com.typesafe.sbt.SbtPgp
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import de.heikoseeberger.sbtheader.HeaderPlugin
@@ -11,7 +10,7 @@ import scalariform.formatter.preferences._
 
 object Build extends AutoPlugin {
 
-  override def requires = JvmPlugin && HeaderPlugin && GitPlugin && SbtPgp
+  override def requires = JvmPlugin && HeaderPlugin && GitPlugin && SbtScalariform
 
   override def trigger = allRequirements
 
@@ -32,8 +31,8 @@ object Build extends AutoPlugin {
                     <url>http://heikoseeberger.de</url>
                   </developer>
                 </developers>,
-    scalaVersion := Version.scala,
-    crossScalaVersions := Vector(Version.scala),
+    scalaVersion := Version.Scala,
+    crossScalaVersions := Vector(Version.Scala),
     scalacOptions ++= Vector(
       "-unchecked",
       "-deprecation",

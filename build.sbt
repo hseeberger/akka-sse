@@ -1,5 +1,5 @@
-lazy val root = project
-  .copy(id = "root")
+lazy val akkaSseRoot = project
+  .copy(id = "akka-sse-root")
   .in(file("."))
   .aggregate(akkaSse, akkaSseExample, akkaSseJmh)
   .enablePlugins(GitVersioning)
@@ -23,7 +23,7 @@ lazy val akkaSseJmh = project
 
 name := "akka-sse-root"
 
-unmanagedSourceDirectories.in(Compile) := Nil
-unmanagedSourceDirectories.in(Test)    := Nil
+unmanagedSourceDirectories.in(Compile) := Vector.empty
+unmanagedSourceDirectories.in(Test)    := Vector.empty
 
 publishArtifact := false
