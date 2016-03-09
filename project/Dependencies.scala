@@ -1,18 +1,18 @@
 import sbt._
 
 object Version {
-  val akka       = "2.4.2"
-  val junit      = "4.12"
-  val scala      = "2.11.8"
-  val scalaCheck = "1.12.5"
-  val scalaTest  = "2.2.6"
+  final val Akka       = "2.4.2"
+  final val Junit      = "4.12"
+  final val Scala      = "2.11.8"
+  final val ScalaCheck = "1.12.5"
+  final val ScalaTest  = "2.2.6"
 }
 
 object Library {
-  val akkaHttp    = "com.typesafe.akka" %% "akka-http-experimental" % Version.akka
-  val akkaStream  = "com.typesafe.akka" %% "akka-stream"            % Version.akka
-  val akkaTestkit = "com.typesafe.akka" %% "akka-testkit"           % Version.akka
-  val junit       = "junit"             %  "junit"                  % Version.junit
-  val scalaCheck  = "org.scalacheck"    %% "scalacheck"             % Version.scalaCheck
-  val scalaTest   = "org.scalatest"     %% "scalatest"              % Version.scalaTest
+  val akkaHttp    = "com.typesafe.akka" %% "akka-http-experimental" % Version.Akka
+  val akkaStream  = "com.typesafe.akka" %% "akka-stream"            % Version.Akka
+  val akkaTestkit = "com.typesafe.akka" %% "akka-testkit"           % Version.Akka
+  val junit       = "junit"             %  "junit"                  % Version.Junit
+  val scalaCheck  = "org.scalacheck"    %% "scalacheck"             % Version.ScalaCheck
+  val scalaTest   = "org.scalatest"     %% "scalatest"              % Version.ScalaTest
 }
