@@ -19,7 +19,7 @@ Akka SSE is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= List(
-  "de.heikoseeberger" %% "akka-sse" % "1.7.0",
+  "de.heikoseeberger" %% "akka-sse" % "1.7.1",
   ...
 )
 ```
@@ -47,7 +47,7 @@ object TimeServer {
 
   ...
 
-  def route(system: ActorSystem)(implicit ec: ExecutionContext, mat: Materializer) = {
+  def route = {
     import Directives._
     import EventStreamMarshalling._
     get {
