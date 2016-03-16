@@ -9,10 +9,11 @@ object Version {
 }
 
 object Library {
-  val akkaHttp    = "com.typesafe.akka" %% "akka-http-experimental" % Version.Akka
-  val akkaStream  = "com.typesafe.akka" %% "akka-stream"            % Version.Akka
-  val akkaTestkit = "com.typesafe.akka" %% "akka-testkit"           % Version.Akka
-  val junit       = "junit"             %  "junit"                  % Version.Junit
-  val scalaCheck  = "org.scalacheck"    %% "scalacheck"             % Version.ScalaCheck
-  val scalaTest   = "org.scalatest"     %% "scalatest"              % Version.ScalaTest
+  val akkaHttp        = "com.typesafe.akka" %% "akka-http-experimental" % Version.Akka
+  val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit"      % Version.Akka
+  val akkaStream      = "com.typesafe.akka" %% "akka-stream"            % Version.Akka
+  val akkaTestkit     = "com.typesafe.akka" %% "akka-testkit"           % Version.Akka
+  val junit           = "junit"             %  "junit"                  % Version.Junit
+  val scalaCheck      = "org.scalacheck"    %% "scalacheck"             % Version.ScalaCheck
+  val scalaTest       = "org.scalatest"     %% "scalatest"              % Version.ScalaTest
 }

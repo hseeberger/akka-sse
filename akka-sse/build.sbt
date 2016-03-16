@@ -2,10 +2,11 @@ name := "akka-sse"
 
 libraryDependencies ++= Vector(
   Library.akkaHttp,
-  Library.junit       % "test",
-  Library.akkaTestkit % "test",
-  Library.scalaCheck  % "test",
-  Library.scalaTest   % "test"
+  Library.akkaHttpTestkit % "test",
+  Library.akkaTestkit     % "test",
+  Library.junit           % "test",
+  Library.scalaCheck      % "test",
+  Library.scalaTest       % "test"
 )
 
 initialCommands := """|import de.heikoseeberger.akkasse._""".stripMargin
