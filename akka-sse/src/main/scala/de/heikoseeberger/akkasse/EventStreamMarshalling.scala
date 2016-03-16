@@ -32,12 +32,10 @@ object EventStreamMarshalling extends EventStreamMarshalling
 /**
  * Mixing in this trait lets an `akka.stream.scaladsl.Source` of
  * [[ServerSentEvent]]s be marshallable to an `akka.http.model.HttpResponse`.
- *
- * '''Attention''': An implicit `scala.concurrent.ExecutionContext` has to be in scope!
  */
 trait EventStreamMarshalling {
 
-  implicit final def toResponseMarshaller(implicit ec: ExecutionContext): ToResponseMarshaller[Source[ServerSentEvent, Any]] =
+  implicit final def toResponseMarshaller: ToResponseMarshaller[Source[ServerSentEvent, Any]] =
     Marshaller.withFixedContentType(MediaTypes.`text/event-stream`) { messages =>
       val data = messages.map(_.toByteString)
       HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, data))
