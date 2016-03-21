@@ -34,7 +34,7 @@ Akka SSE models server-sent events as `Source[ServerSentEvent, Any]` with `Sourc
 - `id` of type `Option[String]` with default `None`: sets the client's last event ID string
 - `retry` of type `Option[Int]` with default `None`: set the client's reconnection time
 
-More info about the above fields can be found in the  [specification](http://www.w3.org/TR/eventsource).
+More info about the above fields can be found in the [specification](http://www.w3.org/TR/eventsource).
 
 ## Usage – server-side
 
@@ -102,4 +102,4 @@ Contributions via GitHub pull requests are gladly accepted from their original a
 
 ## License ##
 
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
+This code is open source software licensed under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0.html).
