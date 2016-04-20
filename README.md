@@ -19,15 +19,17 @@ Akka SSE is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= List(
-  "de.heikoseeberger" %% "akka-sse" % "1.7.2",
+  "de.heikoseeberger" %% "akka-sse" % "1.7.3",
   ...
 )
 ```
 
 ## Usage – basics
 
-Akka SSE models server-sent events as `Source[ServerSentEvent, Any]` with `Source` from Akka Streams and
-`ServerSentEvent` from Akka SSE. `ServerSentEvent` is a case class with the following fields:
+Akka SSE models server-sent events as `Source[ServerSentEvent, A]` with `Source` from Akka Streams,
+`ServerSentEvent` from Akka SSE and `A` an arbitrary type on the server-side and `Any` on the client-side.
+
+`ServerSentEvent` is a case class with the following fields:
 
 - `data` of type `String`: payload, may be empty
 - `eventType` of type `Option[String]` with default `None`: handler to be invoked, e.g. "message", "added", etc.
@@ -40,7 +42,7 @@ More info about the above fields can be found in the [specification](http://www.
 
 In order to produce server-sent events on the server as a response to a HTTP request, you have to bring the implicit
 `toResponseMarshaller` defined by the `EventStreamMarshalling` trait or object into scope where you define your
-respective route. Then you complete the HTTP request with a `Source[ServerSentEvent]`:
+respective route. Then you complete the HTTP request with a `Source[ServerSentEvent, A]` for an arbitrary `A`:
 
 ``` scala
 object TimeServer {
@@ -73,7 +75,7 @@ Source.tick(2.seconds, 2.seconds, Unit)
 
 ## Usage – client-side
 
-In order to consume server-sent events on the client as part of a HTTP response, you have to bring the implicit
+In order to unmarshal server-sent events as `Source[ServerSentEvent, Any]`, you have to bring the implicit
 `fromEntityUnmarshaller` defined by the `EventStreamUnmarshalling` trait or object into scope where you define your
 response handling.
 
