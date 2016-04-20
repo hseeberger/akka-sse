@@ -18,22 +18,18 @@ package de.heikoseeberger.akkasse
 
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
-import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.Source
+import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
- * Importing [[EventStreamUnmarshalling.fromEntityUnmarshaller]] lets an `akka.http.model.HttpEntity`
- * with a `text/event-stream` media type be unmarshallable to an `akka.stream.scaladsl.Source[ServerSentEvent]`.
- *
- * ``Attention``: An implicit `scala.concurrent.ExecutionContext` has to be in scope!
+ * Importing [[EventStreamUnmarshalling.fromEntityUnmarshaller]] lets a `HttpEntity` with a `text/event-stream`
+ * media type be unmarshallable to a `Source[ServerSentEvent, Any]`.
  */
 object EventStreamUnmarshalling extends EventStreamUnmarshalling
 
 /**
- * Mixing in this trait lets an `akka.http.model.HttpEntity`
- * with a `text/event-stream` media type be unmarshallable to an `akka.stream.scaladsl.Source[ServerSentEvent]`.
- *
- * '''Attention''': An implicit `scala.concurrent.ExecutionContext` has to be in scope!
+ * Mixing in this trait lets a `HttpEntity` with a `text/event-stream` media type be unmarshallable to a
+ * `Source[ServerSentEvent, Any]`.
  */
 trait EventStreamUnmarshalling {
 
@@ -52,12 +48,9 @@ trait EventStreamUnmarshalling {
   protected def maxLineSize: Int = 8192
 
   implicit final def fromEntityUnmarshaller: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
-    def source(entity: HttpEntity) = {
-      val source = entity
-        .dataBytes
-        .via(EventStreamParser(maxLineSize = _maxLineSize, maxEventSize = _maxEventSize))
-      FastFuture.successful(source)
-    }
-    Unmarshaller(_ => source).forContentTypes(MediaTypes.`text/event-stream`)
+    def events(entity: HttpEntity) = entity
+      .dataBytes
+      .via(EventStreamParser(maxLineSize = _maxLineSize, maxEventSize = _maxEventSize))
+    Unmarshaller.strict(events).forContentTypes(`text/event-stream`)
   }
 }

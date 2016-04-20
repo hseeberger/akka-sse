@@ -19,25 +19,21 @@ package de.heikoseeberger.akkasse
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
 import akka.stream.scaladsl.Source
-import scala.concurrent.ExecutionContext
+import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
- * Importing [[EventStreamMarshalling.toResponseMarshaller]] lets an `akka.stream.scaladsl.Source` of
- * [[ServerSentEvent]]s be marshallable to an `akka.http.model.HttpResponse`.
- *
- * ``Attention``: An implicit `scala.concurrent.ExecutionContext` has to be in scope!
+ * Importing [[EventStreamMarshalling.toResponseMarshaller]] lets a `Source[ServerSentEvent, A]`
+ * be marshallable to a `HttpResponse`.
  */
 object EventStreamMarshalling extends EventStreamMarshalling
 
 /**
- * Mixing in this trait lets an `akka.stream.scaladsl.Source` of
- * [[ServerSentEvent]]s be marshallable to an `akka.http.model.HttpResponse`.
+ * Mixing in this trait lets a `Source[ServerSentEvent, A]` be marshallable to a `HttpResponse`.
  */
 trait EventStreamMarshalling {
 
   implicit final def toResponseMarshaller: ToResponseMarshaller[Source[ServerSentEvent, Any]] =
-    Marshaller.withFixedContentType(MediaTypes.`text/event-stream`) { messages =>
-      val data = messages.map(_.toByteString)
-      HttpResponse(entity = HttpEntity.CloseDelimited(MediaTypes.`text/event-stream`, data))
+    Marshaller.withFixedContentType(`text/event-stream`) { messages =>
+      HttpResponse(entity = HttpEntity.CloseDelimited(`text/event-stream`, messages.map(_.toByteString)))
     }
 }
