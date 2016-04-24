@@ -19,23 +19,19 @@ package de.heikoseeberger.akkasse.example
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding.Get
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
-import de.heikoseeberger.akkasse.{ EventStreamUnmarshalling, ServerSentEvent }
+import akka.stream.scaladsl.Flow
+import de.heikoseeberger.akkasse.ServerSentEventSource
 import java.time.LocalTime
 
 object TimeClient {
-  import EventStreamUnmarshalling._
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
     implicit val mat = ActorMaterializer()
     import system.dispatcher
 
-    Source.single(Get())
-      .via(Http().outgoingConnection("127.0.0.1", 9000))
-      .mapAsync(1)(Unmarshal(_).to[Source[ServerSentEvent, Any]])
-      .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
+    val responses = Flow[String].map(_ => Get()).via(Http().outgoingConnection("127.0.0.1", 9000))
+    ServerSentEventSource(responses).runForeach(event => println(s"${LocalTime.now()} $event"))
   }
 }
