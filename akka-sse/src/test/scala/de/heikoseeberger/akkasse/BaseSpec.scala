@@ -24,9 +24,11 @@ import scala.concurrent.duration.Duration
 
 abstract class BaseSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 
-  implicit val system = ActorSystem()
-  implicit val ec = system.dispatcher
-  implicit val mat = ActorMaterializer()
+  protected implicit val system = ActorSystem()
+
+  protected implicit val ec = system.dispatcher
+
+  protected implicit val mat = ActorMaterializer()
 
   override protected def afterAll() = {
     Await.ready(system.terminate(), Duration.Inf)
