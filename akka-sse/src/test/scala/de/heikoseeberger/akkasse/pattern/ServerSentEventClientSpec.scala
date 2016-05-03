@@ -17,37 +17,40 @@
 package de.heikoseeberger.akkasse
 package pattern
 
+import akka.Done
+import akka.actor.ActorDSL.actor
+import akka.actor.{ Actor, ActorLogging, ActorRef, Status }
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.StatusCodes.BadRequest
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
+import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, Uri }
 import akka.http.scaladsl.server.Directives
-import akka.stream.scaladsl.{ Flow, Sink, Source }
-import akka.testkit.TestDuration
+import akka.pattern.pipe
+import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.{ ActorMaterializer, ThrottleMode }
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
+import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
-import scala.util.Random
 
-class ServerSentEventClientSpec extends BaseSpec {
-  import EventStreamMarshalling._
+object ServerSentEventClientSpec {
 
-  private final val Host = "localhost"
+  object Server {
 
-  private final val Port = 9999
+    case object Start
+    case object Stop
 
-  private val server = { // Responds with SSE source of 10 elements starting from the given id + 1 or from 1
-    def route = {
+    private def route(server: ActorRef) = {
       import Directives._
+      import EventStreamMarshalling._
       get {
         optionalHeaderValueByName(`Last-Event-ID`.name) { lastEventId =>
           try {
             val fromSeqNo = lastEventId.getOrElse("0").trim.toInt + 1
             complete {
               Source
-                .fromIterator(() => Iterator.from(fromSeqNo).take(Random.nextInt(10)))
+                .fromIterator(() => Iterator.from(fromSeqNo).take(2))
                 .map(toServerSentEvent)
             }
           } catch {
@@ -60,43 +63,51 @@ class ServerSentEventClientSpec extends BaseSpec {
         }
       }
     }
-    Await.result(Http().bindAndHandle(route, Host, Port), 3.seconds.dilated)
   }
 
-  "ServerSentEventClient" should {
-    "handle the SSE connection correctly" in {
-      val nrOfSamples = 100
-      val connection = Flow[Option[String]].mapAsync(1) { lastEventId =>
-        val fromSeqNo = lastEventId.getOrElse("0").trim.toInt + 1
-        val events = Source
-          .fromIterator(() => Iterator.from(fromSeqNo).take(Random.nextInt(10)))
-          .map(toServerSentEvent)
-        Marshal(events).to[HttpResponse]
-      }
-      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](Vector.empty)(_ :+ _)
-      val events = ServerSentEventClient(connection, handler)
-        .mapAsync(1)(identity)
-        .mapConcat(identity)
-        .take(nrOfSamples)
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      Await.result(events, 3.seconds) shouldBe 1.to(nrOfSamples).map(toServerSentEvent)
+  class Server(address: String, port: Int) extends Actor with ActorLogging {
+    import Server._
+    import context.dispatcher
+
+    private implicit val mat = ActorMaterializer()
+
+    self ! Start
+
+    override def receive = inactive
+
+    private def inactive: Receive = {
+      case Start =>
+        Http(context.system).bindAndHandle(route(self), address, port).pipeTo(self)
+        context.become(binding)
     }
 
-    "communicate with the HTTP server correctly" in {
-      val nrOfSamples = 10
-      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](Vector.empty)(_ :+ _)
-      val events = ServerSentEventClient(s"http://$Host:$Port", handler)
-        .mapAsync(1)(identity)
-        .mapConcat(identity)
-        .take(nrOfSamples)
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      Await.result(events, 3.seconds) shouldBe 1.to(nrOfSamples).map(toServerSentEvent)
-    }
-  }
+    private def binding: Receive = {
+      case serverBinding @ Http.ServerBinding(socketAddress) =>
+        log.info("Listening on {}", socketAddress)
+        context.system.scheduler.scheduleOnce(1500.milliseconds, self, Stop)
+        context.become(active(serverBinding))
 
-  override protected def afterAll() = {
-    server.unbind()
-    super.afterAll()
+      case Status.Failure(cause) =>
+        log.error(cause, s"Can't bind to {}:{}!", address, port)
+        context.stop(self)
+    }
+
+    private def active(serverBinding: Http.ServerBinding): Receive = {
+      case Stop =>
+        serverBinding.unbind().map(_ => Done).pipeTo(self)
+        context.become(unbinding(serverBinding.localAddress))
+    }
+
+    private def unbinding(socketAddress: InetSocketAddress): Receive = {
+      case Done =>
+        log.info("Stopped listening on {}", socketAddress)
+        context.system.scheduler.scheduleOnce(500.milliseconds, self, Start)
+        context.become(inactive)
+
+      case Status.Failure(cause) =>
+        log.error(cause, s"Can't unbind from {}!", socketAddress)
+        context.stop(self)
+    }
   }
 
   private def toServerSentEvent(n: Int) = {
@@ -104,3 +115,26 @@ class ServerSentEventClientSpec extends BaseSpec {
     ServerSentEvent(id, id = Some(id))
   }
 }
+
+class ServerSentEventClientSpec extends BaseSpec {
+  import ServerSentEventClientSpec._
+
+  "ServerSentEventClient" should {
+    "communicate with the HTTP server correctly" in {
+      val host = "localhost"
+      val port = 9999
+      val server = actor(new Server(host, port))
+      val nrOfSamples = 20
+      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](Vector.empty)(_ :+ _)
+      val events = ServerSentEventClient(Uri(s"http://$host:$port"), handler)
+        .throttle(2, 1.second, 1, ThrottleMode.Shaping)
+        .mapAsync(1)(identity)
+        .mapConcat(identity)
+        .take(nrOfSamples)
+        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      Await.result(events, 20.seconds) shouldBe 1.to(nrOfSamples).map(toServerSentEvent)
+      system.stop(server)
+    }
+  }
+}
+

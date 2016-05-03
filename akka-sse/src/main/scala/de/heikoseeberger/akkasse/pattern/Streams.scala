@@ -92,5 +92,5 @@ object Streams {
    * @param response the response passed in by the sseFlow, which can have failed
    */
   def onSuccess(onResponse: HttpResponse => Unit)(response: Try[HttpResponse]): Unit =
-    for (r <- response if r.status.isSuccess()) onResponse(r)
+    for (r <- response if r.status.isSuccess) onResponse(r)
 }

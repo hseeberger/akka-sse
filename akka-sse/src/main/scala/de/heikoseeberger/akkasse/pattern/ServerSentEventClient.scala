@@ -17,23 +17,23 @@
 package de.heikoseeberger.akkasse
 package pattern
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding.Get
+import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.Accept
-import akka.http.scaladsl.model.{ HttpResponse, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.scaladsl.{ Broadcast, Flow, GraphDSL, Keep, Merge, Sink, Source, Unzip }
-import akka.stream.{ Materializer, SinkShape, SourceShape }
+import akka.stream.scaladsl.{ Flow, GraphDSL, Keep, Merge, Sink, Source, Unzip }
+import akka.stream.{ DelayOverflowStrategy, Materializer, SourceShape }
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
-import de.heikoseeberger.commons.akka.stream.ScanAhead
+import de.heikoseeberger.commons.akka.stream.{ Accumulate, LastElement }
+import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ServerSentEventClient {
 
-  type Handler[A] = Sink[ServerSentEvent, A]
-
   /**
    * Creates a continuous flow of [[ServerSentEvent]]s from the given URI and streams it into the given handler. Once a
    * source of [[ServerSentEvent]]s obtained via the connection is completed, a next one is obtained thereby sending the
@@ -41,78 +41,42 @@ object ServerSentEventClient {
    *
    * @param uri URI with absolute path, e.g. "http://myserver/events
    * @param handler handler for [[ServerSentEvent]]s
+   * @param retryDelay delay before obtaining the next source from the URI
    * @param ec implicit `ExecutionContext`
    * @param mat implicit `Materializer`
    * @param system implicit [[ActorSystem]]
    * @return source of materialized values of the handler
    */
-  def apply[A](uri: String, handler: Handler[A])(implicit ec: ExecutionContext, mat: Materializer, system: ActorSystem): Source[A, Any] =
-    apply(Uri(uri), handler)
-
-  /**
-   * Creates a continuous flow of [[ServerSentEvent]]s from the given URI and streams it into the given handler. Once a
-   * source of [[ServerSentEvent]]s obtained via the connection is completed, a next one is obtained thereby sending the
-   * Last-Evend-ID header if there is a last event id.
-   *
-   * @param uri URI with absolute path, e.g. "http://myserver/events
-   * @param handler handler for [[ServerSentEvent]]s
-   * @param ec implicit `ExecutionContext`
-   * @param mat implicit `Materializer`
-   * @param system implicit [[ActorSystem]]
-   * @return source of materialized values of the handler
-   */
-  def apply[A](uri: Uri, handler: Handler[A])(implicit ec: ExecutionContext, mat: Materializer, system: ActorSystem): Source[A, Any] = {
-    val eventStreamRequest = Get(uri = uri).addHeader(Accept(`text/event-stream`))
-    val connection = Flow[Option[String]]
-      .map(_.foldLeft(eventStreamRequest)((request, lastEventId) => request.addHeader(`Last-Event-ID`(lastEventId))))
-      .mapAsync(1)(request => Http().singleRequest(request))
-    apply(connection, handler)
-  }
-
-  /**
-   * Creates a continuous flow of [[ServerSentEvent]]s from the given connection and streams it into the given handler.
-   * Once a source of [[ServerSentEvent]]s obtained via the connection is completed, a next one is obtained thereby
-   * passing the last event id if any.
-   *
-   * @param connection HTTP connection
-   * @param handler handler for [[ServerSentEvent]]s
-   * @param ec implicit `ExecutionContext`
-   * @param mat implicit `Materializer`
-   * @return source of materialized values of the handler
-   */
-  def apply[A](connection: Flow[Option[String], HttpResponse, Any], handler: Handler[A])(implicit ec: ExecutionContext, mat: Materializer): Source[A, Any] = {
-    import EventStreamUnmarshalling._
-    import GraphDSL.Implicits._
-
-    val runSource = {
-      val handlerAndLastEventId = {
-        val lastEventId = Sink.fold[Option[String], ServerSentEvent](None)((acc, event) => event.id.orElse(acc))
-        Sink.fromGraph(GraphDSL.create(handler, lastEventId)(Keep.both) { implicit builder => (handler, lastEventId) =>
-          val bcast = builder.add(Broadcast[ServerSentEvent](2, eagerCancel = true))
-          // format: OFF
-          bcast ~> handler
-          bcast ~> lastEventId
-          // format: ON
-          SinkShape(bcast.in)
-        })
+  def apply[A](uri: Uri, handler: Sink[ServerSentEvent, A], retryDelay: FiniteDuration = Duration.Zero)(implicit ec: ExecutionContext, mat: Materializer, system: ActorSystem): Source[A, NotUsed] = {
+    def eventStreamForLastEvendId(lastEventId: Option[String]) = {
+      def getEventStream = {
+        import EventStreamUnmarshalling._
+        val request = lastEventId.foldLeft(Get(uri).addHeader(Accept(`text/event-stream`))) { (request, id) =>
+          request.addHeader(`Last-Event-ID`(id))
+        }
+        Http().singleRequest(request).flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
       }
-      connection
-        .mapAsync(1)(Unmarshal(_).to[Source[ServerSentEvent, Any]])
-        .map(_.runWith(handlerAndLastEventId))
+      Source.fromFuture(getEventStream)
+        .flatMapConcat(identity)
+        .viaMat(LastElement())(Keep.right)
+        .toMat(handler)(Keep.both)
+        .run()
     }
-
-    Source.fromGraph(GraphDSL.create(runSource) { implicit builder => runSource =>
+    Source.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
       val trigger = Source.single(None)
       val merge = builder.add(Merge[Option[String]](2))
-      val unzip = builder.add(Unzip[A, Future[Option[String]]]())
-      val lastEventId = Flow[Future[Option[String]]]
+      val getAndRunEventStream = Flow[Option[String]].map(eventStreamForLastEvendId)
+      val unzip = builder.add(Unzip[Future[Option[ServerSentEvent]], A]())
+      val lastEventId = Flow[Future[Option[ServerSentEvent]]]
         .mapAsync(1)(identity)
-        .via(ScanAhead(Option.empty[String])((acc, id) => id.orElse(acc)))
+        .via(Accumulate(Option.empty[String])((acc, event) => event.flatMap(_.id).orElse(acc)))
+        .delay(retryDelay, DelayOverflowStrategy.fail) // There should be only one element in flight anyway!
       // format: OFF
-      trigger ~> merge ~> runSource   ~> unzip.in
-                 merge <~ lastEventId <~ unzip.out1
+      trigger ~> merge ~> getAndRunEventStream ~> unzip.in
+                 merge <~     lastEventId      <~ unzip.out0
       // format: ON
-      SourceShape(unzip.out0)
+      SourceShape(unzip.out1)
     })
   }
 }
