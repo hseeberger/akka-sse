@@ -44,7 +44,7 @@ object ServerSentEventClient {
    * @param retryDelay delay before obtaining the next source from the URI
    * @param ec implicit `ExecutionContext`
    * @param mat implicit `Materializer`
-   * @param system implicit [[ActorSystem]]
+   * @param system implicit `ActorSystem`
    * @return source of materialized values of the handler
    */
   def apply[A](uri: Uri, handler: Sink[ServerSentEvent, A], retryDelay: FiniteDuration = Duration.Zero)(implicit ec: ExecutionContext, mat: Materializer, system: ActorSystem): Source[A, NotUsed] = {
