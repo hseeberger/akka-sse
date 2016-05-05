@@ -77,8 +77,12 @@ class StreamsSpec extends BaseSpec with ScalaFutures with EventStreamMarshalling
       testSource.sendNext(httpResponse)
       testSource.sendComplete()
 
-      testObserver.expectMsg(httpResponse)
-      testObserver.expectMsg(Success(Done))
+      testObserver.expectMsgPF() {
+        case `httpResponse` =>
+          testObserver.expectMsg(Success(Done))
+        case Success(Done) =>
+          testObserver.expectMsg(httpResponse)
+      }
     }
 
     "not call its response handler when failed" in {
@@ -102,8 +106,12 @@ class StreamsSpec extends BaseSpec with ScalaFutures with EventStreamMarshalling
       testSource.sendNext(httpResponse)
       testSource.sendComplete()
 
-      testObserver.expectMsg(httpResponse)
-      testObserver.expectMsg(Success(Done))
+      testObserver.expectMsgPF() {
+        case `httpResponse` =>
+          testObserver.expectMsg(Success(Done))
+        case Success(Done) =>
+          testObserver.expectMsg(httpResponse)
+      }
     }
 
     "pass through all non heartbeat events" in {
