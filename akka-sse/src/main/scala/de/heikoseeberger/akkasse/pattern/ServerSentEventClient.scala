@@ -41,13 +41,14 @@ object ServerSentEventClient {
    *
    * @param uri URI with absolute path, e.g. "http://myserver/events
    * @param handler handler for [[ServerSentEvent]]s
+   * @param lastEventId initial value for Last-Evend-ID header, optional
    * @param retryDelay delay before obtaining the next source from the URI
    * @param ec implicit `ExecutionContext`
    * @param mat implicit `Materializer`
    * @param system implicit `ActorSystem`
    * @return source of materialized values of the handler
    */
-  def apply[A](uri: Uri, handler: Sink[ServerSentEvent, A], retryDelay: FiniteDuration = Duration.Zero)(implicit ec: ExecutionContext, mat: Materializer, system: ActorSystem): Source[A, NotUsed] = {
+  def apply[A](uri: Uri, handler: Sink[ServerSentEvent, A], lastEventId: Option[String] = None, retryDelay: FiniteDuration = Duration.Zero)(implicit ec: ExecutionContext, mat: Materializer, system: ActorSystem): Source[A, NotUsed] = {
     def eventStreamForLastEvendId(lastEventId: Option[String]) = {
       def getEventStream = {
         import EventStreamUnmarshalling._
@@ -64,17 +65,17 @@ object ServerSentEventClient {
     }
     Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
-      val trigger = Source.single(None)
+      val trigger = Source.single(lastEventId)
       val merge = builder.add(Merge[Option[String]](2))
       val getAndRunEventStream = Flow[Option[String]].map(eventStreamForLastEvendId)
       val unzip = builder.add(Unzip[Future[Option[ServerSentEvent]], A]())
-      val lastEventId = Flow[Future[Option[ServerSentEvent]]]
+      val latestLastEventId = Flow[Future[Option[ServerSentEvent]]]
         .mapAsync(1)(identity)
         .via(Accumulate(Option.empty[String])((acc, event) => event.flatMap(_.id).orElse(acc)))
         .delay(retryDelay, DelayOverflowStrategy.fail) // There should be only one element in flight anyway!
       // format: OFF
       trigger ~> merge ~> getAndRunEventStream ~> unzip.in
-                 merge <~     lastEventId      <~ unzip.out0
+                 merge <~ latestLastEventId    <~ unzip.out0
       // format: ON
       SourceShape(unzip.out1)
     })
