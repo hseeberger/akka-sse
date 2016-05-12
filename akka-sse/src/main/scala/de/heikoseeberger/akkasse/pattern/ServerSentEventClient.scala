@@ -24,18 +24,18 @@ import akka.http.scaladsl.client.RequestBuilding.Get
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.contrib.{ Accumulate, LastElement }
 import akka.stream.scaladsl.{ Flow, GraphDSL, Keep, Merge, Sink, Source, Unzip }
 import akka.stream.{ DelayOverflowStrategy, Materializer, SourceShape }
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
-import de.heikoseeberger.commons.akka.stream.{ Accumulate, LastElement }
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
 object ServerSentEventClient {
 
   /**
-   * Creates a continuous flow of [[ServerSentEvent]]s from the given URI and streams it into the given handler. Once a
+   * Creates a continuous source of [[ServerSentEvent]]s from the given URI and streams it into the given handler. Once a
    * source of [[ServerSentEvent]]s obtained via the connection is completed, a next one is obtained thereby sending the
    * Last-Evend-ID header if there is a last event id.
    *
