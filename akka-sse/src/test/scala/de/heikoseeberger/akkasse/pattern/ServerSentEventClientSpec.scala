@@ -138,7 +138,7 @@ class ServerSentEventClientSpec extends BaseSpec {
       system.stop(server)
     }
 
-    "apply the initial last event if the server doesn't set the event id" in {
+    "apply the initial last event ID if the server doesn't set the event ID" in {
       val host = "localhost"
       val port = 9998
       val server = actor(new Server(host, port, Server.route(setEventId = false), isInstable = false))
