@@ -71,7 +71,7 @@ object ServerSentEventClient {
       val unzip = builder.add(Unzip[Future[Option[ServerSentEvent]], A]())
       val latestLastEventId = Flow[Future[Option[ServerSentEvent]]]
         .mapAsync(1)(identity)
-        .via(Accumulate(Option.empty[String])((acc, event) => event.flatMap(_.id).orElse(acc)))
+        .via(Accumulate(lastEventId)((acc, event) => event.flatMap(_.id).orElse(acc)))
         .delay(retryDelay, DelayOverflowStrategy.fail) // There should be only one element in flight anyway!
       // format: OFF
       trigger ~> merge ~> getAndRunEventStream ~> unzip.in
