@@ -17,6 +17,7 @@
 package de.heikoseeberger.akkasse
 
 import akka.stream.scaladsl.Source
+import akka.testkit.TestDuration
 import akka.util.ByteString
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -30,7 +31,7 @@ class LineParserSpec extends BaseSpec {
       val lines = Source.single(ByteString(input))
         .via(new LineParser(1048576))
         .runFold(Vector.empty[String])(_ :+ _)
-      Await.result(lines, 1 second) shouldBe Vector("line1", "line2", "line3", "line4", "line5", "line6", "")
+      Await.result(lines, 1.second.dilated) shouldBe Vector("line1", "line2", "line3", "line4", "line5", "line6", "")
     }
 
     "ignore a trailing non-terminated line" in {
@@ -38,7 +39,7 @@ class LineParserSpec extends BaseSpec {
       val lines = Source.single(ByteString(input))
         .via(new LineParser(1048576))
         .runFold(Vector.empty[String])(_ :+ _)
-      Await.result(lines, 1 second) shouldBe Vector("line1", "line2", "line3", "line4", "line5", "line6", "")
+      Await.result(lines, 1.second.dilated) shouldBe Vector("line1", "line2", "line3", "line4", "line5", "line6", "")
     }
 
     "handle splitted line" in {
@@ -47,7 +48,7 @@ class LineParserSpec extends BaseSpec {
       val lines = Source(input)
         .via(new LineParser(1048576))
         .runFold(Vector.empty[String])(_ :+ _)
-      Await.result(lines, 1 second) shouldBe Vector(testLine)
+      Await.result(lines, 1.second.dilated) shouldBe Vector(testLine)
     }
   }
 }
