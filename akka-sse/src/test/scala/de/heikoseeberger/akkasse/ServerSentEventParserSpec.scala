@@ -17,6 +17,7 @@
 package de.heikoseeberger.akkasse
 
 import akka.stream.scaladsl.Source
+import akka.testkit.TestDuration
 import akka.util.ByteString
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -49,7 +50,7 @@ class ServerSentEventParserSpec extends BaseSpec {
       val events = Source(input.split(f"%n").toVector)
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      Await.result(events, 1 second) shouldBe Vector(
+      Await.result(events, 1.second.dilated) shouldBe Vector(
         ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
         ServerSentEvent("message 2", "message 2 event", "42", 512),
         ServerSentEvent.heartbeat,
@@ -65,7 +66,7 @@ class ServerSentEventParserSpec extends BaseSpec {
       val events = Source(input.split(f"%n", -1).toVector)
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff", retry = None))
+      Await.result(events, 1.second.dilated) shouldBe Vector(ServerSentEvent("stuff", retry = None))
     }
 
     "work for issue 36" in {
@@ -74,7 +75,7 @@ class ServerSentEventParserSpec extends BaseSpec {
         .via(new LineParser(1048576))
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      Await.result(events, 1 second) shouldBe Vector(ServerSentEvent("stuff\nmore\nextra"))
+      Await.result(events, 1.second.dilated) shouldBe Vector(ServerSentEvent("stuff\nmore\nextra"))
     }
   }
 }

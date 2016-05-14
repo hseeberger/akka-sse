@@ -28,7 +28,7 @@ object ServerSentEvent {
   val emptyId: Option[String] = Some("")
 
   /**
-   * An "empty" [[ServerSentEvent]] that can be used as a heartbeat.
+   * An "comment only" [[ServerSentEvent]] that can be used as a heartbeat.
    */
   val heartbeat: ServerSentEvent = new ServerSentEvent("")
 
@@ -148,8 +148,8 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None,
     }
     def addData(builder: StringBuilder) = addLines(builder, "data:", data, 0)
     def addEvent(builder: StringBuilder) = eventType match {
-      case Some(e) => addLines(builder, "event:", e, 0)
-      case None    => builder
+      case Some(eventType) => addLines(builder, "event:", eventType, 0)
+      case None            => builder
     }
     def addId(builder: StringBuilder) = id match {
       case Some("") => builder.append("id\n")
@@ -157,8 +157,8 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None,
       case None     => builder
     }
     def addRetry(builder: StringBuilder) = retry match {
-      case Some(r) => addLines(builder, "retry:", r.toString, 0)
-      case None    => builder
+      case Some(retry) => addLines(builder, "retry:", retry.toString, 0)
+      case None        => builder
     }
     // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
     //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line

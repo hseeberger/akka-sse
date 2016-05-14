@@ -20,7 +20,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.DurationInt
 
 abstract class BaseSpec extends WordSpec with Matchers with BeforeAndAfterAll {
 
@@ -31,7 +31,7 @@ abstract class BaseSpec extends WordSpec with Matchers with BeforeAndAfterAll {
   protected implicit val mat = ActorMaterializer()
 
   override protected def afterAll() = {
-    Await.ready(system.terminate(), Duration.Inf)
+    Await.ready(system.terminate(), 42.seconds)
     super.afterAll()
   }
 }
