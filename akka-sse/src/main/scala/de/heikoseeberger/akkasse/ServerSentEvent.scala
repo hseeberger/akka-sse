@@ -28,7 +28,9 @@ object ServerSentEvent {
   val emptyId: Option[String] = Some("")
 
   /**
-   * An "comment only" [[ServerSentEvent]] that can be used as a heartbeat.
+   * An empty [[ServerSentEvent]] that can be used as a heartbeat. See the SSE specification, section 7
+   * (https://www.w3.org/TR/eventsource/#event-stream-interpretation): "If the data buffer is an empty string, set the
+   * data buffer and the event type buffer to the empty string and abort these steps."
    */
   val heartbeat: ServerSentEvent = new ServerSentEvent("")
 
@@ -131,7 +133,15 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None,
    * @return message converted to `java.lang.String`
    */
   override def toString = {
-    @tailrec def addLines(builder: StringBuilder, label: String, s: String, index: Int): StringBuilder = {
+    // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
+    //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
+    // Why 7? "event:" + \n == 7 chars
+    // Why 4? "id:" + \n == 4 chars
+    // Why 17? "retry:" + \n + Integer.Max decimal places
+    val builder = new StringBuilder(nextPowerOfTwoBiggerThan(
+      8 + data.length + eventType.fold(0)(_.length + 7) + id.fold(0)(_.length + 4) + retry.fold(0)(_ => 17)
+    ))
+    @tailrec def appendData(s: String, index: Int = 0): Unit = {
       @tailrec def addLine(index: Int): Int =
         if (index >= s.length)
           -1
@@ -140,31 +150,16 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None,
           builder.append(c)
           if (c == '\n') index + 1 else addLine(index + 1)
         }
-      builder.append(label)
+      builder.append("data:")
       addLine(index) match {
         case -1 => builder.append('\n')
-        case i  => addLines(builder, label, s, i)
+        case i  => appendData(s, i)
       }
     }
-    def addData(builder: StringBuilder) = addLines(builder, "data:", data, 0)
-    def addEvent(builder: StringBuilder) = eventType match {
-      case Some(eventType) => addLines(builder, "event:", eventType, 0)
-      case None            => builder
-    }
-    def addId(builder: StringBuilder) = id match {
-      case Some("") => builder.append("id\n")
-      case Some(id) => addLines(builder, "id:", id, 0)
-      case None     => builder
-    }
-    def addRetry(builder: StringBuilder) = retry match {
-      case Some(retry) => addLines(builder, "retry:", retry.toString, 0)
-      case None        => builder
-    }
-    // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
-    //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
-    // Why 7? "event:" + \n == 7 chars
-    // Why 17? "retry:" + \n + Integer.Max decimal places
-    val builder = new StringBuilder(nextPowerOfTwoBiggerThan(8 + data.length + eventType.fold(0)(_.length + 7) + retry.fold(0)(_ + 17)))
-    addRetry(addId(addData(addEvent(builder)))).append('\n').toString
+    appendData(data)
+    if (eventType.isDefined) builder.append("event:").append(eventType.get).append('\n')
+    if (id.isDefined) builder.append("id:").append(id.get).append('\n')
+    if (retry.isDefined) builder.append("retry:").append(retry.get).append('\n')
+    builder.append('\n').toString
   }
 }

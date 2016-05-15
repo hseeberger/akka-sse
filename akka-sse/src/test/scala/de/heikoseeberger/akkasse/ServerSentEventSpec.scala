@@ -43,17 +43,12 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
 
     "return multiple data lines and an event line for a multi-line message with a defined event type" in {
       val event = ServerSentEvent("line1\nline2", "event-type")
-      event.toString shouldBe "event:event-type\ndata:line1\ndata:line2\n\n"
+      event.toString shouldBe "data:line1\ndata:line2\nevent:event-type\n\n"
     }
 
     "return a single id field after the data fields" in {
       val event = ServerSentEvent("line1", eventType = None, id = Some("1"))
       event.toString shouldBe "data:line1\nid:1\n\n"
-    }
-
-    "return a single id reset field after the data fields" in {
-      val event = ServerSentEvent("line1", eventType = None, id = ServerSentEvent.emptyId)
-      event.toString shouldBe "data:line1\nid\n\n"
     }
 
     "return a single retry field after the data fields" in {
