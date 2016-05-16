@@ -52,24 +52,35 @@ object TimeServer {
   def route = {
     import Directives._
     import EventStreamMarshalling._
-    get {
-      complete {
-        Source.tick(2.seconds, 2.seconds, ())
-          .map(_ => LocalTime.now())
-          .map(dateTimeToServerSentEvent)
+
+    def assets = getFromResourceDirectory("web") ~ pathSingleSlash(get(redirect("index.html", PermanentRedirect)))
+
+    def events = path("events") {
+      get {
+        complete {
+          Source.tick(2.seconds, 2.seconds, NotUsed)
+            .map(_ => LocalTime.now())
+            .map(dateTimeToServerSentEvent)
+        }
       }
     }
+
+    assets ~ events
   }
+
+  def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent = ServerSentEvent(
+    DateTimeFormatter.ISO_LOCAL_TIME.format(time)
+  )
 }
 ```
 
-If you need periodic heartbeats, simply use the `keepAlive` standard stage with a `ServerSentEvent.heartbeat`:
+If you need periodic heartbeats, simply use the `keepAlive` standard stage with a `ServerSentEvent.Heartbeat`:
 
 ``` scala
-Source.tick(2.seconds, 2.seconds, Unit)
+Source.tick(2.seconds, 2.seconds, NotUsed)
   .map(_ => LocalTime.now())
   .map(dateTimeToServerSentEvent)
-  .keepAlive(1.second, () => ServerSentEvent.heartbeat)
+  .keepAlive(1.second, () => ServerSentEvent.Heartbeat)
 }
 ```
 
@@ -89,6 +100,23 @@ object TimeClient {
     .via(Http().outgoingConnection("127.0.0.1", 9000))
     .mapAsync(1)(Unmarshal(_).to[Source[ServerSentEvent, Any]])
     .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
+}
+```
+
+If you want the client to reconnect to the server thereby sending the Last-Evend-ID header if available, you can use the
+`ServerSentEventClient`:
+
+``` scala
+object TimeClient {
+
+  def main(args: Array[String]): Unit = {
+    implicit val system = ActorSystem()
+    implicit val mat = ActorMaterializer()
+    import system.dispatcher
+
+    val handler = Sink.foreach[ServerSentEvent](event => println(s"${LocalTime.now()} $event"))
+    ServerSentEventClient("http://localhost:9000/events", handler).runWith(Sink.ignore)
+  }
 }
 ```
 

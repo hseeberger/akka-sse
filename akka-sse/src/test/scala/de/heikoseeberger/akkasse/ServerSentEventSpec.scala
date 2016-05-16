@@ -61,7 +61,7 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
     "return a correctly converted ByteString" in {
       forAll { (data: String) =>
         val event = ServerSentEvent(data)
-        event.toByteString.utf8String shouldBe event.toString
+        event.encode.utf8String shouldBe event.toString
       }
     }
   }

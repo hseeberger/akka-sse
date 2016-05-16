@@ -120,8 +120,7 @@ class StreamsSpec extends BaseSpec with ScalaFutures with EventStreamMarshalling
       val sseEvent = ServerSentEvent("Hello World")
 
       val marshallableResponse =
-        Source.single(sseEvent)
-          .keepAlive(1.millisecond, () => ServerSentEvent.heartbeat): ToResponseMarshallable
+        Source.single(sseEvent).keepAlive(1.millisecond, () => ServerSentEvent.Heartbeat): ToResponseMarshallable
       val marshalledResponse = marshallableResponse(HttpRequest()).futureValue
 
       val testSource = testSourceProbe(testObserver.ref)

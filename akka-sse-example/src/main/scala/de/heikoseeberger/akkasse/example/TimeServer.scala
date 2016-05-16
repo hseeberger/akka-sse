@@ -16,17 +16,16 @@
 
 package de.heikoseeberger.akkasse.example
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes.PermanentRedirect
-import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directives
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import akka.stream.{ ActorMaterializer, Materializer }
 import de.heikoseeberger.akkasse.{ EventStreamMarshalling, ServerSentEvent }
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 
 object TimeServer {
@@ -34,11 +33,10 @@ object TimeServer {
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
     implicit val mat = ActorMaterializer()
-    import system.dispatcher
-    Http().bindAndHandle(route(system), "127.0.0.1", 9000)
+    Http().bindAndHandle(route, "127.0.0.1", 9000)
   }
 
-  def route(system: ActorSystem)(implicit ec: ExecutionContext, mat: Materializer) = {
+  def route = {
     import Directives._
     import EventStreamMarshalling._
 
@@ -47,10 +45,10 @@ object TimeServer {
     def events = path("events") {
       get {
         complete {
-          Source.tick(2.seconds, 2.seconds, ())
+          Source.tick(2.seconds, 2.seconds, NotUsed)
             .map(_ => LocalTime.now())
             .map(dateTimeToServerSentEvent)
-            .keepAlive(1.second, () => ServerSentEvent.heartbeat)
+            .keepAlive(1.second, () => ServerSentEvent.Heartbeat)
         }
       }
     }
