@@ -22,6 +22,61 @@ import scala.util.control.NonFatal
 
 private object ServerSentEventParser {
 
+  private final class Builder {
+
+    private var data = Vector.empty[String]
+
+    private var eventType = null: String
+
+    private var id = null: String
+
+    private var retry = null: String
+
+    private var _size = 0
+
+    def appendData(value: String): Unit = {
+      _size += 5 + value.length
+      data :+= value
+    }
+
+    def setEventType(value: String): Unit = {
+      val oldSize = if (eventType == null) 0 else 6 + eventType.length
+      _size += 6 + value.length - oldSize
+      eventType = value
+    }
+
+    def setId(value: String): Unit = {
+      val oldSize = if (id == null) 0 else 3 + id.length
+      _size += 3 + value.length - oldSize
+      id = value
+    }
+
+    def setRetry(value: String): Unit = {
+      val oldSize = if (retry == null) 0 else 6 + retry.length
+      _size += 6 + value.length - oldSize
+      retry = value
+    }
+
+    def hasData: Boolean = data.nonEmpty
+
+    def size: Int = _size
+
+    def build(): ServerSentEvent = ServerSentEvent(
+      data.mkString(LF),
+      Option(eventType),
+      Option(id),
+      Option(retry).flatMap(silentlyToInt)
+    )
+
+    def reset(): Unit = {
+      data = Vector.empty[String]
+      eventType = null
+      id = null
+      retry = null
+      _size = 0
+    }
+  }
+
   private final val LF = "\n"
 
   private final val Data = "data"
@@ -70,31 +125,34 @@ private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[
     import shape._
 
     setHandler(in, new InHandler {
-      private var lines = Vector.empty[String]
-      private var linesSize = 0L
-      override def onPush() = {
-        val (newLines, newSize) = grab(in) match {
-          case "" => // A server-sent event is terminated with a new line, i.e. an empty line
-            val (data, eventType, id, retry) = parseFields(lines)
-            if (data.isEmpty)
-              pull(in)
-            else
-              push(out, ServerSentEvent(
-                data.mkString(LF),
-                Option(eventType),
-                Option(id),
-                Option(retry).flatMap(silentlyToInt)
-              ))
-            (Vector.empty, 0L)
-          case line if linesSize + line.length > maxEventSize =>
-            failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
-            (Vector.empty, 0L)
-          case line =>
-            pull(in)
-            (lines :+ line, linesSize + line.length)
-        }
-        lines = newLines
-        linesSize = newSize
+
+      private val builder = new Builder()
+
+      override def onPush() = grab(in) match {
+        case "" => // An event is terminated with a new line
+          if (builder.hasData) push(out, builder.build()) else pull(in) // An event without data must be ignored
+          builder.reset() // In both cases we continue with a fresh one
+
+        case line if builder.size + line.length > maxEventSize =>
+          failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
+          builder.reset()
+
+        case line =>
+          line match {
+            case Data  => builder.appendData("")
+            case Event => builder.setEventType("")
+            case Id    => builder.setId("")
+            case Retry => builder.setRetry("")
+            case linePattern(field @ (Data | Event | Id | Retry), value) => field match {
+              case Data  => builder.appendData(value)
+              case Event => builder.setEventType(value)
+              case Id    => builder.setId(value)
+              case Retry => builder.setRetry(value)
+              case _     =>
+            }
+            case _ =>
+          }
+          pull(in)
       }
     })
 
