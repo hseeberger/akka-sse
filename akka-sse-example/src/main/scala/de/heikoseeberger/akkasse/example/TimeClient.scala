@@ -31,6 +31,6 @@ object TimeClient {
     import system.dispatcher
 
     val handler = Sink.foreach[ServerSentEvent](event => println(s"${LocalTime.now()} $event"))
-    ServerSentEventClient("http://localhost:9000", handler).runWith(Sink.ignore)
+    ServerSentEventClient("http://localhost:9000/events", handler).runWith(Sink.ignore)
   }
 }

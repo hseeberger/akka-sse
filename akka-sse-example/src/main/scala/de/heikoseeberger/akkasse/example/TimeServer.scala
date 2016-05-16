@@ -18,6 +18,8 @@ package de.heikoseeberger.akkasse.example
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.StatusCodes.PermanentRedirect
+import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directives
 import akka.stream.scaladsl.Source
 import akka.stream.{ ActorMaterializer, Materializer }
@@ -39,14 +41,21 @@ object TimeServer {
   def route(system: ActorSystem)(implicit ec: ExecutionContext, mat: Materializer) = {
     import Directives._
     import EventStreamMarshalling._
-    get {
-      complete {
-        Source.tick(2.seconds, 2.seconds, ())
-          .map(_ => LocalTime.now())
-          .map(dateTimeToServerSentEvent)
-          .keepAlive(1.second, () => ServerSentEvent.heartbeat)
+
+    def assets = getFromResourceDirectory("web") ~ pathSingleSlash(get(redirect("index.html", PermanentRedirect)))
+
+    def events = path("events") {
+      get {
+        complete {
+          Source.tick(2.seconds, 2.seconds, ())
+            .map(_ => LocalTime.now())
+            .map(dateTimeToServerSentEvent)
+            .keepAlive(1.second, () => ServerSentEvent.heartbeat)
+        }
       }
     }
+
+    assets ~ events
   }
 
   def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent = ServerSentEvent(
