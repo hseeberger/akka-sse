@@ -41,6 +41,10 @@ private object ServerSentEventParser {
     var retry = null: String
     for (line <- lines) {
       line match {
+        case Data  => data :+= ""
+        case Event => eventType = ""
+        case Id    => id = ""
+        case Retry => retry = ""
         case linePattern(field @ (Data | Event | Id | Retry), value) => field match {
           case Data  => data :+= value
           case Event => eventType = value
@@ -48,11 +52,7 @@ private object ServerSentEventParser {
           case Retry => retry = value
           case _     =>
         }
-        case Data  => data :+= ""
-        case Event => eventType = ""
-        case Id    => id = ""
-        case Retry => retry = ""
-        case _     =>
+        case _ =>
       }
     }
     (data, eventType, id, retry)
