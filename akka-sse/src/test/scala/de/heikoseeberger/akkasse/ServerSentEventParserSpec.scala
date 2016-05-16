@@ -37,7 +37,7 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |id: 42
                      |retry: 512
                      |
-                     |data:
+                     |
                      |
                      |event: message 4 event
                      |id:
@@ -53,8 +53,6 @@ class ServerSentEventParserSpec extends BaseSpec {
       Await.result(events, 1.second.dilated) shouldBe Vector(
         ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
         ServerSentEvent("message 2", "message 2 event", "42", 512),
-        ServerSentEvent.heartbeat,
-        ServerSentEvent("", Some("message 4 event"), ServerSentEvent.emptyId),
         ServerSentEvent("", None, ServerSentEvent.emptyId)
       )
     }

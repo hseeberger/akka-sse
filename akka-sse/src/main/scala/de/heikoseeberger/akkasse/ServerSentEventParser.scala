@@ -34,23 +34,35 @@ private object ServerSentEventParser {
 
   private val linePattern = """([^:]+): ?(.*)""".r
 
-  private def parseServerSentEvent(lines: Vector[String]): ServerSentEvent = {
-    val values = lines.foldLeft(Map.empty[String, Vector[String]].withDefault(_ => Vector.empty)) {
-      case (m, "")                                                      => m
-      case (m, linePattern(field @ (Data | Event | Id | Retry), value)) => m.updated(field, m(field) :+ value)
-      case (m, field)                                                   => m.updated(field, m(field) :+ "")
+  private def parseFields(lines: Vector[String]) = {
+    var data = Vector.empty[String]
+    var eventType = null: String
+    var id = null: String
+    var retry = null: String
+    for (line <- lines) {
+      line match {
+        case linePattern(field @ (Data | Event | Id | Retry), value) => field match {
+          case Data  => data :+= value
+          case Event => eventType = value
+          case Id    => id = value
+          case Retry => retry = value
+          case _     =>
+        }
+        case Data  => data :+= ""
+        case Event => eventType = ""
+        case Id    => id = ""
+        case Retry => retry = ""
+        case _     =>
+      }
     }
-    def toInt(s: String) = try Some(s.trim.toInt) catch { case NonFatal(_) => None }
-    ServerSentEvent(
-      data = values(Data).mkString(LF),
-      eventType = values(Event).lastOption,
-      id = values(Id).lastOption,
-      retry = values(Retry).lastOption.flatMap(toInt)
-    )
+    (data, eventType, id, retry)
   }
+
+  private def silentlyToInt(s: String) = try Some(s.trim.toInt) catch { case NonFatal(_) => None }
 }
 
 private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[FlowShape[String, ServerSentEvent]] {
+
   override val shape = FlowShape(Inlet[String]("ServerSentEventParser.in"), Outlet[ServerSentEvent]("ServerSentEventParser.out"))
 
   override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
@@ -63,7 +75,16 @@ private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[
       override def onPush() = {
         val (newLines, newSize) = grab(in) match {
           case "" => // A server-sent event is terminated with a new line, i.e. an empty line
-            emit(out, parseServerSentEvent(lines))
+            val (data, eventType, id, retry) = parseFields(lines)
+            if (data.isEmpty)
+              pull(in)
+            else
+              push(out, ServerSentEvent(
+                data.mkString(LF),
+                Option(eventType),
+                Option(id),
+                Option(retry).flatMap(silentlyToInt)
+              ))
             (Vector.empty, 0L)
           case line if linesSize + line.length > maxEventSize =>
             failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))

@@ -17,9 +17,29 @@
 package de.heikoseeberger.akkasse
 
 import akka.util.ByteString
+import java.nio.charset.StandardCharsets.UTF_8
 import scala.annotation.tailrec
 
+/**
+ * An object that can be encoded as an element of an event stream.
+ */
+sealed trait EventStreamElement {
+
+  /**
+   * Encode this object as an element of an event stream.
+   * @return UTF-8 encoded `akka.util.ByteString`
+   */
+  def encode: ByteString
+}
+
 object ServerSentEvent {
+
+  /**
+   * An empty [[ServerSentEvent]] that can be used as a heartbeat. Filtered out by clients.
+   */
+  object Heartbeat extends EventStreamElement {
+    override def encode = ByteString("\n", UTF_8.name)
+  }
 
   /**
    * An eventId which resets the last event ID to the empty string, meaning no `Last-Event-ID` header will be sent
@@ -28,10 +48,10 @@ object ServerSentEvent {
   val emptyId: Option[String] = Some("")
 
   /**
-   * An empty [[ServerSentEvent]] that can be used as a heartbeat. See the SSE specification, section 7
-   * (https://www.w3.org/TR/eventsource/#event-stream-interpretation): "If the data buffer is an empty string, set the
-   * data buffer and the event type buffer to the empty string and abort these steps."
+   * A [[ServerSentEvent]] with the data set to the empty string that might be used as a heartbeat. Attention: not
+   * filtered out by clients!
    */
+  @deprecated("Use Heartbeat instead!", "2.8.0")
   val heartbeat: ServerSentEvent = new ServerSentEvent("")
 
   /**
@@ -113,11 +133,25 @@ object ServerSentEvent {
  * @param id event id, must not contain \n or \r
  * @param retry the reconnection time in milliseconds.
  */
-final case class ServerSentEvent(data: String, eventType: Option[String] = None, id: Option[String] = None, retry: Option[Int] = None) {
+final case class ServerSentEvent(
+  data: String,
+  eventType: Option[String] = None,
+  id: Option[String] = None,
+  retry: Option[Int] = None
+)
+    extends EventStreamElement {
   import ServerSentEvent._
   require(eventType.forall(_.forall(c => c != '\n' && c != '\r')), "Event type must not contain \\n or \\r!")
   require(id.forall(_.forall(c => c != '\n' && c != '\r')), "Id must not contain \\n or \\r!")
   require(retry.forall(_ > 0L), "Retry must be a positive number!")
+
+  /**
+   * Encodes this Server-Sent Event to an `akka.util.ByteString` according to the
+   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   *
+   * @return message converted to UTF-8 encoded `akka.util.ByteString`
+   */
+  override def encode = ByteString(toString, UTF_8.name)
 
   /**
    * Converts to an `akka.util.ByteString` according to the
@@ -125,11 +159,13 @@ final case class ServerSentEvent(data: String, eventType: Option[String] = None,
    *
    * @return message converted to UTF-8 encoded `akka.util.ByteString`
    */
-  def toByteString: ByteString = ByteString(toString)
+  @deprecated("Use encode instead!", "1.8.0")
+  def toByteString: ByteString = encode
 
   /**
    * Converts to a `java.lang.String` according to the
    * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+   *
    * @return message converted to `java.lang.String`
    */
   override def toString = {

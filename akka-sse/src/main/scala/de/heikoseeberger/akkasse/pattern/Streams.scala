@@ -65,24 +65,14 @@ object Streams {
   def sseFlow(onResponse: Try[HttpResponse] => Unit, onTermination: Try[Done] => Unit)(
     implicit
     ec: ExecutionContext, mat: ActorMaterializer
-  ): Flow[HttpResponse, ServerSentEvent, NotUsed] =
+  ): Flow[HttpResponse, ServerSentEvent, NotUsed] = {
+    import EventStreamUnmarshalling._
     Flow[HttpResponse]
-      .alsoTo(
-        Sink.head.mapMaterializedValue(_.onComplete(onResponse))
-      )
-      .alsoTo(
-        Sink.onComplete(onTermination)
-      )
-      .flatMapConcat { response =>
-        import EventStreamUnmarshalling._
-        val sseEvents =
-          Unmarshal(response)
-            .to[Source[ServerSentEvent, Any]]
-            .map(_.filter(_ != ServerSentEvent.heartbeat))
-        Source
-          .fromFuture(sseEvents)
-          .flatMapConcat(identity)
-      }
+      .alsoTo(Sink.head.mapMaterializedValue(_.onComplete(onResponse)))
+      .alsoTo(Sink.onComplete(onTermination))
+      .mapAsync(1)(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+      .flatMapConcat(identity)
+  }
 
   /**
    * A convenience for wrapping onResponse handlers where the  event
