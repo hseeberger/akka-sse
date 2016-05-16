@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Akka SSE</title>
+    </head>
+
+    <body>
+        <h1>Akka SSE</h1>
+
+        <script>
+            var messageSource = new EventSource('/events');
+            messageSource.addEventListener(
+                    'message',
+                    function(event) {
+                        console.log(event);
+                    },
+                    false
+            );
+        </script>
+    </body>
+</html>

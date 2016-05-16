@@ -85,8 +85,8 @@ object TimeClient {
 
   ...
 
-  Source.single(Get())
-    .via(Http().outgoingConnection("127.0.0.1", 8000))
+  Source.single(Get("/events"))
+    .via(Http().outgoingConnection("127.0.0.1", 9000))
     .mapAsync(1)(Unmarshal(_).to[Source[ServerSentEvent, Any]])
     .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
 }
