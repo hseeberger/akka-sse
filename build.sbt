@@ -1,27 +1,21 @@
-lazy val akkaSseRoot = project
-  .copy(id = "akka-sse-root")
+lazy val `akka-sse-root` = project
   .in(file("."))
-  .aggregate(akkaSse, akkaSseExample, akkaSseJmh)
+  .aggregate(`akka-sse`, `akka-sse-example`, `akka-sse-jmh`)
   .enablePlugins(GitVersioning)
 
-lazy val akkaSse = project
-  .copy(id = "akka-sse")
+lazy val `akka-sse` = project
   .in(file("akka-sse"))
   .enablePlugins(AutomateHeaderPlugin)
 
-lazy val akkaSseExample = project
-  .copy(id = "akka-sse-example")
+lazy val `akka-sse-example` = project
   .in(file("akka-sse-example"))
-  .dependsOn(akkaSse)
+  .dependsOn(`akka-sse`)
   .enablePlugins(AutomateHeaderPlugin)
 
-lazy val akkaSseJmh = project
-  .copy(id = "akka-sse-jmh")
+lazy val `akka-sse-jmh` = project
   .in(file("akka-sse-jmh"))
-  .dependsOn(akkaSse)
+  .dependsOn(`akka-sse`)
   .enablePlugins(JmhPlugin)
-
-name := "akka-sse-root"
 
 unmanagedSourceDirectories.in(Compile) := Vector.empty
 unmanagedSourceDirectories.in(Test)    := Vector.empty
