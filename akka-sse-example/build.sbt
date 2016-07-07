@@ -1,5 +1,3 @@
-name := "akka-sse-example"
-
 libraryDependencies ++= Vector(
   Library.akkaHttp
 )
