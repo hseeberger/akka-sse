@@ -27,44 +27,45 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 /**
- * Common streaming patterns for SSE
- */
+  * Common streaming patterns for SSE
+  */
 object Streams {
 
   /**
-   * Provides a flow representing a common pipeline for handling the establishment of an
-   * SSE event stream and its termination. The flow produces SSE elements. This flow is
-   * intended to be used in conjunction with having established a connection and made a
-   * request. For example:
-   *
-   * {{{
-   * Source
-   *   .single(myRequest)
-   *   .via(myConnection)
-   *   .via(
-   *     sseFlow(
-   *       onSuccess { httpResponse =>
-   *         // Do something given a successful establishment of an event stream
-   *       },
-   *       { outcome =>
-   *         // Do something given that the event stream has terminated
-   *       }
-   *     )
-   *   )
-   *   .runForeach { sseEvent =>
-   *     // Do something for each event
-   *   }
-   * }}}
-   *
-   * @param onResponse the initial response handler
-   * @param onTermination the handler to call when the connection has been terminated
-   * @param ec an execution context for certain parts of the flow mappings
-   * @param mat a materializer for certain parts of the flow
-   * @return a flow that emits ServerSentEvent elements
-   */
-  def sseFlow(onResponse: Try[HttpResponse] => Unit, onTermination: Try[Done] => Unit)(
-    implicit
-    ec: ExecutionContext, mat: ActorMaterializer
+    * Provides a flow representing a common pipeline for handling the establishment of an
+    * SSE event stream and its termination. The flow produces SSE elements. This flow is
+    * intended to be used in conjunction with having established a connection and made a
+    * request. For example:
+    *
+    * {{{
+    * Source
+    *   .single(myRequest)
+    *   .via(myConnection)
+    *   .via(
+    *     sseFlow(
+    *       onSuccess { httpResponse =>
+    *         // Do something given a successful establishment of an event stream
+    *       },
+    *       { outcome =>
+    *         // Do something given that the event stream has terminated
+    *       }
+    *     )
+    *   )
+    *   .runForeach { sseEvent =>
+    *     // Do something for each event
+    *   }
+    * }}}
+    *
+    * @param onResponse the initial response handler
+    * @param onTermination the handler to call when the connection has been terminated
+    * @param ec an execution context for certain parts of the flow mappings
+    * @param mat a materializer for certain parts of the flow
+    * @return a flow that emits ServerSentEvent elements
+    */
+  def sseFlow(onResponse: Try[HttpResponse] => Unit,
+              onTermination: Try[Done] => Unit)(
+      implicit ec: ExecutionContext,
+      mat: ActorMaterializer
   ): Flow[HttpResponse, ServerSentEvent, NotUsed] = {
     import EventStreamUnmarshalling._
     Flow[HttpResponse]
@@ -75,12 +76,14 @@ object Streams {
   }
 
   /**
-   * A convenience for wrapping onResponse handlers where the  event
-   * stream HTTP response is successful.
-   *
-   * @param onResponse the handler of the successful HTTP response
-   * @param response the response passed in by the sseFlow, which can have failed
-   */
-  def onSuccess(onResponse: HttpResponse => Unit)(response: Try[HttpResponse]): Unit =
+    * A convenience for wrapping onResponse handlers where the  event
+    * stream HTTP response is successful.
+    *
+    * @param onResponse the handler of the successful HTTP response
+    * @param response the response passed in by the sseFlow, which can have failed
+    */
+  def onSuccess(
+      onResponse: HttpResponse => Unit
+  )(response: Try[HttpResponse]): Unit =
     for (r <- response if r.status.isSuccess) onResponse(r)
 }

@@ -19,14 +19,29 @@ package de.heikoseeberger.akkasse
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{ Matchers, WordSpec }
 
-class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPropertyChecks {
+class ServerSentEventSpec
+    extends WordSpec
+    with Matchers
+    with GeneratorDrivenPropertyChecks {
 
   "Creating a ServerSentEvent" should {
     "throw an IllegalArgumentException if the event type contains a \n or \r character" in {
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event-type\n")
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "event-type\revent-type")
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", id = Some("id\n"))
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", retry = Some(-1))
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent(
+          "data",
+          "event-type\n"
+      )
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent(
+          "data",
+          "event-type\revent-type"
+      )
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent(
+          "data",
+          id = Some("id\n")
+      )
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent(
+          "data",
+          retry = Some(-1)
+      )
     }
   }
 
@@ -52,7 +67,8 @@ class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPro
     }
 
     "return a single retry field after the data fields" in {
-      val event = ServerSentEvent("line1", eventType = None, id = None, retry = Some(42))
+      val event =
+        ServerSentEvent("line1", eventType = None, id = None, retry = Some(42))
       event.toString shouldBe "data:line1\nretry:42\n\n"
     }
   }

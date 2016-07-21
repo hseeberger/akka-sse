@@ -28,50 +28,66 @@ private object LineParser {
   final val LF = '\n'.toByte
 }
 
-private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[ByteString, String]] {
-  override val shape = FlowShape(Inlet[ByteString]("LineParser.in"), Outlet[String]("LineParser.out"))
+private final class LineParser(maxLineSize: Int)
+    extends GraphStage[FlowShape[ByteString, String]] {
+  override val shape = FlowShape(Inlet[ByteString]("LineParser.in"),
+                                 Outlet[String]("LineParser.out"))
 
-  override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
-    import LineParser._
-    import shape._
+  override def createLogic(inheritedAttributes: Attributes) =
+    new GraphStageLogic(shape) {
+      import LineParser._
+      import shape._
 
-    setHandler(in, new InHandler {
-      private var buffer = ByteString.empty
-      override def onPush() = {
-        @tailrec
-        def parseLines(
-          buffer: ByteString,
-          from: Int = 0,
-          at: Int = 0,
-          parsedLines: Vector[String] = Vector.empty
-        ): (ByteString, Vector[String]) =
-          if (at >= buffer.length) (buffer.drop(from), parsedLines)
-          else buffer(at) match {
-            case CR if buffer(math.min(at + 1, buffer.length - 1)) == LF => // Lookahead for LF after CR
-              parseLines(buffer, at + 2, at + 2, parsedLines :+ buffer.slice(from, at).utf8String)
-            case CR | LF => // a CR or LF means we found a new slice
-              parseLines(buffer, at + 1, at + 1, parsedLines :+ buffer.slice(from, at).utf8String)
-            case _ => // for other input, simply advance
-              parseLines(buffer, from, at + 1, parsedLines)
+      setHandler(in, new InHandler {
+        private var buffer = ByteString.empty
+        override def onPush() = {
+          @tailrec
+          def parseLines(
+              bs: ByteString,
+              from: Int = 0,
+              at: Int = 0,
+              parsedLines: Vector[String] = Vector.empty
+          ): (ByteString, Vector[String]) =
+            if (at >= bs.length)
+              (bs.drop(from), parsedLines)
+            else
+              bs(at) match {
+                // Lookahead for LF after CR
+                case CR if bs(math.min(at + 1, bs.length - 1)) == LF =>
+                  parseLines(bs,
+                             at + 2,
+                             at + 2,
+                             parsedLines :+ bs.slice(from, at).utf8String)
+                // a CR or LF means we found a new slice
+                case CR | LF =>
+                  parseLines(bs,
+                             at + 1,
+                             at + 1,
+                             parsedLines :+ bs.slice(from, at).utf8String)
+                // for other input, simply advance
+                case _ =>
+                  parseLines(bs, from, at + 1, parsedLines)
+              }
+          buffer = parseLines(buffer ++ grab(in)) match {
+            case (remaining, _) if remaining.size > maxLineSize =>
+              failStage(
+                  new IllegalStateException(
+                      s"maxLineSize of $maxLineSize exceeded!"
+                  )
+              )
+              ByteString.empty // Clear buffer
+            case (remaining, parsedLines) =>
+              if (parsedLines.nonEmpty)
+                emitMultiple(out, parsedLines)
+              else
+                pull(in)
+              remaining
           }
-        buffer = parseLines(buffer ++ grab(in)) match {
-          case (remaining, _) if remaining.size > maxLineSize =>
-            failStage(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
-            ByteString.empty // Clear buffer
-          case (remaining, parsedLines) =>
-            if (parsedLines.nonEmpty) {
-              emitMultiple(out, parsedLines)
-            } else {
-              pull(in)
-            }
-
-            remaining
         }
-      }
-    })
+      })
 
-    setHandler(out, new OutHandler {
-      override def onPull() = pull(in)
-    })
-  }
+      setHandler(out, new OutHandler {
+        override def onPull() = pull(in)
+      })
+    }
 }

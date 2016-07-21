@@ -56,17 +56,25 @@ object ServerSentEventClientSpec {
             }
           } catch {
             case e: NumberFormatException =>
-              complete(HttpResponse(BadRequest, entity = HttpEntity(
-                `text/event-stream`,
-                "Integral number expected for Last-Event-ID header!".getBytes(UTF_8)
-              )))
+              complete(
+                  HttpResponse(
+                      BadRequest,
+                      entity = HttpEntity(
+                          `text/event-stream`,
+                          "Integral number expected for Last-Event-ID header!"
+                            .getBytes(UTF_8)
+                      )
+                  )
+              )
           }
         }
       }
     }
   }
 
-  class Server(address: String, port: Int, route: Route, isInstable: Boolean) extends Actor with ActorLogging {
+  class Server(address: String, port: Int, route: Route)
+      extends Actor
+      with ActorLogging {
     import Server._
     import context.dispatcher
 
@@ -124,16 +132,22 @@ class ServerSentEventClientSpec extends BaseSpec {
     "communicate correctly with an instable HTTP server" in {
       val host = "localhost"
       val port = 9999
-      val server = actor(new Server(host, port, Server.route(setEventId = true), isInstable = true))
+      val server =
+        actor(new Server(host, port, Server.route(setEventId = true)))
       val nrOfSamples = 20
-      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](Vector.empty)(_ :+ _)
-      val events = ServerSentEventClient(Uri(s"http://$host:$port"), handler, Some("2"))
-        .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
-        .mapAsync(1)(identity)
-        .mapConcat(identity)
-        .take(nrOfSamples)
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      val expected = Vector.iterate(3, nrOfSamples)(_ + 1).map(toServerSentEvent(setEventId = true))
+      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
+          Vector.empty
+      )(_ :+ _)
+      val events =
+        ServerSentEventClient(Uri(s"http://$host:$port"), handler, Some("2"))
+          .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
+          .mapAsync(1)(identity)
+          .mapConcat(identity)
+          .take(nrOfSamples)
+          .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      val expected = Vector
+        .iterate(3, nrOfSamples)(_ + 1)
+        .map(toServerSentEvent(setEventId = true))
       Await.result(events, 20.seconds.dilated) shouldBe expected
       system.stop(server)
     }
@@ -141,15 +155,21 @@ class ServerSentEventClientSpec extends BaseSpec {
     "apply the initial last event ID if the server doesn't set the event ID" in {
       val host = "localhost"
       val port = 9998
-      val server = actor(new Server(host, port, Server.route(setEventId = false), isInstable = false))
+      val server =
+        actor(new Server(host, port, Server.route(setEventId = false)))
       val nrOfSamples = 20
-      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](Vector.empty)(_ :+ _)
-      val events = ServerSentEventClient(Uri(s"http://$host:$port"), handler, Some("2"))
-        .mapAsync(1)(identity)
-        .mapConcat(identity)
-        .take(nrOfSamples)
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      val expexted = Vector.tabulate(20)(n => n % 2 + 3).map(toServerSentEvent(setEventId = false))
+      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
+          Vector.empty
+      )(_ :+ _)
+      val events =
+        ServerSentEventClient(Uri(s"http://$host:$port"), handler, Some("2"))
+          .mapAsync(1)(identity)
+          .mapConcat(identity)
+          .take(nrOfSamples)
+          .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      val expexted = Vector
+        .tabulate(20)(n => n % 2 + 3)
+        .map(toServerSentEvent(setEventId = false))
       Await.result(events, 3.seconds.dilated) shouldBe expexted
       system.stop(server)
     }

@@ -27,10 +27,14 @@ object TimeClient {
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
-    implicit val mat = ActorMaterializer()
+    implicit val mat    = ActorMaterializer()
     import system.dispatcher
 
-    val handler = Sink.foreach[ServerSentEvent](event => println(s"${LocalTime.now()} $event"))
-    ServerSentEventClient("http://localhost:9000/events", handler).runWith(Sink.ignore)
+    val handler = Sink.foreach[ServerSentEvent](
+        event => println(s"${ LocalTime.now() } $event")
+    )
+    ServerSentEventClient("http://localhost:9000/events", handler).runWith(
+        Sink.ignore
+    )
   }
 }

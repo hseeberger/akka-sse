@@ -36,33 +36,40 @@ import scala.util.{ Success, Try }
 object StreamsSpec {
 
   /**
-   * Provide a test source probe for an SSE flow that will receive messages for handling the
-   * initial response, termination and as each SSE element is received. Only successful
-   * initial responses are handled by default. Use the "onlyFailedResponses" function below
-   * in order to send through failed ones.
-   */
+    * Provide a test source probe for an SSE flow that will receive messages for handling the
+    * initial response, termination and as each SSE element is received. Only successful
+    * initial responses are handled by default. Use the "onlyFailedResponses" function below
+    * in order to send through failed ones.
+    */
   def testSourceProbe(
-    testObserver: ActorRef,
-    responseHandler: (HttpResponse => Unit) => (Try[HttpResponse] => Unit) = Streams.onSuccess
-  )(implicit system: ActorSystem, ec: ExecutionContext, mat: ActorMaterializer): TestPublisher.Probe[HttpResponse] =
-    TestSource.probe[HttpResponse]
+      testObserver: ActorRef,
+      responseHandler: (HttpResponse => Unit) => (Try[HttpResponse] => Unit) =
+        Streams.onSuccess
+  )(implicit system: ActorSystem,
+    ec: ExecutionContext,
+    mat: ActorMaterializer): TestPublisher.Probe[HttpResponse] =
+    TestSource
+      .probe[HttpResponse]
       .via(
-        Streams.sseFlow(
-          responseHandler(r => testObserver ! r),
-          s => testObserver ! s
-        )
+          Streams.sseFlow(responseHandler(r => testObserver ! r),
+                          s => testObserver ! s)
       )
       .toMat(Sink.foreach(event => testObserver ! event))(Keep.left)
       .run()
 
   /**
-   * An initial response handler for accepting only failed responses.
-   */
-  def onOnlyFailedResponses(onResponse: HttpResponse => Unit)(response: Try[HttpResponse]): Unit =
+    * An initial response handler for accepting only failed responses.
+    */
+  def onOnlyFailedResponses(
+      onResponse: HttpResponse => Unit
+  )(response: Try[HttpResponse]): Unit =
     response.foreach(r => if (r.status.isFailure()) onResponse(r))
 }
 
-class StreamsSpec extends BaseSpec with ScalaFutures with EventStreamMarshalling {
+class StreamsSpec
+    extends BaseSpec
+    with ScalaFutures
+    with EventStreamMarshalling {
 
   import StreamsSpec._
 
@@ -119,8 +126,9 @@ class StreamsSpec extends BaseSpec with ScalaFutures with EventStreamMarshalling
 
       val sseEvent = ServerSentEvent("Hello World")
 
-      val marshallableResponse =
-        Source.single(sseEvent).keepAlive(1.millisecond, () => ServerSentEvent.Heartbeat): ToResponseMarshallable
+      val marshallableResponse = Source
+        .single(sseEvent)
+        .keepAlive(1.millisecond, () => ServerSentEvent.Heartbeat): ToResponseMarshallable
       val marshalledResponse = marshallableResponse(HttpRequest()).futureValue
 
       val testSource = testSourceProbe(testObserver.ref)

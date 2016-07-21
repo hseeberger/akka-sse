@@ -35,30 +35,43 @@ import scala.concurrent.{ ExecutionContext, Future }
 object ServerSentEventClient {
 
   /**
-   * Creates a continuous source of [[ServerSentEvent]]s from the given URI and streams it into the given handler. Once a
-   * source of [[ServerSentEvent]]s obtained via the connection is completed, a next one is obtained thereby sending the
-   * Last-Evend-ID header if there is a last event id.
-   *
-   * @param uri URI with absolute path, e.g. "http://myserver/events
-   * @param handler handler for [[ServerSentEvent]]s
-   * @param lastEventId initial value for Last-Evend-ID header, optional
-   * @param retryDelay delay before obtaining the next source from the URI
-   * @param ec implicit `ExecutionContext`
-   * @param mat implicit `Materializer`
-   * @param system implicit `ActorSystem`
-   * @return source of materialized values of the handler
-   */
-  def apply[A](uri: Uri, handler: Sink[ServerSentEvent, A], lastEventId: Option[String] = None, retryDelay: FiniteDuration = Duration.Zero)(implicit ec: ExecutionContext, mat: Materializer, system: ActorSystem): Source[A, NotUsed] = {
+    * Creates a continuous source of [[ServerSentEvent]]s from the given URI and streams it into the given handler. Once a
+    * source of [[ServerSentEvent]]s obtained via the connection is completed, a next one is obtained thereby sending the
+    * Last-Evend-ID header if there is a last event id.
+    *
+    * @param uri URI with absolute path, e.g. "http://myserver/events
+    * @param handler handler for [[ServerSentEvent]]s
+    * @param lastEventId initial value for Last-Evend-ID header, optional
+    * @param retryDelay delay before obtaining the next source from the URI
+    * @param ec implicit `ExecutionContext`
+    * @param mat implicit `Materializer`
+    * @param system implicit `ActorSystem`
+    * @return source of materialized values of the handler
+    */
+  def apply[A](uri: Uri,
+               handler: Sink[ServerSentEvent, A],
+               lastEventId: Option[String] = None,
+               retryDelay: FiniteDuration = Duration.Zero)(
+      implicit ec: ExecutionContext,
+      mat: Materializer,
+      system: ActorSystem
+  ): Source[A, NotUsed] = {
     // Get the events, run them with the handler and return the last event and the mat value of the handler
     def getAndHandle(lastEventId: Option[String]) = {
       def getEvents = {
         import EventStreamUnmarshalling._
-        val request = lastEventId.foldLeft(Get(uri).addHeader(Accept(`text/event-stream`))) { (request, id) =>
-          request.addHeader(`Last-Event-ID`(id))
+        val request = {
+          val r = Get(uri).addHeader(Accept(`text/event-stream`))
+          lastEventId.foldLeft(r) { (r, id) =>
+            r.addHeader(`Last-Event-ID`(id))
+          }
         }
-        Http().singleRequest(request).flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+        Http()
+          .singleRequest(request)
+          .flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
       }
-      Source.fromFuture(getEvents)
+      Source
+        .fromFuture(getEvents)
         .flatMapConcat(identity)
         .viaMat(LastElement())(Keep.right)
         .toMat(handler)(Keep.both)
@@ -66,10 +79,10 @@ object ServerSentEventClient {
     }
     Source.fromGraph(GraphDSL.create() { implicit builder =>
       import GraphDSL.Implicits._
-      val trigger = Source.single(lastEventId)
-      val merge = builder.add(Merge[Option[String]](2))
+      val trigger            = Source.single(lastEventId)
+      val merge              = builder.add(Merge[Option[String]](2))
       val getAndHandleEvents = Flow[Option[String]].map(getAndHandle)
-      val unzip = builder.add(Unzip[Future[Option[ServerSentEvent]], A]())
+      val unzip              = builder.add(Unzip[Future[Option[ServerSentEvent]], A]())
       val currentLastEventId = Flow[Future[Option[ServerSentEvent]]]
         .mapAsync(1)(identity)
         .scan(lastEventId)((prev, event) => event.flatMap(_.id).orElse(prev))

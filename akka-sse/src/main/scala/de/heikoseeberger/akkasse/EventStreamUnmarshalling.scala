@@ -22,15 +22,15 @@ import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
- * Importing [[EventStreamUnmarshalling.fromEntityUnmarshaller]] lets a `HttpEntity` with a `text/event-stream`
- * media type be unmarshallable to a `Source[ServerSentEvent, Any]`.
- */
+  * Importing [[EventStreamUnmarshalling.fromEntityUnmarshaller]] lets a `HttpEntity` with a `text/event-stream`
+  * media type be unmarshallable to a `Source[ServerSentEvent, Any]`.
+  */
 object EventStreamUnmarshalling extends EventStreamUnmarshalling
 
 /**
- * Mixing in this trait lets a `HttpEntity` with a `text/event-stream` media type be unmarshallable to a
- * `Source[ServerSentEvent, Any]`.
- */
+  * Mixing in this trait lets a `HttpEntity` with a `text/event-stream` media type be unmarshallable to a
+  * `Source[ServerSentEvent, Any]`.
+  */
 trait EventStreamUnmarshalling {
 
   private val _maxEventSize = maxEventSize
@@ -38,19 +38,21 @@ trait EventStreamUnmarshalling {
   private val _maxLineSize = maxLineSize
 
   /**
-   * The maximum size of a server-sent event for the event Stream parser; 8KiB by default.
-   */
+    * The maximum size of a server-sent event for the event Stream parser; 8KiB by default.
+    */
   protected def maxEventSize: Int = 8192
 
   /**
-   * The maximum size of a line for the event Stream parser; 8KiB by default.
-   */
+    * The maximum size of a line for the event Stream parser; 8KiB by default.
+    */
   protected def maxLineSize: Int = 8192
 
-  implicit final def fromEntityUnmarshaller: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
-    def events(entity: HttpEntity) = entity
-      .dataBytes
-      .via(EventStreamParser(maxLineSize = _maxLineSize, maxEventSize = _maxEventSize))
+  implicit final def feu: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
+    def events(entity: HttpEntity) =
+      entity.dataBytes.via(
+          EventStreamParser(maxLineSize = _maxLineSize,
+                            maxEventSize = _maxEventSize)
+      )
     Unmarshaller.strict(events).forContentTypes(`text/event-stream`)
   }
 }

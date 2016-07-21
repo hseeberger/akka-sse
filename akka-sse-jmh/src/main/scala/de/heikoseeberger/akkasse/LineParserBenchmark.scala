@@ -20,7 +20,7 @@ class LineParserBenchmark {
   @Setup
   def setup(): Unit = {
     val system = ActorSystem()
-    val mat = ActorMaterializer()(system)
+    val mat    = ActorMaterializer()(system)
     state = LineParserBenchmark.State(system, mat)
   }
 
@@ -30,8 +30,10 @@ class LineParserBenchmark {
   @Benchmark
   def benchmark(): Unit = {
     implicit val system = state.system
-    implicit val mat = state.mat
-    def next(last: String) = if (last == "event:foo\ndata:") "bar\ndata:baz\n\n" else "event:foo\ndata:"
+    implicit val mat    = state.mat
+    def next(last: String) =
+      if (last == "event:foo\ndata:") "bar\ndata:baz\n\n"
+      else "event:foo\ndata:"
     val done = Source
       .fromIterator(() => Iterator.iterate("event:foo\ndata:")(next))
       .map(ByteString(_))
