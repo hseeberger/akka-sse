@@ -49,15 +49,16 @@ object ServerSentEventClient {
    * @return source of materialized values of the handler
    */
   def apply[A](uri: Uri, handler: Sink[ServerSentEvent, A], lastEventId: Option[String] = None, retryDelay: FiniteDuration = Duration.Zero)(implicit ec: ExecutionContext, mat: Materializer, system: ActorSystem): Source[A, NotUsed] = {
-    def eventStreamForLastEvendId(lastEventId: Option[String]) = {
-      def getEventStream = {
+    // Get the events, run them with the handler and return the last event and the mat value of the handler
+    def getAndHandle(lastEventId: Option[String]) = {
+      def getEvents = {
         import EventStreamUnmarshalling._
         val request = lastEventId.foldLeft(Get(uri).addHeader(Accept(`text/event-stream`))) { (request, id) =>
           request.addHeader(`Last-Event-ID`(id))
         }
         Http().singleRequest(request).flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
       }
-      Source.fromFuture(getEventStream)
+      Source.fromFuture(getEvents)
         .flatMapConcat(identity)
         .viaMat(LastElement())(Keep.right)
         .toMat(handler)(Keep.both)
@@ -67,15 +68,16 @@ object ServerSentEventClient {
       import GraphDSL.Implicits._
       val trigger = Source.single(lastEventId)
       val merge = builder.add(Merge[Option[String]](2))
-      val getAndRunEventStream = Flow[Option[String]].map(eventStreamForLastEvendId)
+      val getAndHandleEvents = Flow[Option[String]].map(getAndHandle)
       val unzip = builder.add(Unzip[Future[Option[ServerSentEvent]], A]())
-      val latestLastEventId = Flow[Future[Option[ServerSentEvent]]]
+      val currentLastEventId = Flow[Future[Option[ServerSentEvent]]]
         .mapAsync(1)(identity)
-        .via(Accumulate(lastEventId)((acc, event) => event.flatMap(_.id).orElse(acc)))
+        .scan(lastEventId)((prev, event) => event.flatMap(_.id).orElse(prev))
+        .drop(1)
         .delay(retryDelay, DelayOverflowStrategy.fail) // There should be only one element in flight anyway!
       // format: OFF
-      trigger ~> merge ~> getAndRunEventStream ~> unzip.in
-                 merge <~ latestLastEventId    <~ unzip.out0
+      trigger ~> merge ~> getAndHandleEvents ~> unzip.in
+                 merge <~ currentLastEventId <~ unzip.out0
       // format: ON
       SourceShape(unzip.out1)
     })
