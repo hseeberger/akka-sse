@@ -32,7 +32,7 @@ object TimeServer {
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
-    implicit val mat = ActorMaterializer()
+    implicit val mat    = ActorMaterializer()
     Http().bindAndHandle(route, "127.0.0.1", 9000)
   }
 
@@ -40,12 +40,16 @@ object TimeServer {
     import Directives._
     import EventStreamMarshalling._
 
-    def assets = getFromResourceDirectory("web") ~ pathSingleSlash(get(redirect("index.html", PermanentRedirect)))
+    def assets =
+      getFromResourceDirectory("web") ~ pathSingleSlash(
+          get(redirect("index.html", PermanentRedirect))
+      )
 
     def events = path("events") {
       get {
         complete {
-          Source.tick(2.seconds, 2.seconds, NotUsed)
+          Source
+            .tick(2.seconds, 2.seconds, NotUsed)
             .map(_ => LocalTime.now())
             .map(dateTimeToServerSentEvent)
             .keepAlive(1.second, () => ServerSentEvent.Heartbeat)
@@ -56,7 +60,6 @@ object TimeServer {
     assets ~ events
   }
 
-  def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent = ServerSentEvent(
-    DateTimeFormatter.ISO_LOCAL_TIME.format(time)
-  )
+  def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent =
+    ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(time))
 }

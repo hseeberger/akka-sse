@@ -62,10 +62,10 @@ private object ServerSentEventParser {
     def size: Int = _size
 
     def build(): ServerSentEvent = ServerSentEvent(
-      data.mkString(LF),
-      Option(eventType),
-      Option(id),
-      Option(retry).flatMap(silentlyToInt)
+        data.mkString(LF),
+        Option(eventType),
+        Option(id),
+        Option(retry).flatMap(silentlyToInt)
     )
 
     def reset(): Unit = {
@@ -90,74 +90,91 @@ private object ServerSentEventParser {
   private val linePattern = """([^:]+): ?(.*)""".r
 
   private def parseFields(lines: Vector[String]) = {
-    var data = Vector.empty[String]
+    var data      = Vector.empty[String]
     var eventType = null: String
-    var id = null: String
-    var retry = null: String
+    var id        = null: String
+    var retry     = null: String
     for (line <- lines) {
       line match {
         case Data  => data :+= ""
         case Event => eventType = ""
         case Id    => id = ""
         case Retry => retry = ""
-        case linePattern(field @ (Data | Event | Id | Retry), value) => field match {
-          case Data  => data :+= value
-          case Event => eventType = value
-          case Id    => id = value
-          case Retry => retry = value
-          case _     =>
-        }
+        case linePattern(field @ (Data | Event | Id | Retry), value) =>
+          field match {
+            case Data  => data :+= value
+            case Event => eventType = value
+            case Id    => id = value
+            case Retry => retry = value
+            case _     =>
+          }
         case _ =>
       }
     }
     (data, eventType, id, retry)
   }
 
-  private def silentlyToInt(s: String) = try Some(s.trim.toInt) catch { case NonFatal(_) => None }
+  private def silentlyToInt(s: String) =
+    try Some(s.trim.toInt)
+    catch { case NonFatal(_) => None }
 }
 
-private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[FlowShape[String, ServerSentEvent]] {
+private final class ServerSentEventParser(maxEventSize: Int)
+    extends GraphStage[FlowShape[String, ServerSentEvent]] {
 
-  override val shape = FlowShape(Inlet[String]("ServerSentEventParser.in"), Outlet[ServerSentEvent]("ServerSentEventParser.out"))
+  override val shape = FlowShape(
+      Inlet[String]("ServerSentEventParser.in"),
+      Outlet[ServerSentEvent]("ServerSentEventParser.out")
+  )
 
-  override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
-    import ServerSentEventParser._
-    import shape._
+  override def createLogic(inheritedAttributes: Attributes) =
+    new GraphStageLogic(shape) {
+      import ServerSentEventParser._
+      import shape._
 
-    setHandler(in, new InHandler {
+      setHandler(in,
+                 new InHandler {
 
-      private val builder = new Builder()
+                   private val builder = new Builder()
 
-      override def onPush() = grab(in) match {
-        case "" => // An event is terminated with a new line
-          if (builder.hasData) push(out, builder.build()) else pull(in) // An event without data must be ignored
-          builder.reset() // In both cases we continue with a fresh one
+                   override def onPush() = grab(in) match {
+                     case "" => // An event is terminated with a new line
+                       if (builder.hasData) push(out, builder.build())
+                       else pull(in) // An event without data must be ignored
+                       builder
+                         .reset() // In both cases we continue with a fresh one
 
-        case line if builder.size + line.length > maxEventSize =>
-          failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
-          builder.reset()
+                     case line if builder.size + line.length > maxEventSize =>
+                       failStage(
+                           new IllegalStateException(
+                               s"maxEventSize of $maxEventSize exceeded!"
+                           )
+                       )
+                       builder.reset()
 
-        case line =>
-          line match {
-            case Data  => builder.appendData("")
-            case Event => builder.setEventType("")
-            case Id    => builder.setId("")
-            case Retry => builder.setRetry("")
-            case linePattern(field @ (Data | Event | Id | Retry), value) => field match {
-              case Data  => builder.appendData(value)
-              case Event => builder.setEventType(value)
-              case Id    => builder.setId(value)
-              case Retry => builder.setRetry(value)
-              case _     =>
-            }
-            case _ =>
-          }
-          pull(in)
-      }
-    })
+                     case line =>
+                       line match {
+                         case Data  => builder.appendData("")
+                         case Event => builder.setEventType("")
+                         case Id    => builder.setId("")
+                         case Retry => builder.setRetry("")
+                         case linePattern(field @ (Data | Event | Id | Retry),
+                                          value) =>
+                           field match {
+                             case Data  => builder.appendData(value)
+                             case Event => builder.setEventType(value)
+                             case Id    => builder.setId(value)
+                             case Retry => builder.setRetry(value)
+                             case _     =>
+                           }
+                         case _ =>
+                       }
+                       pull(in)
+                   }
+                 })
 
-    setHandler(out, new OutHandler {
-      override def onPull() = pull(in)
-    })
-  }
+      setHandler(out, new OutHandler {
+        override def onPull() = pull(in)
+      })
+    }
 }

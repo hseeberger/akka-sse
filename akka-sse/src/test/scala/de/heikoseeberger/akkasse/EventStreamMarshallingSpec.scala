@@ -25,45 +25,52 @@ import akka.testkit.TestDuration
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-class EventStreamMarshallingSpec extends BaseSpec with EventStreamMarshalling with EventStreamUnmarshalling {
+class EventStreamMarshallingSpec
+    extends BaseSpec
+    with EventStreamMarshalling
+    with EventStreamUnmarshalling {
 
   "A source of elements which can be viewed as ServerSentEvents" should {
     "be marshallable to a HTTP response" in {
       val elements = 1 to 666
-      val marshallable = Source(elements).map(intToServerSentEvent): ToResponseMarshallable
+      val marshallable =
+        Source(elements).map(intToServerSentEvent): ToResponseMarshallable
       val response = marshallable(HttpRequest()).flatMap {
-        _.entity
-          .dataBytes
+        _.entity.dataBytes
           .map(_.utf8String)
           .runFold(Vector.empty[String])(_ :+ _)
       }
-      val actual = Await.result(response, 1.second.dilated)
+      val actual   = Await.result(response, 1.second.dilated)
       val expected = elements.map(n => ServerSentEvent(n.toString).toString)
       actual shouldBe expected
     }
 
     "remain the same after marshalling and unmarshalling" in {
-      val elements = 1 to 666
-      val expected = Source(elements).map(intToServerSentEvent)
+      val elements     = 1 to 666
+      val expected     = Source(elements).map(intToServerSentEvent)
       val marshallable = expected: ToResponseMarshallable
       val actual = Await.result(
-        marshallable(HttpRequest()).flatMap(response => Unmarshal(response).to[Source[ServerSentEvent, Any]]),
-        1.second.dilated
+          marshallable(HttpRequest()).flatMap(
+              response => Unmarshal(response).to[Source[ServerSentEvent, Any]]
+          ),
+          1.second.dilated
       )
-      val expectedAndActual = Source.fromGraph(GraphDSL.create() { implicit builder =>
-        import GraphDSL.Implicits._
-        val zip = builder.add(Zip[ServerSentEvent, ServerSentEvent]())
-        expected ~> zip.in0
-        actual ~> zip.in1
-        SourceShape(zip.out)
+      val expectedAndActual = Source.fromGraph(GraphDSL.create() {
+        implicit builder =>
+          import GraphDSL.Implicits._
+          val zip = builder.add(Zip[ServerSentEvent, ServerSentEvent]())
+          expected ~> zip.in0
+          actual ~> zip.in1
+          SourceShape(zip.out)
       })
-      val isExpectedEqualActual = Await.result(
-        expectedAndActual.runFold(true) { case (acc, (l, r)) => acc && (l == r) },
-        1.second.dilated
-      )
+      val isExpectedEqualActual =
+        Await.result(expectedAndActual.runFold(true) {
+          case (acc, (l, r)) => acc && (l == r)
+        }, 1.second.dilated)
       isExpectedEqualActual shouldBe true
     }
   }
 
-  def intToServerSentEvent(n: Int): ServerSentEvent = ServerSentEvent(n.toString)
+  def intToServerSentEvent(n: Int): ServerSentEvent =
+    ServerSentEvent(n.toString)
 }

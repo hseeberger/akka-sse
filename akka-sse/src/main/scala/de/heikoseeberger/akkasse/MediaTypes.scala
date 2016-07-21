@@ -16,20 +16,18 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.scaladsl.model.{ HttpCharsets, MediaType }
+import akka.http.scaladsl.model.MediaType
+import akka.http.scaladsl.model.HttpCharsets.`UTF-8`
 
 /**
- * Media types for Server-Sent Events.
- */
+  * Media types for Server-Sent Events.
+  */
 object MediaTypes {
 
   /**
-   * Media type for Server-Sent Events as required by the
-   * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-   */
-  val `text/event-stream`: MediaType.WithFixedCharset = MediaType.customWithFixedCharset(
-    "text",
-    "event-stream",
-    HttpCharsets.`UTF-8`
-  )
+    * Media type for Server-Sent Events as required by the
+    * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
+    */
+  val `text/event-stream`: MediaType.WithFixedCharset =
+    MediaType.customWithFixedCharset("text", "event-stream", `UTF-8`)
 }
