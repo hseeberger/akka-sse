@@ -132,46 +132,43 @@ private final class ServerSentEventParser(maxEventSize: Int)
       import ServerSentEventParser._
       import shape._
 
-      setHandler(in,
-                 new InHandler {
+      setHandler(in, new InHandler {
 
-                   private val builder = new Builder()
+        private val builder = new Builder()
 
-                   override def onPush() = grab(in) match {
-                     case "" => // An event is terminated with a new line
-                       if (builder.hasData) push(out, builder.build())
-                       else pull(in) // An event without data must be ignored
-                       builder
-                         .reset() // In both cases we continue with a fresh one
+        override def onPush() = grab(in) match {
+          case "" => // An event is terminated with a new line
+            if (builder.hasData) push(out, builder.build())
+            else pull(in)   // An event without data must be ignored
+            builder.reset() // In both cases we continue with a fresh one
 
-                     case line if builder.size + line.length > maxEventSize =>
-                       failStage(
-                           new IllegalStateException(
-                               s"maxEventSize of $maxEventSize exceeded!"
-                           )
-                       )
-                       builder.reset()
+          case line if builder.size + line.length > maxEventSize =>
+            failStage(
+                new IllegalStateException(
+                    s"maxEventSize of $maxEventSize exceeded!"
+                )
+            )
+            builder.reset()
 
-                     case line =>
-                       line match {
-                         case Data  => builder.appendData("")
-                         case Event => builder.setEventType("")
-                         case Id    => builder.setId("")
-                         case Retry => builder.setRetry("")
-                         case linePattern(field @ (Data | Event | Id | Retry),
-                                          value) =>
-                           field match {
-                             case Data  => builder.appendData(value)
-                             case Event => builder.setEventType(value)
-                             case Id    => builder.setId(value)
-                             case Retry => builder.setRetry(value)
-                             case _     =>
-                           }
-                         case _ =>
-                       }
-                       pull(in)
-                   }
-                 })
+          case line =>
+            line match {
+              case Data  => builder.appendData("")
+              case Event => builder.setEventType("")
+              case Id    => builder.setId("")
+              case Retry => builder.setRetry("")
+              case linePattern(field @ (Data | Event | Id | Retry), value) =>
+                field match {
+                  case Data  => builder.appendData(value)
+                  case Event => builder.setEventType(value)
+                  case Id    => builder.setId(value)
+                  case Retry => builder.setRetry(value)
+                  case _     =>
+                }
+              case _ =>
+            }
+            pull(in)
+        }
+      })
 
       setHandler(out, new OutHandler {
         override def onPull() = pull(in)
