@@ -48,12 +48,12 @@ private final class LineParser(maxLineSize: Int)
               at: Int = 0,
               parsedLines: Vector[String] = Vector.empty
           ): (ByteString, Vector[String]) =
-            if (at >= bs.length)
+            if (at >= bs.length || (at == bs.length - 1 && bs(at) == CR))
               (bs.drop(from), parsedLines)
             else
               bs(at) match {
                 // Lookahead for LF after CR
-                case CR if bs(math.min(at + 1, bs.length - 1)) == LF =>
+                case CR if bs(at + 1) == LF =>
                   parseLines(bs,
                              at + 2,
                              at + 2,
