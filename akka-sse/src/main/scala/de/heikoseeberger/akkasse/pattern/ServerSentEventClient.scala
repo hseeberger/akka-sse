@@ -21,7 +21,7 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding.Get
-import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.contrib.{ Accumulate, LastElement }
@@ -45,17 +45,15 @@ object ServerSentEventClient {
     * @param retryDelay delay before obtaining the next source from the URI
     * @param ec implicit `ExecutionContext`
     * @param mat implicit `Materializer`
-    * @param system implicit `ActorSystem`
     * @return source of materialized values of the handler
     */
-  def apply[A](uri: Uri,
-               handler: Sink[ServerSentEvent, A],
-               lastEventId: Option[String] = None,
-               retryDelay: FiniteDuration = Duration.Zero)(
-      implicit ec: ExecutionContext,
-      mat: Materializer,
-      system: ActorSystem
-  ): Source[A, NotUsed] = {
+  def apply[A](
+      uri: Uri,
+      handler: Sink[ServerSentEvent, A],
+      send: HttpRequest => Future[HttpResponse],
+      lastEventId: Option[String] = None,
+      retryDelay: FiniteDuration = Duration.Zero
+  )(implicit ec: ExecutionContext, mat: Materializer): Source[A, NotUsed] = {
     // Get the events, run them with the handler and return the last event and the mat value of the handler
     def getAndHandle(lastEventId: Option[String]) = {
       def getEvents = {
@@ -66,9 +64,7 @@ object ServerSentEventClient {
             r.addHeader(`Last-Event-ID`(id))
           }
         }
-        Http()
-          .singleRequest(request)
-          .flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+        send(request).flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
       }
       Source
         .fromFuture(getEvents)

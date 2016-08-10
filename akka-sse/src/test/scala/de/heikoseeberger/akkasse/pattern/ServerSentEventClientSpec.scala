@@ -22,7 +22,7 @@ import akka.actor.ActorDSL.actor
 import akka.actor.{ Actor, ActorLogging, Status }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes.BadRequest
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, Uri }
+import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.server.{ Directives, Route }
 import akka.pattern.pipe
 import akka.stream.scaladsl.{ Sink, Source }
@@ -138,13 +138,15 @@ class ServerSentEventClientSpec extends BaseSpec {
       val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
           Vector.empty
       )(_ :+ _)
-      val events =
-        ServerSentEventClient(Uri(s"http://$host:$port"), handler, Some("2"))
-          .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
-          .mapAsync(1)(identity)
-          .mapConcat(identity)
-          .take(nrOfSamples)
-          .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      val events = ServerSentEventClient(Uri(s"http://$host:$port"),
+                                         handler,
+                                         send,
+                                         Some("2"))
+        .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
+        .mapAsync(1)(identity)
+        .mapConcat(identity)
+        .take(nrOfSamples)
+        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       val expected = Vector
         .iterate(3, nrOfSamples)(_ + 1)
         .map(toServerSentEvent(setEventId = true))
@@ -161,12 +163,14 @@ class ServerSentEventClientSpec extends BaseSpec {
       val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
           Vector.empty
       )(_ :+ _)
-      val events =
-        ServerSentEventClient(Uri(s"http://$host:$port"), handler, Some("2"))
-          .mapAsync(1)(identity)
-          .mapConcat(identity)
-          .take(nrOfSamples)
-          .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      val events = ServerSentEventClient(Uri(s"http://$host:$port"),
+                                         handler,
+                                         send,
+                                         Some("2"))
+        .mapAsync(1)(identity)
+        .mapConcat(identity)
+        .take(nrOfSamples)
+        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       val expexted = Vector
         .tabulate(20)(n => n % 2 + 3)
         .map(toServerSentEvent(setEventId = false))
@@ -174,4 +178,6 @@ class ServerSentEventClientSpec extends BaseSpec {
       system.stop(server)
     }
   }
+
+  private def send(request: HttpRequest) = Http().singleRequest(request)
 }
