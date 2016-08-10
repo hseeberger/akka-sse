@@ -22,7 +22,7 @@ import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
-  * Importing [[EventStreamMarshalling.toResponseMarshaller]] lets a `Source[EventStreamElement, A]`
+  * Importing [[EventStreamMarshalling.trm]] lets a `Source[EventStreamElement, A]`
   * be marshallable to a `HttpResponse`.
   */
 object EventStreamMarshalling extends EventStreamMarshalling
