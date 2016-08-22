@@ -22,7 +22,7 @@ import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
-  * Importing [[EventStreamUnmarshalling.fromEntityUnmarshaller]] lets a `HttpEntity` with a `text/event-stream`
+  * Importing [[EventStreamUnmarshalling.feu]] lets a `HttpEntity` with a `text/event-stream`
   * media type be unmarshallable to a `Source[ServerSentEvent, Any]`.
   */
 object EventStreamUnmarshalling extends EventStreamUnmarshalling
