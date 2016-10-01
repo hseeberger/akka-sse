@@ -183,10 +183,10 @@ final case class ServerSentEvent(data: String,
     // Why 4? "id:" + \n == 4 chars
     // Why 17? "retry:" + \n + Integer.Max decimal places
     val builder = new StringBuilder(
-        nextPowerOfTwoBiggerThan(
-            8 + data.length + eventType.fold(0)(_.length + 7) + id
-              .fold(0)(_.length + 4) + retry.fold(0)(_ => 17)
-        )
+      nextPowerOfTwoBiggerThan(
+        8 + data.length + eventType.fold(0)(_.length + 7) + id.fold(0)(
+          _.length + 4) + retry.fold(0)(_ => 17)
+      )
     )
     @tailrec def appendData(s: String, index: Int = 0): Unit = {
       @tailrec def addLine(index: Int): Int =

@@ -42,7 +42,7 @@ object TimeServer {
 
     def assets =
       getFromResourceDirectory("web") ~ pathSingleSlash(
-          get(redirect("index.html", PermanentRedirect))
+        get(redirect("index.html", PermanentRedirect))
       )
 
     def events = path("events") {

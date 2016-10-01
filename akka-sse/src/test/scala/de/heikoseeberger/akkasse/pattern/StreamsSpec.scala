@@ -51,8 +51,8 @@ object StreamsSpec {
     TestSource
       .probe[HttpResponse]
       .via(
-          Streams.sseFlow(responseHandler(r => testObserver ! r),
-                          s => testObserver ! s)
+        Streams.sseFlow(responseHandler(r => testObserver ! r),
+                        s => testObserver ! s)
       )
       .toMat(Sink.foreach(event => testObserver ! event))(Keep.left)
       .run()

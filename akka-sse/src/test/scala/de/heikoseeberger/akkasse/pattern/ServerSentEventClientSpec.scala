@@ -57,14 +57,14 @@ object ServerSentEventClientSpec {
           } catch {
             case e: NumberFormatException =>
               complete(
-                  HttpResponse(
-                      BadRequest,
-                      entity = HttpEntity(
-                          `text/event-stream`,
-                          "Integral number expected for Last-Event-ID header!"
-                            .getBytes(UTF_8)
-                      )
+                HttpResponse(
+                  BadRequest,
+                  entity = HttpEntity(
+                    `text/event-stream`,
+                    "Integral number expected for Last-Event-ID header!"
+                      .getBytes(UTF_8)
                   )
+                )
               )
           }
         }
@@ -136,7 +136,7 @@ class ServerSentEventClientSpec extends BaseSpec {
         actor(new Server(host, port, Server.route(setEventId = true)))
       val nrOfSamples = 20
       val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
-          Vector.empty
+        Vector.empty
       )(_ :+ _)
       val events = ServerSentEventClient(Uri(s"http://$host:$port"),
                                          handler,
@@ -161,7 +161,7 @@ class ServerSentEventClientSpec extends BaseSpec {
         actor(new Server(host, port, Server.route(setEventId = false)))
       val nrOfSamples = 20
       val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
-          Vector.empty
+        Vector.empty
       )(_ :+ _)
       val events = ServerSentEventClient(Uri(s"http://$host:$port"),
                                          handler,

@@ -35,8 +35,8 @@ trait EventStreamMarshalling {
   implicit final def trm: ToResponseMarshaller[Source[EventStreamElement, Any]] =
     Marshaller.withFixedContentType(`text/event-stream`) { messages =>
       HttpResponse(
-          entity = HttpEntity.CloseDelimited(`text/event-stream`,
-                                             messages.map(_.encode))
+        entity = HttpEntity.CloseDelimited(`text/event-stream`,
+                                           messages.map(_.encode))
       )
     }
 }

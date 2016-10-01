@@ -16,7 +16,10 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.scaladsl.model.headers.{ ModeledCustomHeader, ModeledCustomHeaderCompanion }
+import akka.http.scaladsl.model.headers.{
+  ModeledCustomHeader,
+  ModeledCustomHeaderCompanion
+}
 import scala.util.Try
 
 package object headers {
