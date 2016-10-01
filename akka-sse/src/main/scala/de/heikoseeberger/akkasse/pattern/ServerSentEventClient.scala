@@ -25,7 +25,15 @@ import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.contrib.{ Accumulate, LastElement }
-import akka.stream.scaladsl.{ Flow, GraphDSL, Keep, Merge, Sink, Source, Unzip }
+import akka.stream.scaladsl.{
+  Flow,
+  GraphDSL,
+  Keep,
+  Merge,
+  Sink,
+  Source,
+  Unzip
+}
 import akka.stream.{ DelayOverflowStrategy, Materializer, SourceShape }
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`

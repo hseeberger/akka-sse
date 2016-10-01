@@ -17,7 +17,10 @@
 package de.heikoseeberger.akkasse
 
 import akka.http.scaladsl.model.HttpEntity
-import akka.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
+import akka.http.scaladsl.unmarshalling.{
+  FromEntityUnmarshaller,
+  Unmarshaller
+}
 import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
@@ -50,8 +53,8 @@ trait EventStreamUnmarshalling {
   implicit final def feu: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
     def events(entity: HttpEntity) =
       entity.dataBytes.via(
-          EventStreamParser(maxLineSize = _maxLineSize,
-                            maxEventSize = _maxEventSize)
+        EventStreamParser(maxLineSize = _maxLineSize,
+                          maxEventSize = _maxEventSize)
       )
     Unmarshaller.strict(events).forContentTypes(`text/event-stream`)
   }

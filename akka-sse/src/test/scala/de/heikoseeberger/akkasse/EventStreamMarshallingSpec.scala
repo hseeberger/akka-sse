@@ -50,10 +50,10 @@ class EventStreamMarshallingSpec
       val expected     = Source(elements).map(intToServerSentEvent)
       val marshallable = expected: ToResponseMarshallable
       val actual = Await.result(
-          marshallable(HttpRequest()).flatMap(
-              response => Unmarshal(response).to[Source[ServerSentEvent, Any]]
-          ),
-          1.second.dilated
+        marshallable(HttpRequest()).flatMap(
+          response => Unmarshal(response).to[Source[ServerSentEvent, Any]]
+        ),
+        1.second.dilated
       )
       val expectedAndActual = Source.fromGraph(GraphDSL.create() {
         implicit builder =>

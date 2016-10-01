@@ -62,10 +62,10 @@ private object ServerSentEventParser {
     def size: Int = _size
 
     def build(): ServerSentEvent = ServerSentEvent(
-        data.mkString(LF),
-        Option(eventType),
-        Option(id),
-        Option(retry).flatMap(silentlyToInt)
+      data.mkString(LF),
+      Option(eventType),
+      Option(id),
+      Option(retry).flatMap(silentlyToInt)
     )
 
     def reset(): Unit = {
@@ -123,8 +123,8 @@ private final class ServerSentEventParser(maxEventSize: Int)
     extends GraphStage[FlowShape[String, ServerSentEvent]] {
 
   override val shape = FlowShape(
-      Inlet[String]("ServerSentEventParser.in"),
-      Outlet[ServerSentEvent]("ServerSentEventParser.out")
+    Inlet[String]("ServerSentEventParser.in"),
+    Outlet[ServerSentEvent]("ServerSentEventParser.out")
   )
 
   override def createLogic(inheritedAttributes: Attributes) =
@@ -144,9 +144,9 @@ private final class ServerSentEventParser(maxEventSize: Int)
 
           case line if builder.size + line.length > maxEventSize =>
             failStage(
-                new IllegalStateException(
-                    s"maxEventSize of $maxEventSize exceeded!"
-                )
+              new IllegalStateException(
+                s"maxEventSize of $maxEventSize exceeded!"
+              )
             )
             builder.reset()
 

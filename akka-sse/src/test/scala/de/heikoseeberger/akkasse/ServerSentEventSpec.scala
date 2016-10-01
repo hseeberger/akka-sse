@@ -27,20 +27,20 @@ class ServerSentEventSpec
   "Creating a ServerSentEvent" should {
     "throw an IllegalArgumentException if the event type contains a \n or \r character" in {
       an[IllegalArgumentException] should be thrownBy ServerSentEvent(
-          "data",
-          "event-type\n"
+        "data",
+        "event-type\n"
       )
       an[IllegalArgumentException] should be thrownBy ServerSentEvent(
-          "data",
-          "event-type\revent-type"
+        "data",
+        "event-type\revent-type"
       )
       an[IllegalArgumentException] should be thrownBy ServerSentEvent(
-          "data",
-          id = Some("id\n")
+        "data",
+        id = Some("id\n")
       )
       an[IllegalArgumentException] should be thrownBy ServerSentEvent(
-          "data",
-          retry = Some(-1)
+        "data",
+        retry = Some(-1)
       )
     }
   }

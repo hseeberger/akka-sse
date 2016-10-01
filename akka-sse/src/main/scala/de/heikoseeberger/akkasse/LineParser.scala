@@ -71,9 +71,9 @@ private final class LineParser(maxLineSize: Int)
           buffer = parseLines(buffer ++ grab(in)) match {
             case (remaining, _) if remaining.size > maxLineSize =>
               failStage(
-                  new IllegalStateException(
-                      s"maxLineSize of $maxLineSize exceeded!"
-                  )
+                new IllegalStateException(
+                  s"maxLineSize of $maxLineSize exceeded!"
+                )
               )
               ByteString.empty // Clear buffer
             case (remaining, parsedLines) =>
