@@ -197,7 +197,7 @@ final case class ServerSentEvent(data: String,
           builder.append(c)
           if (c == '\n') index + 1 else addLine(index + 1)
         }
-      builder.append("data:")
+      builder.append("data: ")
       addLine(index) match {
         case -1 => builder.append('\n')
         case i  => appendData(s, i)
@@ -205,10 +205,10 @@ final case class ServerSentEvent(data: String,
     }
     appendData(data)
     if (eventType.isDefined)
-      builder.append("event:").append(eventType.get).append('\n')
-    if (id.isDefined) builder.append("id:").append(id.get).append('\n')
+      builder.append("event: ").append(eventType.get).append('\n')
+    if (id.isDefined) builder.append("id: ").append(id.get).append('\n')
     if (retry.isDefined)
-      builder.append("retry:").append(retry.get).append('\n')
+      builder.append("retry: ").append(retry.get).append('\n')
     builder.append('\n').toString
   }
 }
