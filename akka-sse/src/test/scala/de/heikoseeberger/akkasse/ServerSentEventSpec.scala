@@ -42,6 +42,9 @@ class ServerSentEventSpec
         "data",
         retry = Some(-1)
       )
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent.Retry(
+        -1
+      )
     }
   }
 
@@ -79,6 +82,14 @@ class ServerSentEventSpec
         val event = ServerSentEvent(data)
         event.encode.utf8String shouldBe event.toString
       }
+    }
+  }
+
+  "Retry" should {
+    "create a single retry field for single line message" in {
+      val event =
+        ServerSentEvent.Retry(42)
+      event.encode.utf8String shouldBe "retry: 42\n\n"
     }
   }
 }
