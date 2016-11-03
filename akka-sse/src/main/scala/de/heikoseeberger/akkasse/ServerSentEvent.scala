@@ -42,6 +42,16 @@ object ServerSentEvent {
   }
 
   /**
+    * A retry [[ServerSentEvent]] without any data associated.
+    * @param retry the reconnection time in milliseconds.
+    */
+  case class Retry(retry: Int) extends EventStreamElement {
+    require(retry > 0L, "Retry must be a positive number!")
+
+    override def encode = ByteString(s"retry: $retry\n\n", UTF_8.name)
+  }
+
+  /**
     * An eventId which resets the last event ID to the empty string, meaning no `Last-Event-ID` header will be sent
     * in the event of a reconnection being attempted.
     */
