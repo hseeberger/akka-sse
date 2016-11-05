@@ -24,22 +24,24 @@ import scala.annotation.tailrec
 private object LineParser {
 
   final val CR = '\r'.toByte
-
   final val LF = '\n'.toByte
 }
 
 private final class LineParser(maxLineSize: Int)
     extends GraphStage[FlowShape[ByteString, String]] {
+
   override val shape = FlowShape(Inlet[ByteString]("LineParser.in"),
                                  Outlet[String]("LineParser.out"))
 
-  override def createLogic(inheritedAttributes: Attributes) =
+  override def createLogic(attributes: Attributes) =
     new GraphStageLogic(shape) {
       import LineParser._
       import shape._
 
       setHandler(in, new InHandler {
+
         private var buffer = ByteString.empty
+
         override def onPush() = {
           @tailrec
           def parseLines(

@@ -32,10 +32,10 @@ import scala.util.Try
 object Streams {
 
   /**
-    * Provides a flow representing a common pipeline for handling the establishment of an
-    * SSE event stream and its termination. The flow produces SSE elements. This flow is
-    * intended to be used in conjunction with having established a connection and made a
-    * request. For example:
+    * Provides a flow representing a common pipeline for handling the
+    * establishment of an SSE event stream and its termination. The flow
+    * produces SSE elements. This flow is intended to be used in conjunction
+    * with having established a connection and made a request. For example:
     *
     * {{{
     * Source
@@ -71,7 +71,7 @@ object Streams {
     Flow[HttpResponse]
       .alsoTo(Sink.head.mapMaterializedValue(_.onComplete(onResponse)))
       .alsoTo(Sink.onComplete(onTermination))
-      .mapAsync(1)(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+      .mapAsync(1)(Unmarshal(_).to[EventStream])
       .flatMapConcat(identity)
   }
 
@@ -82,8 +82,7 @@ object Streams {
     * @param onResponse the handler of the successful HTTP response
     * @param response the response passed in by the sseFlow, which can have failed
     */
-  def onSuccess(
-      onResponse: HttpResponse => Unit
-  )(response: Try[HttpResponse]): Unit =
+  def onSuccess(onResponse: HttpResponse => Unit)(
+      response: Try[HttpResponse]): Unit =
     for (r <- response if r.status.isSuccess) onResponse(r)
 }

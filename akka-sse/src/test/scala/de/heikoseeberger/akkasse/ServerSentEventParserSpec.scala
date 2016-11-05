@@ -17,10 +17,7 @@
 package de.heikoseeberger.akkasse
 
 import akka.stream.scaladsl.Source
-import akka.testkit.TestDuration
 import akka.util.ByteString
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
 
 class ServerSentEventParserSpec extends BaseSpec {
 
@@ -45,40 +42,47 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |data
                      |id
                      |
+                     |retry: 512
+                     |
                      |data: incomplete message
                      |""".stripMargin
-      val events = Source(input.split(f"%n").toVector)
+      Source(input.split(f"%n").toVector)
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      Await.result(events, 1.second.dilated) shouldBe Vector(
-        ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
-        ServerSentEvent("message 2", "message 2 event", "42", 512),
-        ServerSentEvent("", None, ServerSentEvent.emptyId)
-      )
+        .map(
+          _ shouldBe Vector(
+            ServerSentEvent(Some("message 1 line 1\nmessage 1 line 2")),
+            ServerSentEvent(Some("message 2"),
+                            Some("message 2 event"),
+                            Some("42"),
+                            Some(512)),
+            ServerSentEvent(),
+            ServerSentEvent(),
+            ServerSentEvent(None, Some("message 4 event"), Some("")),
+            ServerSentEvent(Some(""), None, Some("")),
+            ServerSentEvent(retry = Some(512))
+          )
+        )
     }
 
     "ignore unparsable retry fields" in {
       val input = """|data: stuff
                      |retry: ten
                      |""".stripMargin
-      val events = Source(input.split(f"%n", -1).toVector)
+      Source(input.split(f"%n", -1).toVector)
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      Await.result(events, 1.second.dilated) shouldBe Vector(
-        ServerSentEvent("stuff", retry = None)
-      )
+        .map(_ shouldBe Vector(ServerSentEvent(Some("stuff"), retry = None)))
     }
 
     "work for issue 36" in {
       val input = "data: stuff\r\ndata: more\r\ndata: extra\n\n"
-      val events = Source
+      Source
         .single(ByteString(input))
         .via(new LineParser(1048576))
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      Await.result(events, 1.second.dilated) shouldBe Vector(
-        ServerSentEvent("stuff\nmore\nextra")
-      )
+        .map(_ shouldBe Vector(ServerSentEvent(Some("stuff\nmore\nextra"))))
     }
   }
 }

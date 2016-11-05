@@ -17,10 +17,7 @@
 package de.heikoseeberger.akkasse
 
 import akka.stream.scaladsl.Source
-import akka.testkit.TestDuration
 import akka.util.ByteString
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
 
 class LineParserSpec extends BaseSpec {
 
@@ -29,40 +26,44 @@ class LineParserSpec extends BaseSpec {
     "parse lines terminated with either CR, LF or CRLF" in {
       val input1 = "line1\nline2\rline3\r"
       val input2 = "\nline4\nline5\rline6\r\n\n"
-      val lines = Source(Vector(ByteString(input1), ByteString(input2)))
+      Source(Vector(ByteString(input1), ByteString(input2)))
         .via(new LineParser(1048576))
         .runFold(Vector.empty[String])(_ :+ _)
-      Await.result(lines, 1.second.dilated) shouldBe Vector("line1",
-                                                            "line2",
-                                                            "line3",
-                                                            "line4",
-                                                            "line5",
-                                                            "line6",
-                                                            "")
+        .map(
+          _ shouldBe Vector("line1",
+                            "line2",
+                            "line3",
+                            "line4",
+                            "line5",
+                            "line6",
+                            "")
+        )
     }
 
     "ignore a trailing non-terminated line" in {
       val input = "line1\nline2\rline3\r\nline4\nline5\rline6\r\n\nincomplete"
-      val lines = Source
+      Source
         .single(ByteString(input))
         .via(new LineParser(1048576))
         .runFold(Vector.empty[String])(_ :+ _)
-      Await.result(lines, 1.second.dilated) shouldBe Vector("line1",
-                                                            "line2",
-                                                            "line3",
-                                                            "line4",
-                                                            "line5",
-                                                            "line6",
-                                                            "")
+        .map(
+          _ shouldBe Vector("line1",
+                            "line2",
+                            "line3",
+                            "line4",
+                            "line5",
+                            "line6",
+                            "")
+        )
     }
 
     "handle splitted line" in {
       val testLine = "test line"
       val input    = s"$testLine\n".grouped(1).map(ByteString.apply).toVector
-      val lines = Source(input)
+      Source(input)
         .via(new LineParser(1048576))
         .runFold(Vector.empty[String])(_ :+ _)
-      Await.result(lines, 1.second.dilated) shouldBe Vector(testLine)
+        .map(_ shouldBe Vector(testLine))
     }
   }
 }

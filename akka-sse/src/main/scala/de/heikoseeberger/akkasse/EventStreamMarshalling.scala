@@ -18,25 +18,24 @@ package de.heikoseeberger.akkasse
 
 import akka.http.scaladsl.marshalling.{ Marshaller, ToResponseMarshaller }
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
-import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
-  * Importing [[EventStreamMarshalling.trm]] lets a `Source[EventStreamElement, A]`
-  * be marshallable to a `HttpResponse`.
+  * Importing [[EventStreamMarshalling.trm]] lets an [[EventStream]] be
+  * marshallable to a `HttpResponse`.
   */
 object EventStreamMarshalling extends EventStreamMarshalling
 
 /**
-  * Mixing in this trait lets a `Source[EventStreamElement, A]` be marshallable to a `HttpResponse`.
+  * Mixing in this trait lets an [[EventStream]] be marshallable to a
+  * `HttpResponse`.
   */
 trait EventStreamMarshalling {
 
-  implicit final def trm: ToResponseMarshaller[Source[EventStreamElement, Any]] =
+  implicit final def trm: ToResponseMarshaller[EventStream] =
     Marshaller.withFixedContentType(`text/event-stream`) { messages =>
-      HttpResponse(
-        entity = HttpEntity.CloseDelimited(`text/event-stream`,
-                                           messages.map(_.encode))
-      )
+      val data   = messages.map(_.encode)
+      val entity = HttpEntity.CloseDelimited(`text/event-stream`, data)
+      HttpResponse(entity = entity)
     }
 }

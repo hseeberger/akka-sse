@@ -16,11 +16,12 @@
 
 package de.heikoseeberger
 
+import akka.stream.scaladsl.Source
+
 package object akkasse {
 
   /**
-    * View from `A` to [[ServerSentEvent]].
+    * A source of [[ServerSentEvent]].
     */
-  @deprecated("See deprecation of `EventPublisher`", "1.1.0")
-  type ToServerSentEvent[A] = A => ServerSentEvent
+  type EventStream = Source[ServerSentEvent, Any]
 }

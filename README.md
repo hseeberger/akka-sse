@@ -26,12 +26,12 @@ libraryDependencies ++= List(
 
 ## Usage – basics
 
-Akka SSE models server-sent events as `Source[ServerSentEvent, A]` with `Source` from Akka Streams,
+Akka SSE models an `EventStream` as `Source[ServerSentEvent, A]` with `Source` from Akka Streams,
 `ServerSentEvent` from Akka SSE and `A` an arbitrary type on the server-side and `Any` on the client-side.
 
 `ServerSentEvent` is a case class with the following fields:
 
-- `data` of type `String`: payload, may be empty
+- `data` of type `Option[String]`: payload, may be empty
 - `eventType` of type `Option[String]` with default `None`: handler to be invoked, e.g. "message", "added", etc.
 - `id` of type `Option[String]` with default `None`: sets the client's last event ID string
 - `retry` of type `Option[Int]` with default `None`: set the client's reconnection time
@@ -74,20 +74,20 @@ object TimeServer {
 }
 ```
 
-If you need periodic heartbeats, simply use the `keepAlive` standard stage with a `ServerSentEvent.Heartbeat`:
+If you need periodic heartbeats, simply use the `keepAlive` standard stage with a `ServerSentEvent.heartbeat`:
 
 ``` scala
 Source.tick(2.seconds, 2.seconds, NotUsed)
   .map(_ => LocalTime.now())
   .map(dateTimeToServerSentEvent)
-  .keepAlive(1.second, () => ServerSentEvent.Heartbeat)
+  .keepAlive(1.second, () => ServerSentEvent.heartbeat)
 }
 ```
 
 ## Usage – client-side
 
-In order to unmarshal server-sent events as `Source[ServerSentEvent, Any]`, you have to bring the implicit
-`fromEntityUnmarshaller` defined by the `EventStreamUnmarshalling` trait or object into scope where you define your
+In order to unmarshal server-sent events as `EventStream`, you have to bring the implicit
+`feu` defined by the `EventStreamUnmarshalling` trait or object into scope where you define your
 response handling.
 
 ``` scala
@@ -98,7 +98,7 @@ object TimeClient {
 
   Source.single(Get("/events"))
     .via(Http().outgoingConnection("127.0.0.1", 9000))
-    .mapAsync(1)(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+    .mapAsync(1)(Unmarshal(_).to[EventSourcew])
     .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
 }
 ```

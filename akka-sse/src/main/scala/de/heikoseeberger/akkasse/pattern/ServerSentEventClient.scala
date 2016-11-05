@@ -43,9 +43,10 @@ import scala.concurrent.{ ExecutionContext, Future }
 object ServerSentEventClient {
 
   /**
-    * Creates a continuous source of [[ServerSentEvent]]s from the given URI and streams it into the given handler. Once a
-    * source of [[ServerSentEvent]]s obtained via the connection is completed, a next one is obtained thereby sending the
-    * Last-Evend-ID header if there is a last event id.
+    * Creates a continuous source of [[ServerSentEvent]]s from the given URI and
+    * streams it into the given handler. Once a source of [[ServerSentEvent]]s
+    * obtained via the connection is completed, a next one is obtained thereby
+    * sending the Last-Evend-ID header if there is a last event id.
     *
     * @param uri URI with absolute path, e.g. "http://myserver/events
     * @param handler handler for [[ServerSentEvent]]s
@@ -62,7 +63,6 @@ object ServerSentEventClient {
       lastEventId: Option[String] = None,
       retryDelay: FiniteDuration = Duration.Zero
   )(implicit ec: ExecutionContext, mat: Materializer): Source[A, NotUsed] = {
-    // Get the events, run them with the handler and return the last event and the mat value of the handler
     def getAndHandle(lastEventId: Option[String]) = {
       def getEvents = {
         import EventStreamUnmarshalling._
@@ -72,7 +72,7 @@ object ServerSentEventClient {
             r.addHeader(`Last-Event-ID`(id))
           }
         }
-        send(request).flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+        send(request).flatMap(Unmarshal(_).to[EventStream])
       }
       Source
         .fromFuture(getEvents)

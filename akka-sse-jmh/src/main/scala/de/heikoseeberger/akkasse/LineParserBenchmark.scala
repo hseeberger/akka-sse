@@ -34,12 +34,13 @@ class LineParserBenchmark {
     def next(last: String) =
       if (last == "event:foo\ndata:") "bar\ndata:baz\n\n"
       else "event:foo\ndata:"
-    val done = Source
-      .fromIterator(() => Iterator.iterate("event:foo\ndata:")(next))
-      .map(ByteString(_))
-      .take(50000)
-      .via(new LineParser(1048576))
-      .runForeach(_ => ())
+    val done =
+      Source
+        .fromIterator(() => Iterator.iterate("event:foo\ndata:")(next))
+        .map(ByteString(_))
+        .take(50000)
+        .via(new LineParser(1048576))
+        .runForeach(_ => ())
     Await.ready(done, Duration.Inf)
   }
 }
