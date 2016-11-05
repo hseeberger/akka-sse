@@ -45,15 +45,24 @@ class ServerSentEventParserSpec extends BaseSpec {
                      |data
                      |id
                      |
+                     |retry: 512
+                     |
                      |data: incomplete message
                      |""".stripMargin
       val events = Source(input.split(f"%n").toVector)
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1.second.dilated) shouldBe Vector(
-        ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
-        ServerSentEvent("message 2", "message 2 event", "42", 512),
-        ServerSentEvent("", None, ServerSentEvent.emptyId)
+        ServerSentEvent(Some("message 1 line 1\nmessage 1 line 2")),
+        ServerSentEvent(Some("message 2"),
+                        Some("message 2 event"),
+                        Some("42"),
+                        Some(512)),
+        ServerSentEvent(),
+        ServerSentEvent(),
+        ServerSentEvent(None, Some("message 4 event"), Some("")),
+        ServerSentEvent(Some(""), None, Some("")),
+        ServerSentEvent(retry = Some(512))
       )
     }
 
@@ -65,7 +74,7 @@ class ServerSentEventParserSpec extends BaseSpec {
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1.second.dilated) shouldBe Vector(
-        ServerSentEvent("stuff", retry = None)
+        ServerSentEvent(Some("stuff"), retry = None)
       )
     }
 
@@ -77,7 +86,7 @@ class ServerSentEventParserSpec extends BaseSpec {
         .via(new ServerSentEventParser(1048576))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
       Await.result(events, 1.second.dilated) shouldBe Vector(
-        ServerSentEvent("stuff\nmore\nextra")
+        ServerSentEvent(Some("stuff\nmore\nextra"))
       )
     }
   }

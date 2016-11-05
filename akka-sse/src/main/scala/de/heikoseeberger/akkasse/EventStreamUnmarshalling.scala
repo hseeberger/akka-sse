@@ -21,41 +21,38 @@ import akka.http.scaladsl.unmarshalling.{
   FromEntityUnmarshaller,
   Unmarshaller
 }
-import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
-  * Importing [[EventStreamUnmarshalling.feu]] lets a `HttpEntity` with a `text/event-stream`
-  * media type be unmarshallable to a `Source[ServerSentEvent, Any]`.
+  * Importing [[EventStreamUnmarshalling.feu]] lets a `HttpEntity` with a
+  * `text/event-stream` media type be unmarshallable to an `EventStream`.
   */
 object EventStreamUnmarshalling extends EventStreamUnmarshalling
 
 /**
-  * Mixing in this trait lets a `HttpEntity` with a `text/event-stream` media type be unmarshallable to a
-  * `Source[ServerSentEvent, Any]`.
+  * Mixing in this trait lets a `HttpEntity` with a `text/event-stream` media
+  * type be unmarshallable to an `EventStream`.
   */
 trait EventStreamUnmarshalling {
 
   private val _maxEventSize = maxEventSize
-
-  private val _maxLineSize = maxLineSize
+  private val _maxLineSize  = maxLineSize
 
   /**
     * The maximum size of a server-sent event for the event Stream parser; 8KiB by default.
     */
-  protected def maxEventSize: Int = 8192
+  protected def maxEventSize: Int =
+    8192
 
   /**
     * The maximum size of a line for the event Stream parser; 8KiB by default.
     */
-  protected def maxLineSize: Int = 8192
+  protected def maxLineSize: Int =
+    8192
 
-  implicit final def feu: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
+  implicit final def feu: FromEntityUnmarshaller[EventStream] = {
     def events(entity: HttpEntity) =
-      entity.dataBytes.via(
-        EventStreamParser(maxLineSize = _maxLineSize,
-                          maxEventSize = _maxEventSize)
-      )
+      entity.dataBytes.via(EventStreamParser(_maxLineSize, _maxEventSize))
     Unmarshaller.strict(events).forContentTypes(`text/event-stream`)
   }
 }

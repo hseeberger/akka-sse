@@ -55,7 +55,7 @@ object ServerSentEventClientSpec {
                 .map(toServerSentEvent(setEventId))
             }
           } catch {
-            case e: NumberFormatException =>
+            case _: NumberFormatException =>
               complete(
                 HttpResponse(
                   BadRequest,
@@ -120,8 +120,9 @@ object ServerSentEventClientSpec {
   }
 
   private def toServerSentEvent(setEventId: Boolean)(n: Int) = {
-    val id = n.toString
-    if (setEventId) ServerSentEvent(id, id = Some(id)) else ServerSentEvent(id)
+    val id    = n.toString
+    val event = ServerSentEvent(Some(id))
+    if (setEventId) event.copy(id = Some(id)) else event
   }
 }
 

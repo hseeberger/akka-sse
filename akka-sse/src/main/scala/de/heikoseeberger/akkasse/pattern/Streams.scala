@@ -71,7 +71,7 @@ object Streams {
     Flow[HttpResponse]
       .alsoTo(Sink.head.mapMaterializedValue(_.onComplete(onResponse)))
       .alsoTo(Sink.onComplete(onTermination))
-      .mapAsync(1)(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+      .mapAsync(1)(Unmarshal(_).to[EventStream])
       .flatMapConcat(identity)
   }
 

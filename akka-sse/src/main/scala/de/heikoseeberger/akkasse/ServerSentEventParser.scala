@@ -24,13 +24,10 @@ private object ServerSentEventParser {
 
   private final class Builder {
 
-    private var data = Vector.empty[String]
-
+    private var data      = Vector.empty[String]
     private var eventType = null: String
-
-    private var id = null: String
-
-    private var retry = null: String
+    private var id        = null: String
+    private var retry     = null: String
 
     private var _size = 0
 
@@ -57,16 +54,16 @@ private object ServerSentEventParser {
       retry = value
     }
 
-    def hasData: Boolean = data.nonEmpty
+    def size: Int =
+      _size
 
-    def size: Int = _size
-
-    def build(): ServerSentEvent = ServerSentEvent(
-      data.mkString(LF),
-      Option(eventType),
-      Option(id),
-      Option(retry).flatMap(silentlyToInt)
-    )
+    def build(): ServerSentEvent =
+      ServerSentEvent(
+        if (data.isEmpty) None else Some(data.mkString(LF)),
+        Option(eventType),
+        Option(id),
+        Option(retry).flatMap(silentlyToInt)
+      )
 
     def reset(): Unit = {
       data = Vector.empty[String]
@@ -77,46 +74,20 @@ private object ServerSentEventParser {
     }
   }
 
-  private final val LF = "\n"
-
-  private final val Data = "data"
-
+  private final val Data  = "data"
   private final val Event = "event"
-
-  private final val Id = "id"
-
+  private final val Id    = "id"
   private final val Retry = "retry"
+
+  private final val LF = "\n"
 
   private val linePattern = """([^:]+): ?(.*)""".r
 
-  private def parseFields(lines: Vector[String]) = {
-    var data      = Vector.empty[String]
-    var eventType = null: String
-    var id        = null: String
-    var retry     = null: String
-    for (line <- lines) {
-      line match {
-        case Data  => data :+= ""
-        case Event => eventType = ""
-        case Id    => id = ""
-        case Retry => retry = ""
-        case linePattern(field @ (Data | Event | Id | Retry), value) =>
-          field match {
-            case Data  => data :+= value
-            case Event => eventType = value
-            case Id    => id = value
-            case Retry => retry = value
-            case _     =>
-          }
-        case _ =>
-      }
-    }
-    (data, eventType, id, retry)
-  }
-
   private def silentlyToInt(s: String) =
     try Some(s.trim.toInt)
-    catch { case NonFatal(_) => None }
+    catch {
+      case NonFatal(_) => None
+    }
 }
 
 private final class ServerSentEventParser(maxEventSize: Int)
@@ -127,7 +98,7 @@ private final class ServerSentEventParser(maxEventSize: Int)
     Outlet[ServerSentEvent]("ServerSentEventParser.out")
   )
 
-  override def createLogic(inheritedAttributes: Attributes) =
+  override def createLogic(attributes: Attributes) =
     new GraphStageLogic(shape) {
       import ServerSentEventParser._
       import shape._
@@ -138,9 +109,8 @@ private final class ServerSentEventParser(maxEventSize: Int)
 
         override def onPush() = grab(in) match {
           case "" => // An event is terminated with a new line
-            if (builder.hasData) push(out, builder.build())
-            else pull(in) // An event without data must be ignored
-            builder.reset() // In both cases we continue with a fresh one
+            push(out, builder.build())
+            builder.reset()
 
           case line if builder.size + line.length > maxEventSize =>
             failStage(
@@ -150,6 +120,7 @@ private final class ServerSentEventParser(maxEventSize: Int)
             )
             builder.reset()
 
+          // TODO: Do we need this nested match?!
           case line =>
             line match {
               case Data  => builder.appendData("")

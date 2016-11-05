@@ -35,13 +35,14 @@ class EventStreamMarshallingSpec
       val elements = 1 to 666
       val marshallable =
         Source(elements).map(intToServerSentEvent): ToResponseMarshallable
-      val response = marshallable(HttpRequest()).flatMap {
-        _.entity.dataBytes
-          .map(_.utf8String)
-          .runFold(Vector.empty[String])(_ :+ _)
-      }
+      val response =
+        marshallable(HttpRequest()).flatMap {
+          _.entity.dataBytes
+            .map(_.utf8String)
+            .runFold(Vector.empty[String])(_ :+ _)
+        }
       val actual   = Await.result(response, 1.second.dilated)
-      val expected = elements.map(n => ServerSentEvent(n.toString).toString)
+      val expected = elements.map(intToServerSentEvent(_).toString)
       actual shouldBe expected
     }
 
@@ -51,7 +52,7 @@ class EventStreamMarshallingSpec
       val marshallable = expected: ToResponseMarshallable
       val actual = Await.result(
         marshallable(HttpRequest()).flatMap(
-          response => Unmarshal(response).to[Source[ServerSentEvent, Any]]
+          response => Unmarshal(response).to[EventStream]
         ),
         1.second.dilated
       )
@@ -71,6 +72,5 @@ class EventStreamMarshallingSpec
     }
   }
 
-  def intToServerSentEvent(n: Int): ServerSentEvent =
-    ServerSentEvent(n.toString)
+  private def intToServerSentEvent(n: Int) = ServerSentEvent(Some(n.toString))
 }

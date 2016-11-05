@@ -124,11 +124,12 @@ class StreamsSpec
     "pass through all non heartbeat events" in {
       val testObserver = TestProbe()
 
-      val sseEvent = ServerSentEvent("Hello World")
+      val sseEvent = ServerSentEvent(Some("Hello World"))
 
-      val marshallableResponse = Source
-        .single(sseEvent)
-        .keepAlive(1.millisecond, () => ServerSentEvent.Heartbeat): ToResponseMarshallable
+      val marshallableResponse =
+        Source
+          .single(sseEvent)
+          .keepAlive(1.millisecond, () => ServerSentEvent()): ToResponseMarshallable
       val marshalledResponse = marshallableResponse(HttpRequest()).futureValue
 
       val testSource = testSourceProbe(testObserver.ref)

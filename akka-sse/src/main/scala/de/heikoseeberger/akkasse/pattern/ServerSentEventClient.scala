@@ -72,7 +72,7 @@ object ServerSentEventClient {
             r.addHeader(`Last-Event-ID`(id))
           }
         }
-        send(request).flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+        send(request).flatMap(Unmarshal(_).to[EventStream])
       }
       Source
         .fromFuture(getEvents)
