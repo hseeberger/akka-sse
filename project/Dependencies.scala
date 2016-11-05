@@ -2,10 +2,10 @@ import sbt._
 
 object Version {
   final val Akka              = "2.4.11"
-  final val AkkaStreamContrib = "0.2"
+  final val AkkaStreamContrib = "0.4"
   final val Junit             = "4.12"
   final val Scala             = "2.11.8"
-  final val ScalaCheck        = "1.13.2"
+  final val ScalaCheck        = "1.13.4"
   final val ScalaTest         = "3.0.0"
 }
 
