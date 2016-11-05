@@ -1,0 +1,308 @@
+[0m[[0minfo[0m] [0mLoading global plugins from /Users/heiko/.sbt/0.13/plugins[0m
+[0m[[0minfo[0m] [0mLoading project definition from /Users/heiko/projekte/scala/akka-sse/project[0m
+[0m[[0minfo[0m] [0mSet current project to akka-sse-root (in build file:/Users/heiko/projekte/scala/akka-sse/)[0m
+[0m[[0minfo[0m] [0mUpdating {file:/Users/heiko/projekte/scala/akka-sse/}akka-sse...[0m
+[0m[[0minfo[0m] [0mResolving org.scala-lang#scala-library;2.11.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-http-experimental_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-http-core_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-stream_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-actor_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe#config;1.3.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang.modules#scala-java8-compat_2.11;0.7.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe#ssl-config-akka_2.11;0.2.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe#ssl-config-core_2.11;0.2.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang.modules#scala-parser-combinators_2.11;1.0.4 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.reactivestreams#reactive-streams;1.0.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-parsing_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-stream-contrib_2.11;0.4 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-stream-testkit_2.11;2.4.10 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-testkit_2.11;2.4.10 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-http-testkit_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-stream-testkit_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-testkit_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving junit#junit;4.12 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.hamcrest#hamcrest-core;1.3 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalacheck#scalacheck_2.11;1.13.4 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-sbt#test-interface;1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalatest#scalatest_2.11;3.0.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalactic#scalactic_2.11;3.0.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang#scala-reflect;2.11.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang.modules#scala-xml_2.11;1.0.5 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang#scala-compiler;2.11.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang.modules#scala-xml_2.11;1.0.4 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving jline#jline;2.12.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.geirsson#scalafmt-cli_2.11;0.4.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.geirsson#scalafmt-core_2.11;0.4.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.geirsson#metaconfig_2.11;0.4.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#scalameta_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#common_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#dialects_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#parsers_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#inputs_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#tokens_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#tokenizers_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.lihaoyi#scalaparse_2.11;0.3.7 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.lihaoyi#fastparse_2.11;0.3.7 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.lihaoyi#fastparse-utils_2.11;0.3.7 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#trees_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#quasiquotes_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#transversers_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#inline_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.lihaoyi#sourcecode_2.11;0.1.2 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe#config;1.2.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.martiansoftware#nailgun-server;0.9.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.github.scopt#scopt_2.11;3.5.0 ...[0m
+[0m[[0minfo[0m] [0mDone updating.[0m
+[0m[[0minfo[0m] [0mUpdating {file:/Users/heiko/projekte/scala/akka-sse/}akka-sse-jmh...[0m
+[0m[[0minfo[0m] [0mResolving org.scala-lang#scala-library;2.11.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving de.heikoseeberger#akka-sse_2.11;1.11.0-3-g2b60ac6 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-http-experimental_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-http-core_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-stream_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-actor_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe#config;1.3.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang.modules#scala-java8-compat_2.11;0.7.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe#ssl-config-akka_2.11;0.2.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe#ssl-config-core_2.11;0.2.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang.modules#scala-parser-combinators_2.11;1.0.4 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.reactivestreams#reactive-streams;1.0.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-parsing_2.11;2.4.11 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-stream-contrib_2.11;0.4 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-stream-testkit_2.11;2.4.10 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe.akka#akka-testkit_2.11;2.4.10 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving pl.project13.scala#sbt-jmh-extras;0.2.16 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.openjdk.jmh#jmh-core;1.14.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving net.sf.jopt-simple#jopt-simple;4.6 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.apache.commons#commons-math3;3.2 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.openjdk.jmh#jmh-generator-bytecode;1.14.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.openjdk.jmh#jmh-generator-reflection;1.14.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.openjdk.jmh#jmh-generator-asm;1.14.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.ow2.asm#asm;5.0.3 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang#scala-compiler;2.11.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang#scala-reflect;2.11.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scala-lang.modules#scala-xml_2.11;1.0.4 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving jline#jline;2.12.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.geirsson#scalafmt-cli_2.11;0.4.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.geirsson#scalafmt-core_2.11;0.4.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.geirsson#metaconfig_2.11;0.4.8 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#scalameta_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#common_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#dialects_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#parsers_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#inputs_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#tokens_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#tokenizers_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.lihaoyi#scalaparse_2.11;0.3.7 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.lihaoyi#fastparse_2.11;0.3.7 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.lihaoyi#fastparse-utils_2.11;0.3.7 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#trees_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#quasiquotes_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#transversers_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving org.scalameta#inline_2.11;1.1.0 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.lihaoyi#sourcecode_2.11;0.1.2 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.typesafe#config;1.2.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.martiansoftware#nailgun-server;0.9.1 ...[0m
+[A[2K[0m[[0minfo[0m] [0mResolving com.github.scopt#scopt_2.11;3.5.0 ...[0m
+[0m[[0minfo[0m] [0mDone updating.[0m
+Processing 34 classes from /Users/heiko/projekte/scala/akka-sse/akka-sse-jmh/target/scala-2.11/classes with "reflection" generator
+Writing out Java source to /Users/heiko/projekte/scala/akka-sse/akka-sse-jmh/target/scala-2.11/src_managed/jmh and resources to /Users/heiko/projekte/scala/akka-sse/akka-sse-jmh/target/scala-2.11/resource_managed/jmh
+[0m[[0minfo[0m] [0mRunning org.openjdk.jmh.Main -i 10 -wi 10 -f 2 -t 1[0m
+[0m[[0minfo[0m] [0m# JMH 1.14.1 (released 46 days ago)[0m
+[0m[[0minfo[0m] [0m# VM version: JDK 1.8.0_102, VM 25.102-b14[0m
+[0m[[0minfo[0m] [0m# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_102.jdk/Contents/Home/jre/bin/java[0m
+[0m[[0minfo[0m] [0m# VM options: <none>[0m
+[0m[[0minfo[0m] [0m# Warmup: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Measurement: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Timeout: 10 min per iteration[0m
+[0m[[0minfo[0m] [0m# Threads: 1 thread, will synchronize iterations[0m
+[0m[[0minfo[0m] [0m# Benchmark mode: Throughput, ops/time[0m
+[0m[[0minfo[0m] [0m# Benchmark: de.heikoseeberger.akkasse.LineParserBenchmark.benchmark[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 0,00% complete, ETA 00:02:00[0m
+[0m[[0minfo[0m] [0m# Fork: 1 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 10,557 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 19,660 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 19,592 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 22,280 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 22,820 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 23,256 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 23,295 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 23,251 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 23,259 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 23,404 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 23,160 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 23,213 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 23,231 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 22,933 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 23,095 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 23,303 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 23,024 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 23,193 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 22,685 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 23,290 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 16,67% complete, ETA 00:01:48[0m
+[0m[[0minfo[0m] [0m# Fork: 2 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 10,723 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 18,808 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 18,555 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 23,068 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 22,958 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 23,382 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 23,322 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 23,336 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 23,445 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 23,522 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 23,323 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 23,394 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 22,988 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 23,374 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 23,449 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 23,379 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 23,332 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 23,387 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 23,284 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 23,366 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mResult "benchmark":[0m
+[0m[[0minfo[0m] [0m  23,220 ±(99.9%) 0,167 ops/s [Average][0m
+[0m[[0minfo[0m] [0m  (min, avg, max) = (22,685, 23,220, 23,449), stdev = 0,192[0m
+[0m[[0minfo[0m] [0m  CI (99.9%): [23,053, 23,387] (assumes normal distribution)[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# JMH 1.14.1 (released 46 days ago)[0m
+[0m[[0minfo[0m] [0m# VM version: JDK 1.8.0_102, VM 25.102-b14[0m
+[0m[[0minfo[0m] [0m# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_102.jdk/Contents/Home/jre/bin/java[0m
+[0m[[0minfo[0m] [0m# VM options: <none>[0m
+[0m[[0minfo[0m] [0m# Warmup: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Measurement: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Timeout: 10 min per iteration[0m
+[0m[[0minfo[0m] [0m# Threads: 1 thread, will synchronize iterations[0m
+[0m[[0minfo[0m] [0m# Benchmark mode: Throughput, ops/time[0m
+[0m[[0minfo[0m] [0m# Benchmark: de.heikoseeberger.akkasse.ServerSentEventBenchmark.benchmark[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 33,33% complete, ETA 00:01:26[0m
+[0m[[0minfo[0m] [0m# Fork: 1 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 37,514 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 43,084 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 56,224 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 56,248 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 56,037 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 56,449 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 56,105 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 56,401 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 56,141 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 56,389 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 56,737 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 55,995 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 56,376 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 55,357 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 55,295 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 54,856 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 55,572 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 55,771 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 56,063 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 56,708 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 50,00% complete, ETA 00:01:04[0m
+[0m[[0minfo[0m] [0m# Fork: 2 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 39,368 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 45,714 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 56,081 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 55,607 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 57,109 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 56,328 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 57,158 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 55,956 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 56,082 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 55,895 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 56,113 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 55,277 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 55,337 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 55,672 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 56,505 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 55,431 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 56,241 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 56,172 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 56,665 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 56,419 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mResult "benchmark":[0m
+[0m[[0minfo[0m] [0m  55,928 ±(99.9%) 0,484 ops/s [Average][0m
+[0m[[0minfo[0m] [0m  (min, avg, max) = (54,856, 55,928, 56,737), stdev = 0,558[0m
+[0m[[0minfo[0m] [0m  CI (99.9%): [55,444, 56,412] (assumes normal distribution)[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# JMH 1.14.1 (released 46 days ago)[0m
+[0m[[0minfo[0m] [0m# VM version: JDK 1.8.0_102, VM 25.102-b14[0m
+[0m[[0minfo[0m] [0m# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_102.jdk/Contents/Home/jre/bin/java[0m
+[0m[[0minfo[0m] [0m# VM options: <none>[0m
+[0m[[0minfo[0m] [0m# Warmup: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Measurement: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Timeout: 10 min per iteration[0m
+[0m[[0minfo[0m] [0m# Threads: 1 thread, will synchronize iterations[0m
+[0m[[0minfo[0m] [0m# Benchmark mode: Throughput, ops/time[0m
+[0m[[0minfo[0m] [0m# Benchmark: de.heikoseeberger.akkasse.ServerSentEventParserBenchmark.benchmark[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 66,67% complete, ETA 00:00:42[0m
+[0m[[0minfo[0m] [0m# Fork: 1 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 4,978 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 39,716 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 46,611 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 43,605 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 53,153 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 54,533 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 54,419 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 54,594 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 54,969 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 54,330 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 54,866 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 53,916 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 55,153 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 55,510 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 55,830 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 55,183 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 55,411 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 55,727 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 53,457 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 55,053 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 83,33% complete, ETA 00:00:21[0m
+[0m[[0minfo[0m] [0m# Fork: 2 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 4,889 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 40,365 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 46,274 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 43,134 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 53,763 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 54,011 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 54,127 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 51,650 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 53,768 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 54,346 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 54,531 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 55,035 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 55,091 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 55,248 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 55,263 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 54,711 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 55,131 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 55,203 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 53,783 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 54,987 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mResult "benchmark":[0m
+[0m[[0minfo[0m] [0m  54,954 ±(99.9%) 0,535 ops/s [Average][0m
+[0m[[0minfo[0m] [0m  (min, avg, max) = (53,457, 54,954, 55,830), stdev = 0,616[0m
+[0m[[0minfo[0m] [0m  CI (99.9%): [54,419, 55,490] (assumes normal distribution)[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run complete. Total time: 00:02:07[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mBenchmark                                  Mode  Cnt   Score   Error  Units[0m
+[0m[[0minfo[0m] [0mLineParserBenchmark.benchmark             thrpt   20  23,220 ± 0,167  ops/s[0m
+[0m[[0minfo[0m] [0mServerSentEventBenchmark.benchmark        thrpt   20  55,928 ± 0,484  ops/s[0m
+[0m[[0minfo[0m] [0mServerSentEventParserBenchmark.benchmark  thrpt   20  54,954 ± 0,535  ops/s[0m
+[0m[[32msuccess[0m] [0mTotal time: 132 s, completed 05.11.2016 22:46:02[0m
