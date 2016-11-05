@@ -24,21 +24,21 @@ class ServerSentEventParserBenchmark {
   }
 
   @TearDown
-  def tearDown(): Unit = Await.ready(state.system.terminate(), Duration.Inf)
+  def tearDown(): Unit =
+    Await.ready(state.system.terminate(), Duration.Inf)
 
   @Benchmark
   def benchmark(): Unit = {
     implicit val system = state.system
     implicit val mat    = state.mat
-    val done = Source
-      .fromIterator(
-        () =>
-          Iterator.fill(50000)(Vector("event:foo", "data:bar", "data:baz", ""))
-      )
-      .mapConcat(identity)
-      .take(50000)
-      .via(new ServerSentEventParser(1048576))
-      .runForeach(_ => ())
+    val data            = Vector("event:foo", "data:bar", "data:baz", "")
+    val done =
+      Source
+        .fromIterator(() => Iterator.fill(50000)(data))
+        .mapConcat(identity)
+        .take(50000)
+        .via(new ServerSentEventParser(1048576))
+        .runForeach(_ => ())
     Await.ready(done, Duration.Inf)
   }
 }

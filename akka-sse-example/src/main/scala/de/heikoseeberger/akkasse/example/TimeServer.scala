@@ -52,7 +52,7 @@ object TimeServer {
             .tick(2.seconds, 2.seconds, NotUsed)
             .map(_ => LocalTime.now())
             .map(dateTimeToServerSentEvent)
-            .keepAlive(1.second, () => ServerSentEvent.Heartbeat)
+            .keepAlive(1.second, () => ServerSentEvent.heartbeat)
         }
       }
     }

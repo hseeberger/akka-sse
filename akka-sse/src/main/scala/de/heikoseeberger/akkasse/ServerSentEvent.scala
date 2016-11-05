@@ -23,6 +23,12 @@ import scala.annotation.tailrec
 object ServerSentEvent {
 
   /**
+    * An empty [[ServerSentEvent]] which can be used as a heartbeat.
+    */
+  val heartbeat: ServerSentEvent =
+    ServerSentEvent()
+
+  /**
     * Creates a [[ServerSentEvent]].
     *
     * @param data data which may span multiple lines
