@@ -18,17 +18,18 @@ package de.heikoseeberger.akkasse
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
+import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-abstract class BaseSpec extends WordSpec with Matchers with BeforeAndAfterAll {
+abstract class BaseSpec
+    extends AsyncWordSpec
+    with Matchers
+    with BeforeAndAfterAll {
 
   protected implicit val system = ActorSystem()
-
-  protected implicit val ec = system.dispatcher
-
-  protected implicit val mat = ActorMaterializer()
+  protected implicit val ec     = system.dispatcher
+  protected implicit val mat    = ActorMaterializer()
 
   override protected def afterAll() = {
     Await.ready(system.terminate(), 42.seconds)

@@ -33,7 +33,9 @@ package object headers {
   }
 
   /**
-    * To be sent by a client to the server if the server sent an ID with the last event.
+    * To be sent by a client to the server if the server sent an ID with the
+    * last event.
+    *
     * @param value value of the last event ID, encoded as UTF-8 string
     */
   final case class `Last-Event-ID`(value: String)

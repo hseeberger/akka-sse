@@ -21,9 +21,6 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.SourceShape
 import akka.stream.scaladsl.{ GraphDSL, Source, Zip }
-import akka.testkit.TestDuration
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
 
 class EventStreamMarshallingSpec
     extends BaseSpec
@@ -41,34 +38,27 @@ class EventStreamMarshallingSpec
             .map(_.utf8String)
             .runFold(Vector.empty[String])(_ :+ _)
         }
-      val actual   = Await.result(response, 1.second.dilated)
-      val expected = elements.map(intToServerSentEvent(_).toString)
-      actual shouldBe expected
+      response.map(_ shouldBe elements.map(intToServerSentEvent(_).toString))
     }
 
     "remain the same after marshalling and unmarshalling" in {
       val elements     = 1 to 666
       val expected     = Source(elements).map(intToServerSentEvent)
       val marshallable = expected: ToResponseMarshallable
-      val actual = Await.result(
-        marshallable(HttpRequest()).flatMap(
-          response => Unmarshal(response).to[EventStream]
-        ),
-        1.second.dilated
-      )
-      val expectedAndActual = Source.fromGraph(GraphDSL.create() {
-        implicit builder =>
-          import GraphDSL.Implicits._
-          val zip = builder.add(Zip[ServerSentEvent, ServerSentEvent]())
-          expected ~> zip.in0
-          actual ~> zip.in1
-          SourceShape(zip.out)
-      })
-      val isExpectedEqualActual =
-        Await.result(expectedAndActual.runFold(true) {
-          case (acc, (l, r)) => acc && (l == r)
-        }, 1.second.dilated)
-      isExpectedEqualActual shouldBe true
+      marshallable(HttpRequest())
+        .flatMap(Unmarshal(_).to[EventStream])
+        .flatMap { events =>
+          Source
+            .fromGraph(GraphDSL.create() { implicit builder =>
+              import GraphDSL.Implicits._
+              val zip = builder.add(Zip[ServerSentEvent, ServerSentEvent]())
+              expected ~> zip.in0
+              events ~> zip.in1
+              SourceShape(zip.out)
+            })
+            .runFold(true) { case (acc, (l, r)) => acc && (l == r) }
+        }
+        .map(_ shouldBe true)
     }
   }
 

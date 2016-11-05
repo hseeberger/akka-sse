@@ -27,12 +27,10 @@ import akka.http.scaladsl.server.{ Directives, Route }
 import akka.pattern.pipe
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.stream.{ ActorMaterializer, ThrottleMode }
-import akka.testkit.TestDuration
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets.UTF_8
-import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
 object ServerSentEventClientSpec {
@@ -139,20 +137,22 @@ class ServerSentEventClientSpec extends BaseSpec {
       val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
         Vector.empty
       )(_ :+ _)
-      val events = ServerSentEventClient(Uri(s"http://$host:$port"),
-                                         handler,
-                                         send,
-                                         Some("2"))
-        .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
-        .mapAsync(1)(identity)
-        .mapConcat(identity)
-        .take(nrOfSamples)
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      val expected = Vector
-        .iterate(3, nrOfSamples)(_ + 1)
-        .map(toServerSentEvent(setEventId = true))
-      Await.result(events, 20.seconds.dilated) shouldBe expected
-      system.stop(server)
+      val events =
+        ServerSentEventClient(Uri(s"http://$host:$port"),
+                              handler,
+                              send,
+                              Some("2"))
+          .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
+          .mapAsync(1)(identity)
+          .mapConcat(identity)
+          .take(nrOfSamples)
+          .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      val expected =
+        Vector
+          .iterate(3, nrOfSamples)(_ + 1)
+          .map(toServerSentEvent(setEventId = true))
+      events.onComplete(_ => system.stop(server))
+      events.map(_ shouldBe expected)
     }
 
     "apply the initial last event ID if the server doesn't set the event ID" in {
@@ -164,19 +164,21 @@ class ServerSentEventClientSpec extends BaseSpec {
       val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
         Vector.empty
       )(_ :+ _)
-      val events = ServerSentEventClient(Uri(s"http://$host:$port"),
-                                         handler,
-                                         send,
-                                         Some("2"))
-        .mapAsync(1)(identity)
-        .mapConcat(identity)
-        .take(nrOfSamples)
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-      val expexted = Vector
-        .tabulate(20)(n => n % 2 + 3)
-        .map(toServerSentEvent(setEventId = false))
-      Await.result(events, 3.seconds.dilated) shouldBe expexted
-      system.stop(server)
+      val events =
+        ServerSentEventClient(Uri(s"http://$host:$port"),
+                              handler,
+                              send,
+                              Some("2"))
+          .mapAsync(1)(identity)
+          .mapConcat(identity)
+          .take(nrOfSamples)
+          .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+      val expected =
+        Vector
+          .tabulate(20)(n => n % 2 + 3)
+          .map(toServerSentEvent(setEventId = false))
+      events.onComplete(_ => system.stop(server))
+      events.map(_ shouldBe expected)
     }
   }
 

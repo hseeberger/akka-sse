@@ -27,10 +27,10 @@ import akka.stream.testkit.TestPublisher
 import akka.stream.testkit.scaladsl.TestSource
 import akka.testkit.TestDuration
 import akka.testkit.TestProbe
+import org.scalatest.{ BeforeAndAfterAll, WordSpec }
 import org.scalatest.concurrent.ScalaFutures
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
+import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.duration.DurationInt
 import scala.util.{ Success, Try }
 
 object StreamsSpec {
@@ -67,11 +67,21 @@ object StreamsSpec {
 }
 
 class StreamsSpec
-    extends BaseSpec
+    extends WordSpec
+    with BeforeAndAfterAll
     with ScalaFutures
     with EventStreamMarshalling {
 
   import StreamsSpec._
+
+  private implicit val system = ActorSystem()
+  private implicit val ec     = system.dispatcher
+  private implicit val mat    = ActorMaterializer()
+
+  override protected def afterAll() = {
+    Await.ready(system.terminate(), 42.seconds)
+    super.afterAll()
+  }
 
   "An sseFlow" should {
 

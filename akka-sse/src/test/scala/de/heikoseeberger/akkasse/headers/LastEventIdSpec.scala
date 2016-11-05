@@ -18,7 +18,7 @@ package de.heikoseeberger.akkasse.headers
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.server.{ Directives, MissingHeaderRejection }
+import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.testkit.RouteTest
 import akka.http.scaladsl.testkit.TestFrameworkInterface.Scalatest
 import org.scalatest.{ Matchers, WordSpec }
