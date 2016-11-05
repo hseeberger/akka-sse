@@ -139,7 +139,7 @@ private final class ServerSentEventParser(maxEventSize: Int)
         override def onPush() = grab(in) match {
           case "" => // An event is terminated with a new line
             if (builder.hasData) push(out, builder.build())
-            else pull(in)   // An event without data must be ignored
+            else pull(in) // An event without data must be ignored
             builder.reset() // In both cases we continue with a fresh one
 
           case line if builder.size + line.length > maxEventSize =>
