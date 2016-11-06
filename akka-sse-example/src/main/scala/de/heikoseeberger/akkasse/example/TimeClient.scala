@@ -21,7 +21,7 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import de.heikoseeberger.akkasse.ServerSentEvent
-import de.heikoseeberger.akkasse.pattern.ServerSentEventClient
+import de.heikoseeberger.akkasse.client.EventStreamClient
 import java.time.LocalTime
 
 object TimeClient {
@@ -34,9 +34,9 @@ object TimeClient {
     val handler = Sink.foreach[ServerSentEvent](
       event => println(s"${LocalTime.now()} $event")
     )
-    val client = ServerSentEventClient("http://localhost:9000/events",
-                                       handler,
-                                       Http().singleRequest(_))
+    val client = EventStreamClient("http://localhost:9000/events",
+                                   handler,
+                                   Http().singleRequest(_))
     client.runWith(Sink.ignore)
   }
 }

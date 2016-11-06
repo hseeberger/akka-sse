@@ -15,16 +15,14 @@
  */
 
 package de.heikoseeberger.akkasse
-package pattern
+package client
 
 import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding.Get
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.model.headers.Accept
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.contrib.{ Accumulate, LastElement }
+import akka.stream.contrib.LastElement
 import akka.stream.scaladsl.{
   Flow,
   GraphDSL,
@@ -34,24 +32,31 @@ import akka.stream.scaladsl.{
   Source,
   Unzip
 }
-import akka.stream.{ DelayOverflowStrategy, Materializer, SourceShape }
+import akka.stream.{ Materializer, SourceShape }
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
-import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
-object ServerSentEventClient {
+object EventStreamClient {
 
   /**
-    * Creates a continuous source of [[ServerSentEvent]]s from the given URI and
-    * streams it into the given handler. Once a source of [[ServerSentEvent]]s
-    * obtained via the connection is completed, a next one is obtained thereby
-    * sending the Last-Evend-ID header if there is a last event id.
+    * This stream processing stage establishes and handles a quasi-continuous
+    * [[EventStream]] from the given URI.
+    *
+    * A single [[EventStream]] is obtained from the URI and run with the
+    * given handler. Once completed, either normally or by failure, a next one
+    * is obtained thereby sending a Last-Evend-ID header if available. Hence
+    * obtaining and handling happens in an endless cycle.
+    *
+    * The shape of this processing stage is a source of materialized values of
+    * the given handler. To take effect it must be run. Progress (including
+    * termination) is controlled by the connected sink, e.g. a retry delay can
+    * be implemented by streaming the materialized values of the handler into a
+    * throttle.
     *
     * @param uri URI with absolute path, e.g. "http://myserver/events
     * @param handler handler for [[ServerSentEvent]]s
     * @param lastEventId initial value for Last-Evend-ID header, optional
-    * @param retryDelay delay before obtaining the next source from the URI
     * @param ec implicit `ExecutionContext`
     * @param mat implicit `Materializer`
     * @return source of materialized values of the handler
@@ -60,12 +65,11 @@ object ServerSentEventClient {
       uri: Uri,
       handler: Sink[ServerSentEvent, A],
       send: HttpRequest => Future[HttpResponse],
-      lastEventId: Option[String] = None,
-      retryDelay: FiniteDuration = Duration.Zero
+      lastEventId: Option[String] = None
   )(implicit ec: ExecutionContext, mat: Materializer): Source[A, NotUsed] = {
     def getAndHandle(lastEventId: Option[String]) = {
       def getEvents = {
-        import EventStreamUnmarshalling._
+        import de.heikoseeberger.akkasse.client.EventStreamUnmarshalling._
         val request = {
           val r = Get(uri).addHeader(Accept(`text/event-stream`))
           lastEventId.foldLeft(r) { (r, id) =>
@@ -91,7 +95,6 @@ object ServerSentEventClient {
         .mapAsync(1)(identity)
         .scan(lastEventId)((prev, event) => event.flatMap(_.id).orElse(prev))
         .drop(1)
-        .delay(retryDelay, DelayOverflowStrategy.fail) // There should be only one element in flight anyway!
       // format: OFF
       trigger ~> merge ~> getAndHandleEvents ~> unzip.in
                  merge <~ currentLastEventId <~ unzip.out0

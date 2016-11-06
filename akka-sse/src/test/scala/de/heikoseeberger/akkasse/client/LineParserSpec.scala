@@ -15,6 +15,7 @@
  */
 
 package de.heikoseeberger.akkasse
+package client
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString

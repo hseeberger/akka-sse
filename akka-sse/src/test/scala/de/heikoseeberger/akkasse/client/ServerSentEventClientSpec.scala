@@ -15,7 +15,7 @@
  */
 
 package de.heikoseeberger.akkasse
-package pattern
+package client
 
 import akka.Done
 import akka.actor.ActorDSL.actor
@@ -138,10 +138,7 @@ class ServerSentEventClientSpec extends BaseSpec {
         Vector.empty
       )(_ :+ _)
       val events =
-        ServerSentEventClient(Uri(s"http://$host:$port"),
-                              handler,
-                              send,
-                              Some("2"))
+        EventStreamClient(Uri(s"http://$host:$port"), handler, send, Some("2"))
           .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
           .mapAsync(1)(identity)
           .mapConcat(identity)
@@ -165,10 +162,7 @@ class ServerSentEventClientSpec extends BaseSpec {
         Vector.empty
       )(_ :+ _)
       val events =
-        ServerSentEventClient(Uri(s"http://$host:$port"),
-                              handler,
-                              send,
-                              Some("2"))
+        EventStreamClient(Uri(s"http://$host:$port"), handler, send, Some("2"))
           .mapAsync(1)(identity)
           .mapConcat(identity)
           .take(nrOfSamples)

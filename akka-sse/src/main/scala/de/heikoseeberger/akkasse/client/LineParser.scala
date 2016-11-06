@@ -15,6 +15,7 @@
  */
 
 package de.heikoseeberger.akkasse
+package client
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }

@@ -15,6 +15,7 @@
  */
 
 package de.heikoseeberger.akkasse
+package client
 
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.unmarshalling.{

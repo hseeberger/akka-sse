@@ -21,6 +21,7 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.SourceShape
 import akka.stream.scaladsl.{ GraphDSL, Source, Zip }
+import de.heikoseeberger.akkasse.client.EventStreamUnmarshalling
 
 class EventStreamMarshallingSpec
     extends BaseSpec
