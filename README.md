@@ -104,7 +104,7 @@ object TimeClient {
 ```
 
 If you want the client to reconnect to the server thereby sending the Last-Evend-ID header if available, you can use the
-`ServerSentEventClient`:
+`EventStreamClient`:
 
 ``` scala
 object TimeClient {
@@ -115,7 +115,7 @@ object TimeClient {
     import system.dispatcher
 
     val handler = Sink.foreach[ServerSentEvent](event => println(s"${LocalTime.now()} $event"))
-    ServerSentEventClient("http://localhost:9000/events", handler).runWith(Sink.ignore)
+    EventStreamClient("http://localhost:9000/events", handler).runWith(Sink.ignore)
   }
 }
 ```
