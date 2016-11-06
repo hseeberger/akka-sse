@@ -54,6 +54,42 @@ object EventStreamClient {
     * be implemented by streaming the materialized values of the handler into a
     * throttle.
     *
+    *{{{
+    * + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+    *                                               +---------------------+
+    * |                                             |       trigger       |                                                           |
+    *                                               +----------o----------+
+    * |                                                        |                                                                      |
+    *                                            Option[String]|
+    * |                                                        v                                                                      |
+    *              Option[String]                   +----------o----------+
+    * |            +------------------------------->o        merge        |                                                           |
+    *              |                                +----------o----------+       + - - - - - - - - - - - - - - - - - - - - - - - - +
+    * |            |                                           |                    +--------------+                                  |
+    *              |                             Option[String]|                  | |    events    |                                |
+    * |            |                                           v                    +-------o------+                                  |
+    *   +----------o----------+                     +----------o----------+       |         |                                       |
+    * | | currentLastEventId  |                     |      getEvents      |                 |ServerSentEvent                          |
+    *   +----------o----------+                     +----------o----------+       |         v                                       |
+    * |            ^                                           |                    +-------o------+                                  |
+    *              |               Source[ServerSentEvent, Any]|                  | | LastElement  x Future[Option[ServerSentEvent]]|
+    * |            |                                           v                    +-------o------+                                  |
+    *              |                                +----------o----------+  run  |         |                                       |
+    * |            |                                |       handle        |-------          |ServerSentEvent                          |
+    *              |                                +----------o----------+       |         v                                       |
+    * |            |                                           |                    +-------o------+                                  |
+    *              |       (Future[Option[ServerSentEvent]], A)|                  | |   handler    x A                              |
+    * |            |                                           v                    +--------------+                                  |
+    *              |                                +----------o----------+       + - - - - - - - - - - - - - - - - - - - - - - - - +
+    * |            +--------------------------------o        unzip        |                                                           |
+    *              Future[Option[ServerSentEvent]]  +----------o----------+
+    * |                                                        |                                                                      |
+    *                                                        A |
+    * |                                                        |                                                                      |
+    *                                                          v
+    * + - - - - - - - - - - - - - - - - - - - - - - - - - - - -o- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+    *}}}
+    *
     * @param uri URI with absolute path, e.g. "http://myserver/events
     * @param handler handler for [[ServerSentEvent]]s
     * @param lastEventId initial value for Last-Evend-ID header, optional
@@ -67,34 +103,36 @@ object EventStreamClient {
       send: HttpRequest => Future[HttpResponse],
       lastEventId: Option[String] = None
   )(implicit ec: ExecutionContext, mat: Materializer): Source[A, NotUsed] = {
-    def getAndHandle(lastEventId: Option[String]) = {
-      def getEvents = {
-        import de.heikoseeberger.akkasse.client.EventStreamUnmarshalling._
+
+    def getAndHandleEvents = {
+      def getAndHandle(lastEventId: Option[String]) = {
+        import EventStreamUnmarshalling._
         val request = {
           val r = Get(uri).addHeader(Accept(`text/event-stream`))
-          lastEventId.foldLeft(r) { (r, id) =>
-            r.addHeader(`Last-Event-ID`(id))
-          }
+          lastEventId.foldLeft(r)((r, i) => r.addHeader(`Last-Event-ID`(i)))
         }
-        send(request).flatMap(Unmarshal(_).to[EventStream])
+        val events = send(request).flatMap(Unmarshal(_).to[EventStream])
+        Source
+          .fromFuture(events)
+          .flatMapConcat(identity)
+          .viaMat(LastElement())(Keep.right)
+          .toMat(handler)(Keep.both)
+          .run()
       }
-      Source
-        .fromFuture(getEvents)
-        .flatMapConcat(identity)
-        .viaMat(LastElement())(Keep.right)
-        .toMat(handler)(Keep.both)
-        .run()
+      Flow[Option[String]].map(getAndHandle)
     }
-    Source.fromGraph(GraphDSL.create() { implicit builder =>
-      import GraphDSL.Implicits._
-      val trigger            = Source.single(lastEventId)
-      val merge              = builder.add(Merge[Option[String]](2))
-      val getAndHandleEvents = Flow[Option[String]].map(getAndHandle)
-      val unzip              = builder.add(Unzip[Future[Option[ServerSentEvent]], A]())
-      val currentLastEventId = Flow[Future[Option[ServerSentEvent]]]
+
+    def currentLastEventId =
+      Flow[Future[Option[ServerSentEvent]]]
         .mapAsync(1)(identity)
         .scan(lastEventId)((prev, event) => event.flatMap(_.id).orElse(prev))
         .drop(1)
+
+    Source.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
+      val trigger = builder.add(Source.single(lastEventId))
+      val merge   = builder.add(Merge[Option[String]](2))
+      val unzip   = builder.add(Unzip[Future[Option[ServerSentEvent]], A]())
       // format: OFF
       trigger ~> merge ~> getAndHandleEvents ~> unzip.in
                  merge <~ currentLastEventId <~ unzip.out0

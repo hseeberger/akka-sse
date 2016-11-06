@@ -33,7 +33,7 @@ import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.duration.DurationInt
 
-object ServerSentEventClientSpec {
+object EventStreamClientSpec {
 
   object Server {
 
@@ -124,8 +124,8 @@ object ServerSentEventClientSpec {
   }
 }
 
-class ServerSentEventClientSpec extends BaseSpec {
-  import ServerSentEventClientSpec._
+class EventStreamClientSpec extends BaseSpec {
+  import EventStreamClientSpec._
 
   "ServerSentEventClient" should {
     "communicate correctly with an instable HTTP server" in {
@@ -134,9 +134,8 @@ class ServerSentEventClientSpec extends BaseSpec {
       val server =
         actor(new Server(host, port, Server.route(setEventId = true)))
       val nrOfSamples = 20
-      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
-        Vector.empty
-      )(_ :+ _)
+      val handler =
+        Sink.fold[Vector[ServerSentEvent], ServerSentEvent](Vector())(_ :+ _)
       val events =
         EventStreamClient(Uri(s"http://$host:$port"), handler, send, Some("2"))
           .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
