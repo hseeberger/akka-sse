@@ -67,7 +67,7 @@ object Streams {
       implicit ec: ExecutionContext,
       mat: ActorMaterializer
   ): Flow[HttpResponse, ServerSentEvent, NotUsed] = {
-    import EventStreamUnmarshalling._
+    import de.heikoseeberger.akkasse.client.EventStreamUnmarshalling._
     Flow[HttpResponse]
       .alsoTo(Sink.head.mapMaterializedValue(_.onComplete(onResponse)))
       .alsoTo(Sink.onComplete(onTermination))

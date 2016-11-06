@@ -15,6 +15,7 @@
  */
 
 package de.heikoseeberger.akkasse
+package client
 
 import akka.NotUsed
 import akka.stream.scaladsl.Flow
