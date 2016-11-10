@@ -1,4 +1,6 @@
 language: scala
+
 jdk:
 - oraclejdk8
+
 script: sbt -Dakka.test.timefactor=3.0 +test
