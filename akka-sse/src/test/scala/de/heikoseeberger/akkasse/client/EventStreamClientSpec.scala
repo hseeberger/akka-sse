@@ -134,21 +134,21 @@ class EventStreamClientSpec extends BaseSpec {
       val server =
         actor(new Server(host, port, Server.route(setEventId = true)))
       val nrOfSamples = 20
-      val handler =
-        Sink.fold[Vector[ServerSentEvent], ServerSentEvent](Vector())(_ :+ _)
+      val handler     = Sink.seq[ServerSentEvent]
       val events =
         EventStreamClient(Uri(s"http://$host:$port"), handler, send, Some("2"))
           .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
           .mapAsync(1)(identity)
           .mapConcat(identity)
           .take(nrOfSamples)
-          .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+          .runWith(Sink.seq)
       val expected =
-        Vector
+        Seq
           .iterate(3, nrOfSamples)(_ + 1)
           .map(toServerSentEvent(setEventId = true))
-      events.onComplete(_ => system.stop(server))
-      events.map(_ shouldBe expected)
+      events
+        .map(_ shouldBe expected)
+        .andThen({ case _ => system.stop(server) })
     }
 
     "apply the initial last event ID if the server doesn't set the event ID" in {
