@@ -39,6 +39,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 object EventStreamClient {
 
+  private val noEvents = Future.successful(Source.empty[ServerSentEvent])
+
   /**
     * This stream processing stage establishes and handles a quasi-continuous
     * [[EventStream]] from the given URI.
@@ -55,39 +57,38 @@ object EventStreamClient {
     * throttle.
     *
     *{{{
-    * + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+    * + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
     *                                               +---------------------+
-    * |                                             |       trigger       |                                                           |
+    * |                                             |       trigger       |                                                             |
     *                                               +----------o----------+
-    * |                                                        |                                                                      |
+    * |                                                        |                                                                        |
     *                                            Option[String]|
-    * |                                                        v                                                                      |
+    * |                                                        v                                                                        |
     *              Option[String]                   +----------o----------+
-    * |            +------------------------------->o        merge        |                                                           |
-    *              |                                +----------o----------+       + - - - - - - - - - - - - - - - - - - - - - - - - +
-    * |            |                                           |                    +--------------+                                  |
-    *              |                             Option[String]|                  | |    events    |                                |
-    * |            |                                           v                    +-------o------+                                  |
-    *   +----------o----------+                     +----------o----------+       |         |                                       |
-    * | | currentLastEventId  |                     |      getEvents      |                 |ServerSentEvent                          |
-    *   +----------o----------+                     +----------o----------+       |         v                                       |
-    * |            ^                                           |                    +-------o------+                                  |
-    *              |               Source[ServerSentEvent, Any]|                  | | LastOption  x Future[Option[ServerSentEvent]] |
-    * |            |                                           v                    +-------o------+                                  |
-    *              |                                +----------o----------+  run  |         |                                       |
-    * |            |                                |       handle        |-------          |ServerSentEvent                          |
-    *              |                                +----------o----------+       |         v                                       |
-    * |            |                                           |                    +-------o------+                                  |
-    *              |       (Future[Option[ServerSentEvent]], A)|                  | |   handler    x A                              |
-    * |            |                                           v                    +--------------+                                  |
-    *              |                                +----------o----------+       + - - - - - - - - - - - - - - - - - - - - - - - - +
-    * |            +--------------------------------o        unzip        |                                                           |
-    *              Future[Option[ServerSentEvent]]  +----------o----------+
-    * |                                                        |                                                                      |
+    * |            +------------------------------->o        merge        |                                                             |
+    *              |                                +----------o----------+
+    * |            |                                           |                                                                        |
+    *              |                             Option[String]|
+    * |            |                                           v                  + - - - - - - - - - - - - - - - - - - - - - - - - - + |
+    *   +----------o----------+                     +----------o----------+         +--------------+
+    * | | currentLastEventId  |                     |      getEvents      |       | |    events    |                                  | |
+    *   +----------o----------+                     +----------o----------+         +-------o------+
+    * |            ^                                           |                  |         |                                         | |
+    *              |               Source[ServerSentEvent, Any]|                            | ServerSentEvent
+    * |            |                                           v                  |         |                                         | |
+    *              |                                +----------o----------+  run            +------------------------+
+    * |            |                                |       handle        |-------|         |                        |                | |
+    *              |                                +----------o----------+                 |                        |
+    * |            |                                           |                  |         v                        v                | |
+    *              |       (Future[Option[ServerSentEvent]], A)|                    +-------o------+         +-------o------+
+    * |            |                                           v                  | |   handler    |         |  lastOption  |         | |
+    *              |                                +----------o----------+         +-------x------+         +-------x------+
+    * |            +--------------------------------o        unzip        |       |         A         Future[Option[ServerSentEvent]] | |
+    *              Future[Option[ServerSentEvent]]  +----------o----------+        - - - - - - - - - - - - -x- - - - - - - - - - - - -
+    * |                                                        |                           (A, Future[Option[ServerSentEvent]])         |
     *                                                        A |
-    * |                                                        |                                                                      |
-    *                                                          v
-    * + - - - - - - - - - - - - - - - - - - - - - - - - - - - -o- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+    * |                                                        v                                                                        |
+    *  - - - - - - - - - - - - - - - - - - - - - - - - - - - - o - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     *}}}
     *
     * @param uri URI with absolute path, e.g. "http://myserver/events
@@ -112,10 +113,12 @@ object EventStreamClient {
           val r = Get(uri).addHeader(Accept(`text/event-stream`))
           lastEventId.foldLeft(r)((r, i) => r.addHeader(`Last-Event-ID`(i)))
         }
-        val events      = send(request).flatMap(Unmarshal(_).to[EventStream])
-        val emptySource = Future.successful(Source.empty[ServerSentEvent])
+        val events =
+          send(request)
+            .flatMap(Unmarshal(_).to[EventStream])
+            .fallbackTo(noEvents)
         Source
-          .fromFuture(events.fallbackTo(emptySource))
+          .fromFuture(events)
           .flatMapConcat(identity)
           .alsoToMat(Sink.lastOption)(Keep.right)
           .toMat(handler)(Keep.both)
