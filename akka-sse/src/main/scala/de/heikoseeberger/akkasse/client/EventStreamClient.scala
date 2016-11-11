@@ -22,7 +22,7 @@ import akka.http.scaladsl.client.RequestBuilding.Get
 import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, Uri }
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.contrib.LastElement
+
 import akka.stream.scaladsl.{
   Flow,
   GraphDSL,
@@ -72,7 +72,7 @@ object EventStreamClient {
     * | | currentLastEventId  |                     |      getEvents      |                 |ServerSentEvent                          |
     *   +----------o----------+                     +----------o----------+       |         v                                       |
     * |            ^                                           |                    +-------o------+                                  |
-    *              |               Source[ServerSentEvent, Any]|                  | | LastElement  x Future[Option[ServerSentEvent]]|
+    *              |               Source[ServerSentEvent, Any]|                  | | LastOption  x Future[Option[ServerSentEvent]] |
     * |            |                                           v                    +-------o------+                                  |
     *              |                                +----------o----------+  run  |         |                                       |
     * |            |                                |       handle        |-------          |ServerSentEvent                          |
@@ -105,17 +105,19 @@ object EventStreamClient {
   )(implicit ec: ExecutionContext, mat: Materializer): Source[A, NotUsed] = {
 
     def getAndHandleEvents = {
-      def getAndHandle(lastEventId: Option[String]) = {
+      def getAndHandle(lastEventId: Option[String])
+        : (Future[Option[ServerSentEvent]], A) = {
         import EventStreamUnmarshalling._
         val request = {
           val r = Get(uri).addHeader(Accept(`text/event-stream`))
           lastEventId.foldLeft(r)((r, i) => r.addHeader(`Last-Event-ID`(i)))
         }
-        val events = send(request).flatMap(Unmarshal(_).to[EventStream])
+        val events      = send(request).flatMap(Unmarshal(_).to[EventStream])
+        val emptySource = Future.successful(Source.empty[ServerSentEvent])
         Source
-          .fromFuture(events)
+          .fromFuture(events.fallbackTo(emptySource))
           .flatMapConcat(identity)
-          .viaMat(LastElement())(Keep.right)
+          .alsoToMat(Sink.lastOption)(Keep.right)
           .toMat(handler)(Keep.both)
           .run()
       }
