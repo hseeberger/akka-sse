@@ -6,7 +6,7 @@ object Version {
   final val Junit             = "4.12"
   final val Scala             = "2.12.0"
   final val ScalaCheck        = "1.13.4"
-  final val ScalaTest         = "3.0.0"
+  final val ScalaTest         = "3.0.1"
 }
 
 object Library {
