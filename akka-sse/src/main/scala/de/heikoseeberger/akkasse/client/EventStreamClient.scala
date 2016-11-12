@@ -106,8 +106,7 @@ object EventStreamClient {
   )(implicit ec: ExecutionContext, mat: Materializer): Source[A, NotUsed] = {
 
     def getAndHandleEvents = {
-      def getAndHandle(lastEventId: Option[String])
-        : (Future[Option[ServerSentEvent]], A) = {
+      def getAndHandle(lastEventId: Option[String]) = {
         import EventStreamUnmarshalling._
         val request = {
           val r = Get(uri).addHeader(Accept(`text/event-stream`))
