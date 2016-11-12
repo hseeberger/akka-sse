@@ -17,18 +17,18 @@
 package de.heikoseeberger.akkasse
 package pattern
 
-import akka.{ Done, NotUsed }
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Flow, Sink, Source }
-
+import akka.stream.scaladsl.{ Flow, Sink }
+import akka.{ Done, NotUsed }
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 /**
   * Common streaming patterns for SSE
   */
+@deprecated("Consider using EventStreamClient instead", "2.0.0")
 object Streams {
 
   /**
