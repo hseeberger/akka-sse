@@ -23,7 +23,7 @@ object Build extends AutoPlugin {
       organization := "de.heikoseeberger",
       licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
       scalaVersion := Version.Scala,
-      crossScalaVersions := Vector(Version.Scala, "2.11.8"),
+      crossScalaVersions := Vector(scalaVersion.value, "2.11.8"),
       scalacOptions ++= Vector(
         "-unchecked",
         "-deprecation",
