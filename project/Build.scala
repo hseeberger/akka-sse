@@ -23,7 +23,8 @@ object Build extends AutoPlugin {
       organization := "de.heikoseeberger",
       licenses += ("Apache-2.0",
                    url("http://www.apache.org/licenses/LICENSE-2.0")),
-      mappings.in(Compile, packageBin) += baseDirectory.in(ThisBuild).value / "LICENSE" -> "LICENSE",
+      mappings.in(Compile, packageBin) +=
+        baseDirectory.in(ThisBuild).value / "LICENSE" -> "LICENSE",
       scalaVersion := Version.Scala,
       crossScalaVersions := Vector(scalaVersion.value, "2.11.8"),
       scalacOptions ++= Vector(
@@ -37,8 +38,10 @@ object Build extends AutoPlugin {
         "-source", "1.8",
         "-target", "1.8"
       ),
-      unmanagedSourceDirectories.in(Compile) := Vector(scalaSource.in(Compile).value),
-      unmanagedSourceDirectories.in(Test) := Vector(scalaSource.in(Test).value),
+      unmanagedSourceDirectories.in(Compile) :=
+        Vector(scalaSource.in(Compile).value),
+      unmanagedSourceDirectories.in(Test) :=
+        Vector(scalaSource.in(Test).value),
 
       // POM settings for Sonatype
       homepage := Some(url("https://github.com/hseeberger/akka-sse")),
