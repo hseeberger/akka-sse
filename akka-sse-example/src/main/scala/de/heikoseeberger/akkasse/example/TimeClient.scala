@@ -31,9 +31,10 @@ object TimeClient {
     implicit val mat    = ActorMaterializer()
     import system.dispatcher
 
-    val handler = Sink.foreach[ServerSentEvent](
-      event => println(s"${LocalTime.now()} $event")
-    )
+    val handler =
+      Sink.foreach[ServerSentEvent](
+        event => println(s"${LocalTime.now()} $event")
+      )
     val client = EventStreamClient("http://localhost:9000/events",
                                    handler,
                                    Http().singleRequest(_))

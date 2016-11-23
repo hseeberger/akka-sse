@@ -3,10 +3,12 @@
 [![Join the chat at https://gitter.im/hseeberger/akka-sse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hseeberger/akka-sse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/hseeberger/akka-sse.svg?branch=master)](https://travis-ci.org/hseeberger/akka-sse)
 
-Akka SSE adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource) (SSE) – a lightweight and standardized
-technology for pushing notifications from a HTTP server to a HTTP client – to Akka HTTP. In contrast to
-[WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way communication, SSE only allows for one-way
-communication from the server to the client. If that's all you need, SSE offers advantages, because it's much simpler
+Akka SSE adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource)
+(SSE) – a lightweight and standardized technology for pushing notifications from
+a HTTP server to a HTTP client – to Akka HTTP. In contrast to
+[WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way
+communication, SSE only allows for one-way communication from the server to the
+client. If that's all you need, SSE offers advantages, because it's much simpler
 and relies on HTTP only.
 
 ## Getting Akka SSE
@@ -18,7 +20,7 @@ Akka SSE is published to Bintray and Maven Central.
 // final ones are also published to Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
-libraryDependencies ++= List(
+libraryDependencies ++= Vector(
   "de.heikoseeberger" %% "akka-sse" % "1.11.0",
   ...
 )
@@ -26,23 +28,27 @@ libraryDependencies ++= List(
 
 ## Usage – basics
 
-Akka SSE models an `EventStream` as `Source[ServerSentEvent, A]` with `Source` from Akka Streams,
-`ServerSentEvent` from Akka SSE and `A` an arbitrary type on the server-side and `Any` on the client-side.
+Akka SSE models an `EventStream` as `Source[ServerSentEvent, Any]` with `Source`
+from Akka Streams and `ServerSentEvent` from Akka SSE. `ServerSentEvent` is a
+case class with the following fields:
 
-`ServerSentEvent` is a case class with the following fields:
+- `data` of type `Option[String]`: payload, may be defined with the empty string
+- `eventType` of type `Option[String]` with default `None`: handler to be
+  invoked, e.g. "message", "added", etc.
+- `id` of type `Option[String]` with default `None`: sets the client's last
+  event ID value
+- `retry` of type `Option[Int]` with default `None`: set the client's
+  reconnection time
 
-- `data` of type `Option[String]`: payload, may be empty
-- `eventType` of type `Option[String]` with default `None`: handler to be invoked, e.g. "message", "added", etc.
-- `id` of type `Option[String]` with default `None`: sets the client's last event ID string
-- `retry` of type `Option[Int]` with default `None`: set the client's reconnection time
-
-More info about the above fields can be found in the [specification](http://www.w3.org/TR/eventsource).
+More info about the above fields can be found in the
+[specification](http://www.w3.org/TR/eventsource).
 
 ## Usage – server-side
 
-In order to produce server-sent events on the server as a response to a HTTP request, you have to bring the implicit
-`toResponseMarshaller` defined by the `EventStreamMarshalling` trait or object into scope where you define your
-respective route. Then you complete the HTTP request with a `Source[ServerSentEvent, A]` for an arbitrary `A`:
+In order to respond to a HTTP request with an `EventStream`, you have to bring
+the implicit `ToResponseMarshaller[EventStream]` defined by the
+`EventStreamMarshalling` trait or object into the scope defining the respective
+route:
 
 ``` scala
 object TimeServer {
@@ -51,71 +57,69 @@ object TimeServer {
 
   def route = {
     import Directives._
-    import EventStreamMarshalling._
+    import EventStreamMarshalling._ // That does the trick!
 
-    def assets = getFromResourceDirectory("web") ~ pathSingleSlash(get(redirect("index.html", PermanentRedirect)))
+    def assets = ...
 
-    def events = path("events") {
-      get {
-        complete {
-          Source.tick(2.seconds, 2.seconds, NotUsed)
-            .map(_ => LocalTime.now())
-            .map(dateTimeToServerSentEvent)
+    def events =
+      path("events") {
+        get {
+          complete {
+            Source
+              .tick(2.seconds, 2.seconds, NotUsed)
+              .map(_ => LocalTime.now())
+              .map(timeToServerSentEvent)
+              .keepAlive(1.second, () => ServerSentEvent.heartbeat)
+          }
         }
       }
-    }
 
     assets ~ events
   }
 
-  def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent = ServerSentEvent(
-    DateTimeFormatter.ISO_LOCAL_TIME.format(time)
-  )
+  def timeToServerSentEvent(time: LocalTime): ServerSentEvent =
+    ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(time))
 }
 ```
 
-If you need periodic heartbeats, simply use the `keepAlive` standard stage with a `ServerSentEvent.heartbeat`:
-
-``` scala
-Source.tick(2.seconds, 2.seconds, NotUsed)
-  .map(_ => LocalTime.now())
-  .map(dateTimeToServerSentEvent)
-  .keepAlive(1.second, () => ServerSentEvent.heartbeat)
-}
-```
+To send periodic heartbeats, simply use the `keepAlive` standard stage with a
+`ServerSentEvent.heartbeat`:
 
 ## Usage – client-side
 
-In order to unmarshal server-sent events as `EventStream`, you have to bring the implicit
-`feu` defined by the `EventStreamUnmarshalling` trait or object into scope where you define your
-response handling.
+In order to unmarshal server-sent events as `EventStream`, you have to bring the
+implicit `FromEntityUnmarshaller[EventStream]`` defined by the
+`EventStreamUnmarshalling` trait or object into scope:
 
 ``` scala
-object TimeClient {
-  import EventStreamUnmarshalling._
+import EventStreamUnmarshalling._
 
-  ...
-
-  Source.single(Get("/events"))
-    .via(Http().outgoingConnection("127.0.0.1", 9000))
-    .mapAsync(1)(Unmarshal(_).to[EventSourcew])
-    .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
+Source.single(Get("/events"))
+  .via(Http().outgoingConnection("localhost", 8000))
+  .mapAsync(1)(Unmarshal(_).to[EventSource])
+  .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
 }
 ```
 
-If you want the client to reconnect to the server thereby sending the Last-Evend-ID header if available, you can use the
-`EventStreamClient`:
+If you want the client to reconnect to the server thereby sending the
+Last-Evend-ID header if available, you can use the `EventStreamClient`:
 
 ``` scala
 object TimeClient {
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
-    implicit val mat = ActorMaterializer()
+    implicit val mat    = ActorMaterializer()
     import system.dispatcher
 
-    val handler = Sink.foreach[ServerSentEvent](event => println(s"${LocalTime.now()} $event"))
-    EventStreamClient("http://localhost:9000/events", handler).runWith(Sink.ignore)
+    val handler =
+      Sink.foreach[ServerSentEvent](
+        event => println(s"${LocalTime.now()} $event")
+      )
+    val client = EventStreamClient("http://localhost:9000/events",
+                                   handler,
+                                   Http().singleRequest(_))
+    client.runWith(Sink.ignore)
   }
 }
 ```
@@ -128,7 +132,13 @@ object TimeClient {
 
 ## Contribution policy ##
 
-Contributions via GitHub pull requests are gladly accepted from their original author. Along with any pull requests, please state that the contribution is your original work and that you license the work to the project under the project's open source license. Whether or not you state this explicitly, by submitting any copyrighted material via pull request, email, or other means you agree to license the material under the project's open source license and warrant that you have the legal authority to do so.
+Contributions via GitHub pull requests are gladly accepted from their original
+author. Along with any pull requests, please state that the contribution is your
+original work and that you license the work to the project under the project's
+open source license. Whether or not you state this explicitly, by submitting any
+copyrighted material via pull request, email, or other means you agree to
+license the material under the project's open source license and warrant that
+you have the legal authority to do so.
 
 ## License ##
 

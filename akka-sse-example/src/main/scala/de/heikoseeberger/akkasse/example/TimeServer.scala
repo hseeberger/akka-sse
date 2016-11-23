@@ -45,21 +45,22 @@ object TimeServer {
         get(redirect("index.html", PermanentRedirect))
       )
 
-    def events = path("events") {
-      get {
-        complete {
-          Source
-            .tick(2.seconds, 2.seconds, NotUsed)
-            .map(_ => LocalTime.now())
-            .map(dateTimeToServerSentEvent)
-            .keepAlive(1.second, () => ServerSentEvent.heartbeat)
+    def events =
+      path("events") {
+        get {
+          complete {
+            Source
+              .tick(2.seconds, 2.seconds, NotUsed)
+              .map(_ => LocalTime.now())
+              .map(timeToServerSentEvent)
+              .keepAlive(1.second, () => ServerSentEvent.heartbeat)
+          }
         }
       }
-    }
 
     assets ~ events
   }
 
-  def dateTimeToServerSentEvent(time: LocalTime): ServerSentEvent =
+  def timeToServerSentEvent(time: LocalTime): ServerSentEvent =
     ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(time))
 }
