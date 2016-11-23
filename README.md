@@ -5,7 +5,8 @@
 
 Akka SSE adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource)
 (SSE) – a lightweight and standardized technology for pushing notifications from
-a HTTP server to a HTTP client – to Akka HTTP. In contrast to
+a HTTP server to a HTTP client – to
+[Akka HTTP](https://github.com/akka/akka-http). In contrast to
 [WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way
 communication, SSE only allows for one-way communication from the server to the
 client. If that's all you need, SSE offers advantages, because it's much simpler
