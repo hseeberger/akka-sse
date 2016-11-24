@@ -22,7 +22,7 @@ Akka SSE is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= Vector(
-  "de.heikoseeberger" %% "akka-sse" % "1.11.0",
+  "de.heikoseeberger" %% "akka-sse" % "2.0.0-M6",
   ...
 )
 ```
@@ -103,25 +103,12 @@ Source.single(Get("/events"))
 ```
 
 If you want the client to reconnect to the server thereby sending the
-Last-Evend-ID header if available, you can use the `EventStreamClient`:
+Last-Evend-ID header if available, you can use the `EventSource`:
 
 ``` scala
-object TimeClient {
-
-  def main(args: Array[String]): Unit = {
-    implicit val system = ActorSystem()
-    implicit val mat    = ActorMaterializer()
-    import system.dispatcher
-
-    val handler =
-      Sink.foreach[ServerSentEvent](
-        event => println(s"${LocalTime.now()} $event")
-      )
-    val client = EventStreamClient("http://localhost:9000/events",
-                                   handler,
-                                   Http().singleRequest(_))
-    client.runWith(Sink.ignore)
-  }
+val eventSource =
+  EventSource("http://localhost:9000/events", Http().singleRequest(_))
+eventSource.runForeach(event => println(s"${LocalTime.now()} $event"))
 }
 ```
 

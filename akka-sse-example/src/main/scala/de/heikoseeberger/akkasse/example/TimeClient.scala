@@ -19,9 +19,7 @@ package de.heikoseeberger.akkasse.example
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
-import de.heikoseeberger.akkasse.ServerSentEvent
-import de.heikoseeberger.akkasse.client.EventStreamClient
+import de.heikoseeberger.akkasse.client.EventSource
 import java.time.LocalTime
 
 object TimeClient {
@@ -29,15 +27,9 @@ object TimeClient {
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
     implicit val mat    = ActorMaterializer()
-    import system.dispatcher
 
-    val handler =
-      Sink.foreach[ServerSentEvent](
-        event => println(s"${LocalTime.now()} $event")
-      )
-    val client = EventStreamClient("http://localhost:9000/events",
-                                   handler,
-                                   Http().singleRequest(_))
-    client.runWith(Sink.ignore)
+    val eventSource =
+      EventSource("http://localhost:9000/events", Http().singleRequest(_))
+    eventSource.runForeach(event => println(s"${LocalTime.now()} $event"))
   }
 }
