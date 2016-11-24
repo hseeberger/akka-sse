@@ -37,6 +37,7 @@ import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
 import scala.concurrent.{ ExecutionContext, Future }
 
+@deprecated("Use EventSource instead!", "2.0.0-M6")
 object EventStreamClient {
 
   private val noEvents = Future.successful(Source.empty[ServerSentEvent])

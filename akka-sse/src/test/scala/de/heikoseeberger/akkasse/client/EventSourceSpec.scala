@@ -33,14 +33,14 @@ import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.concurrent.duration.DurationInt
 
-object EventStreamClientSpec {
+object EventSourceSpec {
 
   object Server {
 
     private case object Bind
     private case object Unbind
 
-    def route(setEventId: Boolean) = {
+    def route(setEventId: Boolean): Route = {
       import Directives._
       import EventStreamMarshalling._
       get {
@@ -124,22 +124,19 @@ object EventStreamClientSpec {
   }
 }
 
-class EventStreamClientSpec extends BaseSpec {
-  import EventStreamClientSpec._
+class EventSourceSpec extends BaseSpec {
+  import EventSourceSpec._
 
-  "EventStreamClient" should {
+  "EventSource" should {
     "communicate correctly with an instable HTTP server" in {
       val host = "localhost"
-      val port = 9991
+      val port = 9999
       val server =
         actor(new Server(host, port, Server.route(setEventId = true)))
       val nrOfSamples = 20
-      val handler     = Sink.seq[ServerSentEvent]
       val events =
-        EventStreamClient(Uri(s"http://$host:$port"), handler, send, Some("2"))
+        EventSource(Uri(s"http://$host:$port"), send, Some("2"))
           .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
-          .mapAsync(1)(identity)
-          .mapConcat(identity)
           .take(nrOfSamples)
           .runWith(Sink.seq)
       val expected =
@@ -153,25 +150,21 @@ class EventStreamClientSpec extends BaseSpec {
 
     "apply the initial last event ID if the server doesn't set the event ID" in {
       val host = "localhost"
-      val port = 9992
+      val port = 9998
       val server =
         actor(new Server(host, port, Server.route(setEventId = false)))
       val nrOfSamples = 20
-      val handler = Sink.fold[Vector[ServerSentEvent], ServerSentEvent](
-        Vector.empty
-      )(_ :+ _)
       val events =
-        EventStreamClient(Uri(s"http://$host:$port"), handler, send, Some("2"))
-          .mapAsync(1)(identity)
-          .mapConcat(identity)
+        EventSource(Uri(s"http://$host:$port"), send, Some("2"))
           .take(nrOfSamples)
-          .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+          .runWith(Sink.seq)
       val expected =
-        Vector
+        Seq
           .tabulate(20)(n => n % 2 + 3)
           .map(toServerSentEvent(setEventId = false))
-      events.onComplete(_ => system.stop(server))
-      events.map(_ shouldBe expected)
+      events
+        .map(_ shouldBe expected)
+        .andThen({ case _ => system.stop(server) })
     }
   }
 
