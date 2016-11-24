@@ -19,7 +19,6 @@ package client
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
-import scala.util.control.NonFatal
 
 private object ServerSentEventParser {
 
@@ -60,10 +59,12 @@ private object ServerSentEventParser {
 
     def build(): ServerSentEvent =
       ServerSentEvent(
-        if (data.isEmpty) None else Some(data.mkString(LF)),
+        if (data.nonEmpty) Some(data.mkString("\n")) else None,
         Option(eventType),
         Option(id),
-        Option(retry).flatMap(silentlyToInt)
+        try { if (retry ne null) Some(retry.trim.toInt) else None } catch {
+          case _: NumberFormatException => None
+        }
       )
 
     def reset(): Unit = {
@@ -80,15 +81,8 @@ private object ServerSentEventParser {
   private final val Id    = "id"
   private final val Retry = "retry"
 
-  private final val LF = "\n"
-
+  //TODO switch to a regex which only matches the fields above
   private val linePattern = """([^:]+): ?(.*)""".r
-
-  private def silentlyToInt(s: String) =
-    try Some(s.trim.toInt)
-    catch {
-      case NonFatal(_) => None
-    }
 }
 
 private final class ServerSentEventParser(maxEventSize: Int)
@@ -100,50 +94,46 @@ private final class ServerSentEventParser(maxEventSize: Int)
   )
 
   override def createLogic(attributes: Attributes) =
-    new GraphStageLogic(shape) {
+    new GraphStageLogic(shape) with InHandler with OutHandler {
       import ServerSentEventParser._
       import shape._
 
-      setHandler(in, new InHandler {
+      private val builder = new Builder()
 
-        private val builder = new Builder()
+      setHandlers(in, out, this)
 
-        override def onPush() = grab(in) match {
-          case "" => // An event is terminated with a new line
-            push(out, builder.build())
-            builder.reset()
-
-          case line if builder.size + line.length > maxEventSize =>
-            failStage(
-              new IllegalStateException(
-                s"maxEventSize of $maxEventSize exceeded!"
-              )
+      override def onPush() = {
+        val line = grab(in)
+        if (line == "") { // An event is terminated with a new line
+          push(out, builder.build())
+          builder.reset()
+        } else if (builder.size + line.length <= maxEventSize) {
+          line match {
+            case Data  => builder.appendData("")
+            case Event => builder.setEventType("")
+            case Id    => builder.setId("")
+            case Retry => builder.setRetry("")
+            case linePattern(field, value) =>
+              field match {
+                case Data            => builder.appendData(value)
+                case Event           => builder.setEventType(value)
+                case Id              => builder.setId(value)
+                case Retry           => builder.setRetry(value)
+                case badFormatString => //TODO: consider if these should be reported
+              }
+            case badFormatString => //TODO: consider if these should be reported
+          }
+          pull(in)
+        } else {
+          failStage(
+            new IllegalStateException(
+              s"maxEventSize of $maxEventSize exceeded!"
             )
-            builder.reset()
-
-          // TODO: Do we need this nested match?!
-          case line =>
-            line match {
-              case Data  => builder.appendData("")
-              case Event => builder.setEventType("")
-              case Id    => builder.setId("")
-              case Retry => builder.setRetry("")
-              case linePattern(field @ (Data | Event | Id | Retry), value) =>
-                field match {
-                  case Data  => builder.appendData(value)
-                  case Event => builder.setEventType(value)
-                  case Id    => builder.setId(value)
-                  case Retry => builder.setRetry(value)
-                  case _     =>
-                }
-              case _ =>
-            }
-            pull(in)
+          )
+          builder.reset()
         }
-      })
+      }
 
-      setHandler(out, new OutHandler {
-        override def onPull() = pull(in)
-      })
+      override def onPull() = pull(in)
     }
 }
