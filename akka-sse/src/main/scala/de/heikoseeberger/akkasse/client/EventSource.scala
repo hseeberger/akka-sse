@@ -115,13 +115,11 @@ object EventSource {
       def enrichWithLastElement(eventStream: EventStream) = {
         val p = Promise[LastEvent]()
         val enriched =
-          eventStream
-            .alsoToMat(Sink.lastOption)(Keep.both)
-            .mapMaterializedValue {
-              case (m, f) =>
-                p.completeWith(f)
-                m
-            }
+          eventStream.alsoToMat(Sink.lastOption) {
+            case (m, f) =>
+              p.completeWith(f)
+              m
+          }
         (enriched, p.future)
       }
       Flow[Option[String]]
