@@ -18,8 +18,7 @@ package de.heikoseeberger.akkasse
 package client
 
 import akka.Done
-import akka.actor.ActorDSL.actor
-import akka.actor.{ Actor, ActorLogging, Status }
+import akka.actor.{ Actor, ActorLogging, Props, Status }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes.BadRequest
 import akka.http.scaladsl.model.{ HttpEntity, HttpRequest, HttpResponse, Uri }
@@ -27,6 +26,7 @@ import akka.http.scaladsl.server.{ Directives, Route }
 import akka.pattern.pipe
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.stream.{ ActorMaterializer, ThrottleMode }
+import akka.testkit.SocketUtil
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
 import java.net.InetSocketAddress
@@ -40,16 +40,15 @@ object EventSourceSpec {
     private case object Bind
     private case object Unbind
 
-    def route(setEventId: Boolean): Route = {
+    private def route(size: Int, setEventId: Boolean): Route = {
       import Directives._
       import EventStreamMarshalling._
       get {
         optionalHeaderValueByName(`Last-Event-ID`.name) { lastEventId =>
           try {
-            val fromSeqNo = lastEventId.getOrElse("0").trim.toInt + 1
+            val fromSeqNo = lastEventId.map(_.trim.toInt).getOrElse(0) + 1
             complete {
-              Source
-                .fromIterator(() => Iterator.from(fromSeqNo).take(2))
+              Source(fromSeqNo.until(fromSeqNo + size))
                 .map(toServerSentEvent(setEventId))
             }
           } catch {
@@ -70,7 +69,10 @@ object EventSourceSpec {
     }
   }
 
-  class Server(address: String, port: Int, route: Route)
+  class Server(address: String,
+               port: Int,
+               size: Int,
+               shouldSetEventId: Boolean = false)
       extends Actor
       with ActorLogging {
     import Server._
@@ -84,14 +86,16 @@ object EventSourceSpec {
 
     private def unbound: Receive = {
       case Bind =>
-        Http(context.system).bindAndHandle(route, address, port).pipeTo(self)
+        Http(context.system)
+          .bindAndHandle(route(size, shouldSetEventId), address, port)
+          .pipeTo(self)
         context.become(binding)
     }
 
     private def binding: Receive = {
       case serverBinding @ Http.ServerBinding(socketAddress) =>
         log.info("Listening on {}", socketAddress)
-        context.system.scheduler.scheduleOnce(1500.milliseconds, self, Unbind)
+        context.system.scheduler.scheduleOnce(1500.millis, self, Unbind)
         context.become(bound(serverBinding))
 
       case Status.Failure(cause) =>
@@ -108,7 +112,7 @@ object EventSourceSpec {
     private def unbinding(socketAddress: InetSocketAddress): Receive = {
       case Done =>
         log.info("Stopped listening on {}", socketAddress)
-        context.system.scheduler.scheduleOnce(500.milliseconds, self, Bind)
+        context.system.scheduler.scheduleOnce(500.millis, self, Bind)
         context.become(unbound)
 
       case Status.Failure(cause) =>
@@ -118,9 +122,14 @@ object EventSourceSpec {
   }
 
   private def toServerSentEvent(setEventId: Boolean)(n: Int) = {
-    val id    = n.toString
-    val event = ServerSentEvent(Some(id))
-    if (setEventId) event.copy(id = Some(id)) else event
+    val data  = Some(n.toString)
+    val event = ServerSentEvent(data)
+    if (setEventId) event.copy(id = data) else event
+  }
+
+  private def hostAndPort() = {
+    val address = SocketUtil.temporaryServerAddress()
+    (address.getAddress.getHostAddress, address.getPort)
   }
 }
 
@@ -129,42 +138,34 @@ class EventSourceSpec extends BaseSpec {
 
   "EventSource" should {
     "communicate correctly with an instable HTTP server" in {
-      val host = "localhost"
-      val port = 9999
-      val server =
-        actor(new Server(host, port, Server.route(setEventId = true)))
-      val nrOfSamples = 20
+      val nrOfSamples  = 20
+      val (host, port) = hostAndPort()
+      val server       = system.actorOf(Props(new Server(host, port, 2, true)))
       val events =
         EventSource(Uri(s"http://$host:$port"), send, Some("2"))
-          .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping)
+          .throttle(1, 500.milliseconds, 1, ThrottleMode.Shaping) // Make sure unbinding happens!
           .take(nrOfSamples)
           .runWith(Sink.seq)
       val expected =
         Seq
-          .iterate(3, nrOfSamples)(_ + 1)
+          .tabulate(nrOfSamples)(_ + 3)
           .map(toServerSentEvent(setEventId = true))
-      events
-        .map(_ shouldBe expected)
-        .andThen({ case _ => system.stop(server) })
+      events.map(_ shouldBe expected).andThen { case _ => system.stop(server) }
     }
 
     "apply the initial last event ID if the server doesn't set the event ID" in {
-      val host = "localhost"
-      val port = 9998
-      val server =
-        actor(new Server(host, port, Server.route(setEventId = false)))
-      val nrOfSamples = 20
+      val nrOfSamples  = 20
+      val (host, port) = hostAndPort()
+      val server       = system.actorOf(Props(new Server(host, port, 2)))
       val events =
         EventSource(Uri(s"http://$host:$port"), send, Some("2"))
           .take(nrOfSamples)
           .runWith(Sink.seq)
       val expected =
         Seq
-          .tabulate(20)(n => n % 2 + 3)
+          .tabulate(nrOfSamples)(_ % 2 + 3)
           .map(toServerSentEvent(setEventId = false))
-      events
-        .map(_ shouldBe expected)
-        .andThen({ case _ => system.stop(server) })
+      events.map(_ shouldBe expected).andThen { case _ => system.stop(server) }
     }
   }
 
