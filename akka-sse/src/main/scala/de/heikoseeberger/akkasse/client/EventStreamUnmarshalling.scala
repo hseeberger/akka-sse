@@ -52,8 +52,9 @@ trait EventStreamUnmarshalling {
     8192
 
   implicit final def feu: FromEntityUnmarshaller[EventStream] = {
-    def events(entity: HttpEntity) =
-      entity.dataBytes.via(EventStreamParser(_maxLineSize, _maxEventSize))
-    Unmarshaller.strict(events).forContentTypes(`text/event-stream`)
+    def eventStream(entity: HttpEntity) =
+      entity.withoutSizeLimit.dataBytes
+        .via(EventStreamParser(_maxLineSize, _maxEventSize))
+    Unmarshaller.strict(eventStream).forContentTypes(`text/event-stream`)
   }
 }
