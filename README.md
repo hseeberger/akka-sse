@@ -22,7 +22,7 @@ Akka SSE is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= Vector(
-  "de.heikoseeberger" %% "akka-sse" % "2.0.0-M6",
+  "de.heikoseeberger" %% "akka-sse" % "2.0.0-RC1",
   ...
 )
 ```
@@ -56,7 +56,7 @@ object TimeServer {
 
   ...
 
-  def route = {
+  private def route = {
     import Directives._
     import EventStreamMarshalling._ // That does the trick!
 
@@ -78,7 +78,7 @@ object TimeServer {
     assets ~ events
   }
 
-  def timeToServerSentEvent(time: LocalTime): ServerSentEvent =
+  private def timeToServerSentEvent(time: LocalTime) =
     ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(time))
 }
 ```
@@ -121,4 +121,5 @@ you have the legal authority to do so.
 
 ## License ##
 
-This code is open source software licensed under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
+This code is open source software licensed under the
+[Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).

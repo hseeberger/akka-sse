@@ -36,7 +36,7 @@ object TimeServer {
     Http().bindAndHandle(route, "localhost", 8000)
   }
 
-  def route = {
+  private def route = {
     import Directives._
     import EventStreamMarshalling._
 
@@ -61,6 +61,6 @@ object TimeServer {
     assets ~ events
   }
 
-  def timeToServerSentEvent(time: LocalTime): ServerSentEvent =
+  private def timeToServerSentEvent(time: LocalTime) =
     ServerSentEvent(DateTimeFormatter.ISO_LOCAL_TIME.format(time))
 }
