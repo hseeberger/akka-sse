@@ -15,23 +15,25 @@
  */
 
 package de.heikoseeberger.akkasse
+package client
 
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpEntity
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.{ Sink, Source }
+import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
-class EventStreamMarshallingSpec extends BaseSpec {
-  import EventStreamMarshalling._
+class EventStreamUnmarshallingSpec extends BaseSpec {
+  import EventStreamUnmarshalling._
 
-  "A source of ServerSentEvents" should {
-    "be marshallable to a HTTP response" in {
-      val events       = 1.to(666).map(intToServerSentEvent)
-      val marshallable = Source(events): ToResponseMarshallable
-      val response =
-        marshallable(HttpRequest()).flatMap {
-          _.entity.dataBytes.map(_.utf8String).runWith(Sink.seq)
-        }
-      response.map(_ shouldBe events.map(_.toString))
+  "A HTTP entity with media-type text/event-stream" should {
+    "be unmarshallable to an EventStream" in {
+      val events = 1.to(666).map(intToServerSentEvent)
+      val data   = Source(events).map(_.encode)
+      val entity = HttpEntity(`text/event-stream`, data)
+      Unmarshal(entity)
+        .to[EventStream]
+        .flatMap(_.runWith(Sink.seq))
+        .map(_ shouldBe events)
     }
   }
 
