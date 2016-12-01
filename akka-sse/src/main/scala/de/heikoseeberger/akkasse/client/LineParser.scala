@@ -24,8 +24,8 @@ import scala.annotation.tailrec
 
 private object LineParser {
 
-  final val CR = '\r'.toByte
-  final val LF = '\n'.toByte
+  private final val CR = '\r'.toByte
+  private final val LF = '\n'.toByte
 }
 
 private final class LineParser(maxLineSize: Int)
