@@ -18,8 +18,11 @@ package de.heikoseeberger.akkasse.example
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.client.RequestBuilding.Get
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import de.heikoseeberger.akkasse.client.EventSource
+import de.heikoseeberger.akkasse.EventStream
+import de.heikoseeberger.akkasse.client.EventStreamUnmarshalling
 import java.time.LocalTime
 
 object TimeClient {
@@ -28,8 +31,12 @@ object TimeClient {
     implicit val system = ActorSystem()
     implicit val mat    = ActorMaterializer()
 
-    val eventSource =
-      EventSource("http://localhost:9000/events", Http().singleRequest(_))
-    eventSource.runForeach(event => println(s"${LocalTime.now()} $event"))
+    import EventStreamUnmarshalling._
+    import system.dispatcher
+
+    Http()
+      .singleRequest(Get("http://localhost:8000/events"))
+      .flatMap(Unmarshal(_).to[EventStream])
+      .foreach(_.runForeach(print))
   }
 }

@@ -21,14 +21,20 @@ import akka.NotUsed
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 
+/**
+  * Flow that converts raw byte string input into [[ServerSentEvent]]s.
+  *
+  * This API is made for use in non-akka-http clients, like Play's WSClient.
+  */
 object EventStreamParser {
 
   /**
     * Flow that converts raw byte string input into [[ServerSentEvent]]s.
+    *
     * This API is made for use in non-akka-http clients, like Play's WSClient.
     *
-    * @param maxLineSize The maximum size of a line for the event Stream parser; 8KiB by default.
-    * @param maxEventSize The maximum size of a server-sent event for the event Stream parser; 8KiB by default.
+    * @param maxLineSize The maximum size of a line for the event Stream parser; 8KiB by default
+    * @param maxEventSize The maximum size of a server-sent event for the event Stream parser; 8KiB by default
     */
   def apply(
       maxLineSize: Int = 8192,

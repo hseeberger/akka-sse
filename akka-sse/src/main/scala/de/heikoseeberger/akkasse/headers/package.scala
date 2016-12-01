@@ -27,7 +27,7 @@ package object headers {
   object `Last-Event-ID`
       extends ModeledCustomHeaderCompanion[`Last-Event-ID`] {
 
-    override def name = "Last-Event-ID"
+    override val name = "Last-Event-ID"
 
     override def parse(value: String) = Try(new `Last-Event-ID`(value))
   }
@@ -41,10 +41,10 @@ package object headers {
   final case class `Last-Event-ID`(value: String)
       extends ModeledCustomHeader[`Last-Event-ID`] {
 
-    override def companion = `Last-Event-ID`
+    override val companion = `Last-Event-ID`
 
-    override def renderInRequests = true
+    override val renderInRequests = true
 
-    override def renderInResponses = false
+    override val renderInResponses = false
   }
 }

@@ -33,7 +33,7 @@ object TimeServer {
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem()
     implicit val mat    = ActorMaterializer()
-    Http().bindAndHandle(route, "127.0.0.1", 9000)
+    Http().bindAndHandle(route, "localhost", 8000)
   }
 
   def route = {

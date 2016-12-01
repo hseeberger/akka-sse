@@ -94,23 +94,14 @@ implicit `FromEntityUnmarshaller[EventStream]`` defined by the
 
 ``` scala
 import EventStreamUnmarshalling._
+import system.dispatcher
 
-Source.single(Get("/events"))
-  .via(Http().outgoingConnection("localhost", 8000))
-  .mapAsync(1)(Unmarshal(_).to[EventSource])
-  .runForeach(_.runForeach(event => println(s"${LocalTime.now()} $event")))
-}
+Http()
+  .singleRequest(Get("http://localhost:8000/events"))
+  .flatMap(Unmarshal(_).to[EventStream])
+  .foreach(_.runForeach(print))
 ```
 
-If you want the client to reconnect to the server thereby sending the
-Last-Evend-ID header if available, you can use the `EventSource`:
-
-``` scala
-val eventSource =
-  EventSource("http://localhost:9000/events", Http().singleRequest(_))
-eventSource.runForeach(event => println(s"${LocalTime.now()} $event"))
-}
-```
 
 ## References
 
