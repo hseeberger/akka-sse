@@ -106,7 +106,7 @@ class EventStreamUnmarshallingSpec extends BaseSpec {
       val data   = Source(events).map(_.encode)
       val entity = HttpEntity(`text/event-stream`, data)
       Unmarshal(entity)
-        .to[EventStream]
+        .to[Source[ServerSentEvent, Any]]
         .flatMap(_.runWith(Sink.seq))
         .map(_ shouldBe events)
     }
@@ -119,7 +119,7 @@ class EventStreamUnmarshallingSpec extends BaseSpec {
         .singleRequest(Get(s"http://$host:$port"))
         .flatMap {
           Unmarshal(_)
-            .to[EventStream]
+            .to[Source[ServerSentEvent, Any]]
             .flatMap(_.take(nrOfSamples).runWith(Sink.ignore))
         }
         .map(_ shouldBe Done)
