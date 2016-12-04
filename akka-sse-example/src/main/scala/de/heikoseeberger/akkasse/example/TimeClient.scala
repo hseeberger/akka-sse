@@ -21,9 +21,9 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding.Get
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import de.heikoseeberger.akkasse.EventStream
+import akka.stream.scaladsl.Source
+import de.heikoseeberger.akkasse.ServerSentEvent
 import de.heikoseeberger.akkasse.client.EventStreamUnmarshalling
-import java.time.LocalTime
 
 object TimeClient {
 
@@ -36,7 +36,7 @@ object TimeClient {
 
     Http()
       .singleRequest(Get("http://localhost:8000/events"))
-      .flatMap(Unmarshal(_).to[EventStream])
+      .flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
       .foreach(_.runForeach(print))
   }
 }

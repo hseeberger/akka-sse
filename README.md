@@ -31,7 +31,7 @@ libraryDependencies ++= Vector(
 
 ## Usage – basics
 
-Akka SSE models an `EventStream` as `Source[ServerSentEvent, Any]` with `Source`
+Akka SSE models a event stream as `Source[ServerSentEvent, Any]` with `Source`
 from Akka Streams and `ServerSentEvent` from Akka SSE. `ServerSentEvent` is a
 case class with the following fields:
 
@@ -48,8 +48,8 @@ More info about the above fields can be found in the
 
 ## Usage – server-side
 
-In order to respond to a HTTP request with an `EventStream`, you have to bring
-the implicit `ToResponseMarshaller[EventStream]` defined by the
+In order to respond to a HTTP request with an event stream, you have to bring
+the implicit `ToResponseMarshaller[Source[ServerSentEvent, Any]]` defined by the
 `EventStreamMarshalling` trait or object into the scope defining the respective
 route:
 
@@ -90,8 +90,9 @@ To send periodic heartbeats, simply use the `keepAlive` standard stage with a
 
 ## Usage – client-side
 
-In order to unmarshal server-sent events as `EventStream`, you have to bring the
-implicit `FromEntityUnmarshaller[EventStream]`` defined by the
+In order to unmarshal server-sent events as `Source[ServerSentEvent, Any]`, you
+have to bring the implicit
+`FromEntityUnmarshaller[Source[ServerSentEvent, Any]]` defined by the
 `EventStreamUnmarshalling` trait or object into scope:
 
 ``` scala
@@ -100,10 +101,9 @@ import system.dispatcher
 
 Http()
   .singleRequest(Get("http://localhost:8000/events"))
-  .flatMap(Unmarshal(_).to[EventStream])
+  .flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
   .foreach(_.runForeach(print))
 ```
-
 
 ## References
 
