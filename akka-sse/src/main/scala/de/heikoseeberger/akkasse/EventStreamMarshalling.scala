@@ -29,7 +29,7 @@ object EventStreamMarshalling extends EventStreamMarshalling
 
 /**
   * Mixing in this trait lets a source of [[ServerSentEvent]]s be marshalled to
-  * a [[HttpResponse]].
+  * a `HttpResponse`.
   */
 trait EventStreamMarshalling {
 

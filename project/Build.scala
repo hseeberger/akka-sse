@@ -39,9 +39,9 @@ object Build extends AutoPlugin {
         "-target", "1.8"
       ),
       unmanagedSourceDirectories.in(Compile) :=
-        Vector(scalaSource.in(Compile).value),
+        Vector(scalaSource.in(Compile).value, javaSource.in(Compile).value),
       unmanagedSourceDirectories.in(Test) :=
-        Vector(scalaSource.in(Test).value),
+        Vector(scalaSource.in(Test).value, javaSource.in(Test).value),
 
       // POM settings for Sonatype
       homepage := Some(url("https://github.com/hseeberger/akka-sse")),
