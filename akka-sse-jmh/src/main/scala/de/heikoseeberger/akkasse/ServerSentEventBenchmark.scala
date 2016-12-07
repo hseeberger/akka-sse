@@ -32,20 +32,16 @@ class ServerSentEventBenchmark {
     ServerSentEvent("line-one\nline-two\nline-three\nline-four", "updated"),
     ServerSentEvent(Some("line-one"), id = Some("id")),
     ServerSentEvent(Some("line-one\nline-two"), id = Some("id")),
-    ServerSentEvent(Some("line-one\nline-two\nline-three\nline-four"),
-                    id = Some("id")),
+    ServerSentEvent(Some("line-one\nline-two\nline-three\nline-four"), id = Some("id")),
     ServerSentEvent("line-one", "added", "id"),
     ServerSentEvent("line-one\nline-two", "removed", "id"),
-    ServerSentEvent("line-one\nline-two\nline-three\nline-four",
-                    "updated",
-                    "id")
+    ServerSentEvent("line-one\nline-two\nline-three\nline-four", "updated", "id")
   )
 
   @Benchmark
   def benchmark(): Unit = {
     var acc = 0L
-    for (event <- Iterator.continually(events).flatten.take(100000))
-      acc += event.toString.length
+    for (event <- Iterator.continually(events).flatten.take(100000)) acc += event.toString.length
     sum = acc
   }
 }

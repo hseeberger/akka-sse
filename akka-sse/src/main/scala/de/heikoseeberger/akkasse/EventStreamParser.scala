@@ -15,7 +15,6 @@
  */
 
 package de.heikoseeberger.akkasse
-package client
 
 import akka.NotUsed
 import akka.stream.scaladsl.Flow
@@ -33,13 +32,9 @@ object EventStreamParser {
     *
     * This API is made for use in non-akka-http clients, like Play's WSClient.
     *
-    * @param maxLineSize The maximum size of a line for the event Stream parser; 8KiB by default
-    * @param maxEventSize The maximum size of a server-sent event for the event Stream parser; 8KiB by default
+    * @param maxLineSize The maximum size of a line for the event Stream parser
+    * @param maxEventSize The maximum size of a server-sent event for the event Stream parser
     */
-  def apply(
-      maxLineSize: Int = 8192,
-      maxEventSize: Int = 8192): Flow[ByteString, ServerSentEvent, NotUsed] =
-    Flow[ByteString]
-      .via(new LineParser(maxLineSize))
-      .via(new ServerSentEventParser(maxEventSize))
+  def apply(maxLineSize: Int, maxEventSize: Int): Flow[ByteString, ServerSentEvent, NotUsed] =
+    Flow[ByteString].via(new LineParser(maxLineSize)).via(new ServerSentEventParser(maxEventSize))
 }

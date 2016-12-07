@@ -15,7 +15,6 @@
  */
 
 package de.heikoseeberger.akkasse
-package client
 
 import akka.Done
 import akka.actor.{ Actor, ActorLogging, Props, Status }
@@ -35,7 +34,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 object EventStreamUnmarshallingSpec {
 
-  object Server {
+  final object Server {
 
     private def route(size: Int): Route = {
       import Directives._
@@ -55,11 +54,8 @@ object EventStreamUnmarshallingSpec {
               complete(
                 HttpResponse(
                   BadRequest,
-                  entity = HttpEntity(
-                    `text/event-stream`,
-                    "Integral number expected for Last-Event-ID header!"
-                      .getBytes(UTF_8)
-                  )
+                  entity = HttpEntity(`text/event-stream`,
+                                      "Integral number expected for Last-Event-ID header!".getBytes(UTF_8))
                 )
               )
           }
@@ -68,9 +64,7 @@ object EventStreamUnmarshallingSpec {
     }
   }
 
-  class Server(address: String, port: Int, size: Int)
-      extends Actor
-      with ActorLogging {
+  final class Server(address: String, port: Int, size: Int) extends Actor with ActorLogging {
     import Server._
     import context.dispatcher
 
@@ -105,10 +99,7 @@ class EventStreamUnmarshallingSpec extends BaseSpec {
       val events = 1.to(666).map(intToServerSentEvent)
       val data   = Source(events).map(_.encode)
       val entity = HttpEntity(`text/event-stream`, data)
-      Unmarshal(entity)
-        .to[Source[ServerSentEvent, Any]]
-        .flatMap(_.runWith(Sink.seq))
-        .map(_ shouldBe events)
+      Unmarshal(entity).to[Source[ServerSentEvent, Any]].flatMap(_.runWith(Sink.seq)).map(_ shouldBe events)
     }
 
     "not be limited" in {
@@ -118,9 +109,7 @@ class EventStreamUnmarshallingSpec extends BaseSpec {
       Http()
         .singleRequest(Get(s"http://$host:$port"))
         .flatMap {
-          Unmarshal(_)
-            .to[Source[ServerSentEvent, Any]]
-            .flatMap(_.take(nrOfSamples).runWith(Sink.ignore))
+          Unmarshal(_).to[Source[ServerSentEvent, Any]].flatMap(_.take(nrOfSamples).runWith(Sink.ignore))
         }
         .map(_ shouldBe Done)
         .andThen { case _ => system.stop(server) }

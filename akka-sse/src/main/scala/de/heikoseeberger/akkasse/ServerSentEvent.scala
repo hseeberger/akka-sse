@@ -65,9 +65,9 @@ object ServerSentEvent {
 
   private def noNewLine(s: String) = s.forall(c => c != '\n' && c != '\r')
 
-  // Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-  // We want powers of two both because they typically work better with the
-  // allocator, and because we want to minimize reallocations/buffer growth.
+  // Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2.
+  // We want powers of two both because they typically work better with the allocator, and because we want to minimize
+  // reallocations/buffer growth.
   private def nextPowerOfTwoBiggerThan(n: Int) = {
     var m = n - 1
     m |= m >> 1
@@ -123,9 +123,9 @@ final case class ServerSentEvent(data: Option[String] = None,
     val builder = new StringBuilder(
       nextPowerOfTwoBiggerThan(
         8 +
-          data.map(_.length).getOrElse(0) +
-          `type`.fold(0)(_.length + 7) +
-          id.fold(0)(_.length + 4) + retry.fold(0)(_ => 17)
+        data.map(_.length).getOrElse(0) +
+        `type`.fold(0)(_.length + 7) +
+        id.fold(0)(_.length + 4) + retry.fold(0)(_ => 17)
       )
     )
     @tailrec def appendData(s: String, index: Int = 0): Unit = {

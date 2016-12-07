@@ -15,7 +15,6 @@
  */
 
 package de.heikoseeberger.akkasse
-package client
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
@@ -85,8 +84,7 @@ private object ServerSentEventParser {
   private val linePattern = """([^:]+): ?(.*)""".r
 }
 
-private final class ServerSentEventParser(maxEventSize: Int)
-    extends GraphStage[FlowShape[String, ServerSentEvent]] {
+private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[FlowShape[String, ServerSentEvent]] {
 
   override val shape = FlowShape(
     Inlet[String]("ServerSentEventParser.in"),
@@ -119,17 +117,13 @@ private final class ServerSentEventParser(maxEventSize: Int)
                 case Event           => builder.setEventType(value)
                 case Id              => builder.setId(value)
                 case Retry           => builder.setRetry(value)
-                case badFormatString => //TODO: consider if these should be reported
+                case badFormatString => // TODO: Consider if these should be reported!
               }
-            case badFormatString => //TODO: consider if these should be reported
+            case badFormatString => // TODO: Consider if these should be reported!
           }
           pull(in)
         } else {
-          failStage(
-            new IllegalStateException(
-              s"maxEventSize of $maxEventSize exceeded!"
-            )
-          )
+          failStage(new IllegalStateException(s"maxEventSize of $maxEventSize exceeded!"))
           builder.reset()
         }
       }

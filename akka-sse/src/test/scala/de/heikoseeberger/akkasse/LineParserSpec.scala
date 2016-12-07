@@ -15,9 +15,8 @@
  */
 
 package de.heikoseeberger.akkasse
-package client
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
 
 class LineParserSpec extends BaseSpec {
@@ -29,16 +28,8 @@ class LineParserSpec extends BaseSpec {
       val input2 = "\nline4\nline5\rline6\r\n\n"
       Source(Vector(ByteString(input1), ByteString(input2)))
         .via(new LineParser(1048576))
-        .runFold(Vector.empty[String])(_ :+ _)
-        .map(
-          _ shouldBe Vector("line1",
-                            "line2",
-                            "line3",
-                            "line4",
-                            "line5",
-                            "line6",
-                            "")
-        )
+        .runWith(Sink.seq)
+        .map(_ shouldBe Vector("line1", "line2", "line3", "line4", "line5", "line6", ""))
     }
 
     "ignore a trailing non-terminated line" in {
@@ -46,25 +37,14 @@ class LineParserSpec extends BaseSpec {
       Source
         .single(ByteString(input))
         .via(new LineParser(1048576))
-        .runFold(Vector.empty[String])(_ :+ _)
-        .map(
-          _ shouldBe Vector("line1",
-                            "line2",
-                            "line3",
-                            "line4",
-                            "line5",
-                            "line6",
-                            "")
-        )
+        .runWith(Sink.seq)
+        .map(_ shouldBe Vector("line1", "line2", "line3", "line4", "line5", "line6", ""))
     }
 
     "handle splitted line" in {
       val testLine = "test line"
       val input    = s"$testLine\n".grouped(1).map(ByteString.apply).toVector
-      Source(input)
-        .via(new LineParser(1048576))
-        .runFold(Vector.empty[String])(_ :+ _)
-        .map(_ shouldBe Vector(testLine))
+      Source(input).via(new LineParser(1048576)).runWith(Sink.seq).map(_ shouldBe Seq(testLine))
     }
   }
 }

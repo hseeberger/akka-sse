@@ -15,7 +15,6 @@
  */
 
 package de.heikoseeberger.akkasse
-package client
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -53,10 +52,7 @@ class ServerSentEventParserSpec extends BaseSpec {
         .map(
           _ shouldBe Vector(
             ServerSentEvent(Some("message 1 line 1\nmessage 1 line 2")),
-            ServerSentEvent(Some("message 2"),
-                            Some("message 2 event"),
-                            Some("42"),
-                            Some(512)),
+            ServerSentEvent(Some("message 2"), Some("message 2 event"), Some("42"), Some(512)),
             ServerSentEvent(),
             ServerSentEvent(),
             ServerSentEvent(None, Some("message 4 event"), Some("")),

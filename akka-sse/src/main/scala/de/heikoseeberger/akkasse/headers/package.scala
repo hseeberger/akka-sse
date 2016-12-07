@@ -16,16 +16,12 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.scaladsl.model.headers.{
-  ModeledCustomHeader,
-  ModeledCustomHeaderCompanion
-}
+import akka.http.scaladsl.model.headers.{ ModeledCustomHeader, ModeledCustomHeaderCompanion }
 import scala.util.Try
 
 package object headers {
 
-  object `Last-Event-ID`
-      extends ModeledCustomHeaderCompanion[`Last-Event-ID`] {
+  object `Last-Event-ID` extends ModeledCustomHeaderCompanion[`Last-Event-ID`] {
 
     override val name = "Last-Event-ID"
 
@@ -33,13 +29,11 @@ package object headers {
   }
 
   /**
-    * To be sent by a client to the server if the server sent an ID with the
-    * last event.
+    * To be sent by a client to the server if the server sent an ID with the last sever-sent event.
     *
     * @param value value of the last event ID, encoded as UTF-8 string
     */
-  final case class `Last-Event-ID`(value: String)
-      extends ModeledCustomHeader[`Last-Event-ID`] {
+  final case class `Last-Event-ID`(value: String) extends ModeledCustomHeader[`Last-Event-ID`] {
 
     override val companion = `Last-Event-ID`
 

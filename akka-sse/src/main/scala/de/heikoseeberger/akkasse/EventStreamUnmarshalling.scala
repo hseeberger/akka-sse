@@ -15,13 +15,9 @@
  */
 
 package de.heikoseeberger.akkasse
-package client
 
 import akka.http.scaladsl.model.HttpEntity
-import akka.http.scaladsl.unmarshalling.{
-  FromEntityUnmarshaller,
-  Unmarshaller
-}
+import akka.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
 import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
@@ -29,12 +25,21 @@ import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
   * Importing [[EventStreamUnmarshalling.feu]] lets a `HttpEntity` with a
   * `text/event-stream` media type be unmarshalled to a source of
   * [[ServerSentEvent]]s.
+  *
+  * The maximum size for parsing server-sent events is 8KiB. The maximum size
+  * for parsing lines of a server-sent event is 4KiB. If you need to customize
+  * any of these, use the [[EventStreamUnmarshalling]] trait and override the
+  * respective methods.
   */
 object EventStreamUnmarshalling extends EventStreamUnmarshalling
 
 /**
-  * Mixing in this trait lets a `HttpEntity` with a `text/event-stream` media
-  * type be unmarshalled to a source of [[ServerSentEvent]]s.
+  * Mixing in this trait lets a `HttpEntity` with a `text/event-stream` media type be unmarshalled to a source of
+  * [[ServerSentEvent]]s.
+  *
+  * The maximum size for parsing server-sent events is 8KiB dy default and can be customized by overriding
+  * [[EventStreamUnmarshalling.maxEventSize]]. The maximum size for parsing lines of a server-sent event is 4KiB dy
+  * default and can be customized by overriding [[EventStreamUnmarshalling.maxLineSize]].
   */
 trait EventStreamUnmarshalling {
 
@@ -42,22 +47,20 @@ trait EventStreamUnmarshalling {
   private val _maxLineSize  = maxLineSize
 
   /**
-    * The maximum size of a server-sent event for the event Stream parser; 8KiB
-    * by default.
+    * The maximum size for parsing server-sent events; 8KiB by default.
     */
   protected def maxEventSize: Int =
     8192
 
   /**
-    * The maximum size of a line for the event Stream parser; 8KiB by default.
+    * The maximum size for parsing lines of a server-sent event; 4KiB by default.
     */
   protected def maxLineSize: Int =
-    8192
+    4096
 
   implicit final def feu: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
     def eventStream(entity: HttpEntity) =
-      entity.withoutSizeLimit.dataBytes
-        .via(EventStreamParser(_maxLineSize, _maxEventSize))
+      entity.withoutSizeLimit.dataBytes.via(EventStreamParser(_maxLineSize, _maxEventSize))
     Unmarshaller.strict(eventStream).forContentTypes(`text/event-stream`)
   }
 }

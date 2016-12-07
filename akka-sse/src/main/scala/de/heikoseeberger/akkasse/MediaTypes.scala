@@ -25,7 +25,7 @@ import akka.http.scaladsl.model.HttpCharsets.`UTF-8`
 object MediaTypes {
 
   /**
-    * Media type for Server-Sent Events as required by the
+    * Media type for server-sent events as required by the
     * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
     */
   val `text/event-stream`: MediaType.WithFixedCharset =
