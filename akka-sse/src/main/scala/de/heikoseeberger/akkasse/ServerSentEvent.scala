@@ -31,68 +31,43 @@ object ServerSentEvent {
   /**
     * Creates a [[ServerSentEvent]].
     *
-    * @param data data which may span multiple lines
+    * @param data data, may be empty or span multiple lines
     */
   def apply(data: String): ServerSentEvent =
     new ServerSentEvent(Some(data))
 
   /**
-    * Java API.
-    *
     * Creates a [[ServerSentEvent]].
     *
-    * @param data data which may span multiple lines
+    * @param retry reconnection delay in milliseconds
     */
-  def create(data: String): ServerSentEvent =
-    new ServerSentEvent(Some(data))
+  def apply(retry: Int): ServerSentEvent =
+    new ServerSentEvent(retry = Some(retry))
 
   /**
     * Creates a [[ServerSentEvent]].
     *
-    * @param data data which may span multiple lines
-    * @param eventType event type, must not contain \n or \r
+    * @param data data, may be empty or span multiple lines
+    * @param type type, must not contain \n or \r
     */
-  def apply(data: String, eventType: String): ServerSentEvent =
-    new ServerSentEvent(Some(data), Some(eventType))
-
-  /**
-    * Java API.
-    *
-    * Creates a [[ServerSentEvent]].
-    *
-    * @param data data which may span multiple lines
-    * @param eventType event type, must not contain \n or \r
-    */
-  def create(data: String, eventType: String): ServerSentEvent =
-    new ServerSentEvent(Some(data), Some(eventType))
+  def apply(data: String, `type`: String): ServerSentEvent =
+    new ServerSentEvent(Some(data), Some(`type`))
 
   /**
     * Creates a [[ServerSentEvent]].
     *
-    * @param data data which may span multiple lines
-    * @param eventType event type, must not contain \n or \r
-    * @param id event id, must not contain \n or \r
+    * @param data data, may be empty or span multiple lines
+    * @param type type, must not contain \n or \r
+    * @param id id, must not contain \n or \r
     */
-  def apply(data: String, eventType: String, id: String): ServerSentEvent =
-    new ServerSentEvent(Some(data), Some(eventType), Some(id))
-
-  /**
-    * Java API.
-    *
-    * Creates a [[ServerSentEvent]].
-    *
-    * @param data data which may span multiple lines
-    * @param eventType event type, must not contain \n or \r
-    * @param id event id, must not contain \n or \r
-    */
-  def create(data: String, eventType: String, id: String): ServerSentEvent =
-    new ServerSentEvent(Some(data), Some(eventType), Some(id))
+  def apply(data: String, `type`: String, id: String): ServerSentEvent =
+    new ServerSentEvent(Some(data), Some(`type`), Some(id))
 
   private def noNewLine(s: String) = s.forall(c => c != '\n' && c != '\r')
 
-  // Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-  // We want powers of two both because they typically work better with the
-  // allocator, and because we want to minimize reallocations/buffer growth.
+  // Public domain algorithm: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2.
+  // We want powers of two both because they typically work better with the allocator, and because we want to minimize
+  // reallocations/buffer growth.
   private def nextPowerOfTwoBiggerThan(n: Int) = {
     var m = n - 1
     m |= m >> 1
@@ -105,26 +80,27 @@ object ServerSentEvent {
 }
 
 /**
-  * Representation of a Server-Sent Event.
+  * Representation of a server-sent event.
   *
-  * @param data data which may be empty or span multiple lines
-  * @param eventType optional event type, must not contain \n or \r
-  * @param id event id, must not contain \n or \r
-  * @param retry the reconnection time in milliseconds
+  * @param data optional data, may be empty or span multiple lines
+  * @param type optional type, must not contain \n or \r
+  * @param id optional id, must not contain \n or \r
+  * @param retry optional reconnection delay in milliseconds
   */
 final case class ServerSentEvent(data: Option[String] = None,
-                                 eventType: Option[String] = None,
+                                 `type`: Option[String] = None,
                                  id: Option[String] = None,
-                                 retry: Option[Int] = None) {
+                                 retry: Option[Int] = None)
+    extends japi.ServerSentEvent {
+  import OptionConverters._
   import ServerSentEvent._
 
-  require(eventType.forall(noNewLine),
-          "eventType must not contain \\n or \\r!")
+  require(`type`.forall(noNewLine), "type must not contain \\n or \\r!")
   require(id.forall(noNewLine), "id must not contain \\n or \\r!")
   require(retry.forall(_ > 0), "retry must be a positive number!")
 
   /**
-    * Encodes this Server-Sent Event to an `akka.util.ByteString` according to the
+    * Encodes this server-sent event to an `akka.util.ByteString` according to the
     * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
     *
     * @return message converted to UTF-8 encoded `akka.util.ByteString`
@@ -147,9 +123,9 @@ final case class ServerSentEvent(data: Option[String] = None,
     val builder = new StringBuilder(
       nextPowerOfTwoBiggerThan(
         8 +
-          data.map(_.length).getOrElse(0) +
-          eventType.fold(0)(_.length + 7) +
-          id.fold(0)(_.length + 4) + retry.fold(0)(_ => 17)
+        data.map(_.length).getOrElse(0) +
+        `type`.fold(0)(_.length + 7) +
+        id.fold(0)(_.length + 4) + retry.fold(0)(_ => 17)
       )
     )
     @tailrec def appendData(s: String, index: Int = 0): Unit = {
@@ -169,12 +145,20 @@ final case class ServerSentEvent(data: Option[String] = None,
     }
     if (data.isDefined)
       appendData(data.get)
-    if (eventType.isDefined)
-      builder.append("event: ").append(eventType.get).append('\n')
+    if (`type`.isDefined)
+      builder.append("event: ").append(`type`.get).append('\n')
     if (id.isDefined)
       builder.append("id: ").append(id.get).append('\n')
     if (retry.isDefined)
       builder.append("retry: ").append(retry.get).append('\n')
     builder.append('\n').toString
   }
+
+  override def getData = data.toOptional
+
+  override def getType = `type`.toOptional
+
+  override def getId = id.toOptional
+
+  override def getRetry = retry.toOptionalInt
 }

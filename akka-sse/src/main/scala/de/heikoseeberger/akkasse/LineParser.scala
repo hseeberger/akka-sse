@@ -15,7 +15,6 @@
  */
 
 package de.heikoseeberger.akkasse
-package client
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
@@ -24,15 +23,14 @@ import scala.annotation.tailrec
 
 private object LineParser {
 
-  private final val CR = '\r'.toByte
-  private final val LF = '\n'.toByte
+  private final val cr = '\r'.toByte
+
+  private final val lf = '\n'.toByte
 }
 
-private final class LineParser(maxLineSize: Int)
-    extends GraphStage[FlowShape[ByteString, String]] {
+private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[ByteString, String]] {
 
-  override val shape = FlowShape(Inlet[ByteString]("LineParser.in"),
-                                 Outlet[String]("LineParser.out"))
+  override val shape = FlowShape(Inlet[ByteString]("LineParser.in"), Outlet[String]("LineParser.out"))
 
   override def createLogic(attributes: Attributes) =
     new GraphStageLogic(shape) with InHandler with OutHandler {
@@ -45,39 +43,27 @@ private final class LineParser(maxLineSize: Int)
 
       override def onPush() = {
         @tailrec
-        def parseLines(
-            bs: ByteString,
-            from: Int = 0,
-            at: Int = 0,
-            parsedLines: Vector[String] = Vector.empty
-        ): (ByteString, Vector[String]) =
-          if (at >= bs.length || (at == bs.length - 1 && bs(at) == CR))
+        def parseLines(bs: ByteString,
+                       from: Int = 0,
+                       at: Int = 0,
+                       parsedLines: Vector[String] = Vector.empty): (ByteString, Vector[String]) =
+          if (at >= bs.length || (at == bs.length - 1 && bs(at) == cr))
             (bs.drop(from), parsedLines)
           else
             bs(at) match {
               // Lookahead for LF after CR
-              case CR if bs(at + 1) == LF =>
-                parseLines(bs,
-                           at + 2,
-                           at + 2,
-                           parsedLines :+ bs.slice(from, at).utf8String)
+              case `cr` if bs(at + 1) == lf =>
+                parseLines(bs, at + 2, at + 2, parsedLines :+ bs.slice(from, at).utf8String)
               // a CR or LF means we found a new slice
-              case CR | LF =>
-                parseLines(bs,
-                           at + 1,
-                           at + 1,
-                           parsedLines :+ bs.slice(from, at).utf8String)
+              case `cr` | `lf` =>
+                parseLines(bs, at + 1, at + 1, parsedLines :+ bs.slice(from, at).utf8String)
               // for other input, simply advance
               case _ =>
                 parseLines(bs, from, at + 1, parsedLines)
             }
         buffer = parseLines(buffer ++ grab(in)) match {
           case (remaining, _) if remaining.size > maxLineSize =>
-            failStage(
-              new IllegalStateException(
-                s"maxLineSize of $maxLineSize exceeded!"
-              )
-            )
+            failStage(new IllegalStateException(s"maxLineSize of $maxLineSize exceeded!"))
             ByteString.empty // Clear buffer
           case (remaining, parsedLines) =>
             if (parsedLines.nonEmpty)

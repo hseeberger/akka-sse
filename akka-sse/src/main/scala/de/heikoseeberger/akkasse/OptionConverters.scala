@@ -16,18 +16,22 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.scaladsl.model.MediaType
-import akka.http.scaladsl.model.HttpCharsets.`UTF-8`
+import java.util.{ Optional, OptionalInt }
 
-/**
-  * Media types for Server-Sent Events.
-  */
-object MediaTypes {
+private object OptionConverters {
 
-  /**
-    * Media type for server-sent events as required by the
-    * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-    */
-  val `text/event-stream`: MediaType.WithFixedCharset =
-    MediaType.customWithFixedCharset("text", "event-stream", `UTF-8`)
+  implicit class OptionOps[A](val option: Option[A]) extends AnyVal {
+
+    def toOptional: Optional[A] =
+      option.fold(Optional.empty[A]())(Optional.of)
+
+    def toOptionalInt[B >: A <: Int]: OptionalInt =
+      option.asInstanceOf[Option[B]].fold(OptionalInt.empty())(OptionalInt.of)
+  }
+
+  def toOption[A](optional: Optional[A]): Option[A] =
+    if (optional.isPresent) Some(optional.get()) else None
+
+  def toOption(optional: OptionalInt): Option[Int] =
+    if (optional.isPresent) Some(optional.getAsInt) else None
 }

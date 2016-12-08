@@ -22,10 +22,7 @@ import org.scalatest.{ AsyncWordSpec, BeforeAndAfterAll, Matchers }
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-abstract class BaseSpec
-    extends AsyncWordSpec
-    with Matchers
-    with BeforeAndAfterAll {
+abstract class BaseSpec extends AsyncWordSpec with Matchers with BeforeAndAfterAll {
 
   protected implicit val system = ActorSystem()
   protected implicit val ec     = system.dispatcher

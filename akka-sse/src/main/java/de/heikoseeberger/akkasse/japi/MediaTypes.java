@@ -16,7 +16,7 @@
 
 package de.heikoseeberger.akkasse.japi;
 
-import akka.http.model.japi.MediaType;
+import akka.http.javadsl.model.MediaType;
 
 public abstract class MediaTypes {
 

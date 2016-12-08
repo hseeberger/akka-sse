@@ -15,24 +15,22 @@
  */
 
 package de.heikoseeberger.akkasse
-package client
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Source
 import akka.stream.{ ActorMaterializer, Materializer }
-import akka.util.ByteString
 import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State, TearDown }
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object LineParserBenchmark {
+object ServerSentEventParserBenchmark {
   case class State(system: ActorSystem, mat: Materializer)
 }
 
 @State(Scope.Benchmark)
-class LineParserBenchmark {
+class ServerSentEventParserBenchmark {
 
-  private var state: LineParserBenchmark.State = null
+  private var state: LineParserBenchmark.State = _
 
   @Setup
   def setup(): Unit = {
@@ -42,21 +40,20 @@ class LineParserBenchmark {
   }
 
   @TearDown
-  def tearDown(): Unit = Await.ready(state.system.terminate(), Duration.Inf)
+  def tearDown(): Unit =
+    Await.ready(state.system.terminate(), Duration.Inf)
 
   @Benchmark
   def benchmark(): Unit = {
     implicit val system = state.system
     implicit val mat    = state.mat
-    def next(last: String) =
-      if (last == "event:foo\ndata:") "bar\ndata:baz\n\n"
-      else "event:foo\ndata:"
+    val data            = Vector("event:foo", "data:bar", "data:baz", "")
     val done =
       Source
-        .fromIterator(() => Iterator.iterate("event:foo\ndata:")(next))
-        .map(ByteString(_))
+        .fromIterator(() => Iterator.fill(50000)(data))
+        .mapConcat(identity)
         .take(50000)
-        .via(new LineParser(1048576))
+        .via(new ServerSentEventParser(1048576))
         .runForeach(_ => ())
     Await.ready(done, Duration.Inf)
   }

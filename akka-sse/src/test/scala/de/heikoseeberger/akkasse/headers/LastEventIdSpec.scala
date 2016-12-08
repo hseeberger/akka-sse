@@ -23,11 +23,7 @@ import akka.http.scaladsl.testkit.RouteTest
 import akka.http.scaladsl.testkit.TestFrameworkInterface.Scalatest
 import org.scalatest.{ Matchers, WordSpec }
 
-class LastEventIdSpec
-    extends WordSpec
-    with Matchers
-    with RouteTest
-    with Scalatest {
+class LastEventIdSpec extends WordSpec with Matchers with RouteTest with Scalatest {
 
   "Last-Event-ID" should {
     "match and extract the header value" in {
@@ -44,14 +40,11 @@ class LastEventIdSpec
     }
   }
 
-  def route = {
+  private def route = {
     import Directives._
-    //    headerValueByType[`Last-Event-ID`]() {
-    //      case `Last-Event-ID`(id) =>
-    //        complete(id.toString)
-    //    }
-    headerValueByName(`Last-Event-ID`.name) { id =>
-      complete(id)
+    headerValueByType[`Last-Event-ID`]() {
+      case `Last-Event-ID`(id) =>
+        complete(id.toString)
     }
   }
 }

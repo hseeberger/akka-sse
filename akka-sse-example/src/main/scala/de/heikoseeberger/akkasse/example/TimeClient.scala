@@ -22,8 +22,7 @@ import akka.http.scaladsl.client.RequestBuilding.Get
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import de.heikoseeberger.akkasse.ServerSentEvent
-import de.heikoseeberger.akkasse.client.EventStreamUnmarshalling
+import de.heikoseeberger.akkasse.{ EventStreamUnmarshalling, ServerSentEvent }
 
 object TimeClient {
 

@@ -6,5 +6,4 @@ libraryDependencies ++= Vector(
   Library.scalaTest       % "test"
 )
 
-initialCommands := """|import de.heikoseeberger.akkasse._
-                      |import de.heikoseeberger.akkasse.client._""".stripMargin
+initialCommands := """|import de.heikoseeberger.akkasse._""".stripMargin
