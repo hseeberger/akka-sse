@@ -28,8 +28,8 @@ class EventStreamMarshallingSpec extends BaseSpec {
       val events       = 1.to(666).map(intToServerSentEvent)
       val marshallable = Source(events): ToResponseMarshallable
       val response =
-        marshallable(HttpRequest()).flatMap(_.entity.dataBytes.map(_.utf8String).runWith(Sink.seq))
-      response.map(_ shouldBe events.map(_.toString))
+        marshallable(HttpRequest()).flatMap(_.entity.dataBytes.runWith(Sink.seq))
+      response.map(_ shouldBe events.map(_.encode))
     }
   }
 

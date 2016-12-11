@@ -18,7 +18,7 @@ package de.heikoseeberger.akkasse
 
 import java.util.{ Optional, OptionalInt }
 
-private object OptionConverters {
+private object OptionConverter {
 
   implicit class OptionOps[A](val option: Option[A]) extends AnyVal {
 

@@ -31,9 +31,11 @@ object EventStreamMarshalling extends EventStreamMarshalling
   */
 trait EventStreamMarshalling {
 
-  implicit final def trm: ToResponseMarshaller[Source[ServerSentEvent, Any]] =
-    Marshaller.withFixedContentType(`text/event-stream`) { messages =>
+  implicit final val trm: ToResponseMarshaller[Source[ServerSentEvent, Any]] = {
+    def marshal(messages: Source[ServerSentEvent, Any]) = {
       val data = messages.map(_.encode)
       HttpResponse(entity = HttpEntity.CloseDelimited(`text/event-stream`, data))
     }
+    Marshaller.withFixedContentType(`text/event-stream`)(marshal)
+  }
 }
