@@ -22,7 +22,7 @@ import akka.stream.{ ActorMaterializer, Materializer }
 import akka.util.ByteString
 import org.openjdk.jmh.annotations.{ Benchmark, Scope, Setup, State, TearDown }
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.DurationInt
 
 object LineParserBenchmark {
   case class State(system: ActorSystem, mat: Materializer)
@@ -41,7 +41,7 @@ class LineParserBenchmark {
   }
 
   @TearDown
-  def tearDown(): Unit = Await.ready(state.system.terminate(), Duration.Inf)
+  def tearDown(): Unit = Await.ready(state.system.terminate(), 42.seconds)
 
   @Benchmark
   def benchmark(): Unit = {
@@ -55,6 +55,6 @@ class LineParserBenchmark {
         .take(50000)
         .via(new LineParser(1048576))
         .runForeach(_ => ())
-    Await.ready(done, Duration.Inf)
+    Await.ready(done, 42.seconds)
   }
 }
