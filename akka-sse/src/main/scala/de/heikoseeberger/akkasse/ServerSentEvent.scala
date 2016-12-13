@@ -92,7 +92,7 @@ final case class ServerSentEvent(data: Option[String] = None,
                                  id: Option[String] = None,
                                  retry: Option[Int] = None)
     extends japi.ServerSentEvent {
-  import OptionConverters._
+  import OptionConverter._
   import ServerSentEvent._
 
   require(`type`.forall(noNewLine), "type must not contain \\n or \\r!")
