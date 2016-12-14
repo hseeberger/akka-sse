@@ -86,7 +86,7 @@ lazy val settings =
   scalafmtSettings ++
   gitSettings ++
   headerSettings ++
-  sonatypeSettings ++
+  sonatypeSettings
 
 lazy val commonSettings =
   Seq(
