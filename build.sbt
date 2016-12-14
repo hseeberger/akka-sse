@@ -1,10 +1,12 @@
+// *****************************************************************************
 // Projects
+// *****************************************************************************
 
 lazy val `akka-sse` =
   project
     .in(file("."))
-    .enablePlugins(GitVersioning)
     .aggregate(core, example, jmh)
+    .enablePlugins(GitVersioning)
     .settings(settings)
     .settings(
       unmanagedSourceDirectories.in(Compile) := Seq.empty,
@@ -52,34 +54,39 @@ lazy val jmh =
       publishArtifact := false
     )
 
+// *****************************************************************************
 // Library dependencies
+// *****************************************************************************
+
+lazy val version =
+  new {
+    val akka       = "2.4.14"
+    val akkaHttp   = "10.0.0"
+    val junit      = "4.12"
+    val scalaCheck = "1.13.4"
+    val scalaTest  = "3.0.1"
+  }
 
 lazy val library =
   new {
-    object Version {
-      val akka       = "2.4.14"
-      val akkaHttp   = "10.0.0"
-      val junit      = "4.12"
-      val scalaCheck = "1.13.4"
-      val scalaTest  = "3.0.1"
-    }
-
-    val akkaHttp        = "com.typesafe.akka" %% "akka-http"         % Version.akkaHttp
-    val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp
-    val akkaStream      = "com.typesafe.akka" %% "akka-stream"       % Version.akka
-    val junit           = "junit"             %  "junit"             % Version.junit
-    val scalaCheck      = "org.scalacheck"    %% "scalacheck"        % Version.scalaCheck
-    val scalaTest       = "org.scalatest"     %% "scalatest"         % Version.scalaTest
+    val akkaHttp        = "com.typesafe.akka" %% "akka-http"         % version.akkaHttp
+    val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % version.akkaHttp
+    val akkaStream      = "com.typesafe.akka" %% "akka-stream"       % version.akka
+    val junit           = "junit"             %  "junit"             % version.junit
+    val scalaCheck      = "org.scalacheck"    %% "scalacheck"        % version.scalaCheck
+    val scalaTest       = "org.scalatest"     %% "scalatest"         % version.scalaTest
 }
 
+// *****************************************************************************
 // Settings
+// *****************************************************************************
 
 lazy val settings =
   commonSettings ++
-  sonatypeSettings ++
   scalafmtSettings ++
   gitSettings ++
-  headerSettings
+  headerSettings ++
+  sonatypeSettings ++
 
 lazy val commonSettings =
   Seq(
@@ -107,18 +114,6 @@ lazy val commonSettings =
       Seq(scalaSource.in(Test).value, javaSource.in(Test).value)
 )
 
-lazy val sonatypeSettings =
-  Seq(
-    homepage := Some(url("https://github.com/hseeberger/akka-sse")),
-    scmInfo := Some(ScmInfo(url("https://github.com/hseeberger/akka-sse"),
-                            "git@github.com:hseeberger/akka-sse.git")),
-    developers += Developer("hseeberger",
-                            "Heiko Seeberger",
-                            "mail@heikoseeberger.de",
-                            url("https://github.com/hseeberger")),
-    pomIncludeRepository := (_ => false)
-  )
-
 lazy val scalafmtSettings =
   reformatOnCompileSettings ++
   Seq(
@@ -135,4 +130,16 @@ import de.heikoseeberger.sbtheader.license.Apache2_0
 lazy val headerSettings =
   Seq(
     headers := Map("scala" -> Apache2_0("2015", "Heiko Seeberger"))
+  )
+
+lazy val sonatypeSettings =
+  Seq(
+    homepage := Some(url("https://github.com/hseeberger/akka-sse")),
+    scmInfo := Some(ScmInfo(url("https://github.com/hseeberger/akka-sse"),
+                            "git@github.com:hseeberger/akka-sse.git")),
+    developers += Developer("hseeberger",
+                            "Heiko Seeberger",
+                            "mail@heikoseeberger.de",
+                            url("https://github.com/hseeberger")),
+    pomIncludeRepository := (_ => false)
   )
