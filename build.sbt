@@ -5,8 +5,8 @@
 lazy val `akka-sse` =
   project
     .in(file("."))
-    .aggregate(core, example, jmh)
     .enablePlugins(GitVersioning)
+    .aggregate(core, example, jmh)
     .settings(settings)
     .settings(
       unmanagedSourceDirectories.in(Compile) := Seq.empty,
@@ -19,7 +19,7 @@ lazy val core =
     .enablePlugins(AutomateHeaderPlugin)
     .settings(settings)
     .settings(
-      moduleName := "akka-sse",
+      name := "akka-sse",
       libraryDependencies ++= Seq(
         library.akkaHttp,
         library.akkaHttpTestkit % Test,
@@ -32,8 +32,8 @@ lazy val core =
 
 lazy val example =
   project
-    .dependsOn(core)
     .enablePlugins(AutomateHeaderPlugin)
+    .dependsOn(core)
     .settings(settings)
     .settings(
       libraryDependencies ++= Seq(
@@ -44,8 +44,8 @@ lazy val example =
 
 lazy val jmh =
   project
-    .dependsOn(core)
     .enablePlugins(AutomateHeaderPlugin, JmhPlugin)
+    .dependsOn(core)
     .settings(settings)
     .settings(
       libraryDependencies ++= Seq(
@@ -58,23 +58,22 @@ lazy val jmh =
 // Library dependencies
 // *****************************************************************************
 
-lazy val version =
-  new {
-    val akka       = "2.4.14"
-    val akkaHttp   = "10.0.0"
-    val junit      = "4.12"
-    val scalaCheck = "1.13.4"
-    val scalaTest  = "3.0.1"
-  }
 
 lazy val library =
   new {
-    val akkaHttp        = "com.typesafe.akka" %% "akka-http"         % version.akkaHttp
-    val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % version.akkaHttp
-    val akkaStream      = "com.typesafe.akka" %% "akka-stream"       % version.akka
-    val junit           = "junit"             %  "junit"             % version.junit
-    val scalaCheck      = "org.scalacheck"    %% "scalacheck"        % version.scalaCheck
-    val scalaTest       = "org.scalatest"     %% "scalatest"         % version.scalaTest
+    object Version {
+      val akka       = "2.4.14"
+      val akkaHttp   = "10.0.0"
+      val junit      = "4.12"
+      val scalaCheck = "1.13.4"
+      val scalaTest  = "3.0.1"
+    }
+    val akkaHttp        = "com.typesafe.akka" %% "akka-http"         % Version.akkaHttp
+    val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp
+    val akkaStream      = "com.typesafe.akka" %% "akka-stream"       % Version.akka
+    val junit           = "junit"             %  "junit"             % Version.junit
+    val scalaCheck      = "org.scalacheck"    %% "scalacheck"        % Version.scalaCheck
+    val scalaTest       = "org.scalatest"     %% "scalatest"         % Version.scalaTest
 }
 
 // *****************************************************************************
@@ -122,9 +121,10 @@ lazy val scalafmtSettings =
     ivyScala := ivyScala.value.map(_.copy(overrideScalaVersion = sbtPlugin.value)) // TODO Remove once this workaround no longer needed (https://github.com/sbt/sbt/issues/2786)!
   )
 
-lazy val gitSettings = Seq(
-  git.useGitDescribe := true
-)
+lazy val gitSettings =
+  Seq(
+    git.useGitDescribe := true
+  )
 
 import de.heikoseeberger.sbtheader.license.Apache2_0
 lazy val headerSettings =
