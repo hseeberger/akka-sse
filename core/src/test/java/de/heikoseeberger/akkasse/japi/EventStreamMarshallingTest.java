@@ -16,7 +16,6 @@
 
 package de.heikoseeberger.akkasse.japi;
 
-import akka.NotUsed;
 import akka.http.javadsl.server.Route;
 import akka.http.javadsl.testkit.JUnitRouteTest;
 import akka.http.javadsl.testkit.TestRouteResult;
@@ -31,11 +30,11 @@ import static de.heikoseeberger.akkasse.japi.MediaTypes.TEXT_EVENT_STREAM;
 public class EventStreamMarshallingTest extends JUnitRouteTest {
 
     @Test
-    public void createData() {
+    public void testToEventStream() {
         final List<ServerSentEvent> events = new ArrayList<>();
         events.add(ServerSentEvent.create("1"));
         events.add(ServerSentEvent.create("2"));
-        final Route route = complete(Source.from(events), EventStreamMarshalling.eventStreamMarshaller());
+        final Route route = completeOK(Source.from(events), EventStreamMarshalling.toEventStream());
 
         final ByteString expectedEntity = events
                 .stream()

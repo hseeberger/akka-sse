@@ -89,8 +89,8 @@ lazy val settings =
 
 lazy val commonSettings =
   Seq(
-    scalaVersion := "2.12.1",
-    crossScalaVersions := Seq(scalaVersion.value, "2.11.8"),
+    // scalaVersion from .travis.yml
+    // crossScalaVersions from .travis.yml
     organization := "de.heikoseeberger",
     licenses += ("Apache-2.0",
                  url("http://www.apache.org/licenses/LICENSE-2.0")),

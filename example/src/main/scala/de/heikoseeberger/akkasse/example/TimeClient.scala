@@ -16,6 +16,7 @@
 
 package de.heikoseeberger.akkasse.example
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding.Get
@@ -35,7 +36,7 @@ object TimeClient {
 
     Http()
       .singleRequest(Get("http://localhost:8000/events"))
-      .flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+      .flatMap(Unmarshal(_).to[Source[ServerSentEvent, NotUsed]])
       .foreach(_.runForeach(print))
   }
 }
