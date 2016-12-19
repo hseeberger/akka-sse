@@ -22,13 +22,11 @@ import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
-  * Importing [[EventStreamUnmarshalling.feu]] lets a `HttpEntity` with a
-  * `text/event-stream` media type be unmarshalled to a source of
-  * [[ServerSentEvent]]s.
+  * Importing [[EventStreamUnmarshalling.fromEventStream]] lets a `HttpEntity` with a `text/event-stream` media type be
+  * unmarshalled to a source of [[ServerSentEvent]]s.
   *
-  * The maximum size for parsing server-sent events is 8KiB. The maximum size
-  * for parsing lines of a server-sent event is 4KiB. If you need to customize
-  * any of these, use the [[EventStreamUnmarshalling]] trait and override the
+  * The maximum size for parsing server-sent events is 8KiB. The maximum size for parsing lines of a server-sent event
+  * is 4KiB. If you need to customize any of these, use the [[EventStreamUnmarshalling]] trait and override the
   * respective methods.
   */
 object EventStreamUnmarshalling extends EventStreamUnmarshalling
@@ -58,7 +56,7 @@ trait EventStreamUnmarshalling {
   protected def maxLineSize: Int =
     4096
 
-  implicit final val feu: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
+  implicit final val fromEventStream: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
     val lineParser  = new LineParser(_maxLineSize)
     val eventParser = new ServerSentEventParser(_maxEventSize)
     def unmarshal(entity: HttpEntity) =
