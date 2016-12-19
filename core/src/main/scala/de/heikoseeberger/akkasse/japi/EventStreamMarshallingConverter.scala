@@ -18,12 +18,14 @@ package de.heikoseeberger.akkasse
 package japi
 
 import akka.http.javadsl.model.HttpResponse
-import akka.http.scaladsl.marshalling.Marshaller
+import akka.http.scaladsl.marshalling.{ Marshaller, PredefinedToResponseMarshallers }
 import akka.stream.javadsl.Source
-import de.heikoseeberger.akkasse.EventStreamMarshalling.trm
+import de.heikoseeberger.akkasse.EventStreamMarshalling.toEventStream
 
 private object EventStreamMarshallingConverter {
 
   final def jtrm[A]: Marshaller[Source[ServerSentEvent, A], HttpResponse] =
-    trm.compose(_.asScala.map(_.asInstanceOf[de.heikoseeberger.akkasse.ServerSentEvent]))
+    PredefinedToResponseMarshallers
+      .fromToEntityMarshaller()(toEventStream)
+      .compose(_.asScala.map(_.asInstanceOf[de.heikoseeberger.akkasse.ServerSentEvent]))
 }
