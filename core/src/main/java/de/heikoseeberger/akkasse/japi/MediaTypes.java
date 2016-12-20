@@ -24,6 +24,6 @@ public abstract class MediaTypes {
      * Media type for Server-Sent Events as required by the
      * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
      */
-    public static final MediaType TEXT_EVENT_STREAM =
+    public static final MediaType.WithFixedCharset TEXT_EVENT_STREAM =
             de.heikoseeberger.akkasse.MediaTypes.text$divevent$minusstream();
 }

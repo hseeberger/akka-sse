@@ -99,21 +99,8 @@ final case class ServerSentEvent(data: Option[String] = None,
   require(id.forall(noNewLine), "id must not contain \\n or \\r!")
   require(retry.forall(_ > 0), "retry must be a positive number!")
 
-  /**
-    * Encodes this server-sent event to an `akka.util.ByteString` according to the
-    * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-    *
-    * @return message converted to UTF-8 encoded `akka.util.ByteString`
-    */
-  def encode: ByteString =
-    ByteString(toString, UTF_8.name)
+  override def encode = ByteString(toString, UTF_8.name)
 
-  /**
-    * Converts to a `java.lang.String` according to the
-    * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-    *
-    * @return message converted to `java.lang.String`
-    */
   override def toString = {
     // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
     //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line

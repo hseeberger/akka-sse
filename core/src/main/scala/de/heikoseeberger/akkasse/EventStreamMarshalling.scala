@@ -16,14 +16,14 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.http.scaladsl.marshalling.{ Marshaller, ToEntityMarshaller, ToResponseMarshaller }
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse }
+import akka.http.scaladsl.marshalling.{ Marshaller, ToEntityMarshaller }
+import akka.http.scaladsl.model.HttpEntity
 import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 
 /**
-  * Importing [[EventStreamMarshalling.toEntity]] lets a source of [[ServerSentEvent]]s be marshalled to a `HttpEntity`
-  * and hence as a `HttpResponse`.
+  * Importing [[EventStreamMarshalling.toEventStream]] lets a source of [[ServerSentEvent]]s be marshalled to a
+  * `HttpEntity` and hence as a `HttpResponse`.
   */
 object EventStreamMarshalling extends EventStreamMarshalling
 

@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package de.heikoseeberger.akkasse
-package japi
+package de.heikoseeberger.akkasse.japi
 
-import akka.http.javadsl.model.RequestEntity
-import akka.http.scaladsl.marshalling.Marshaller
+import akka.NotUsed
+import akka.http.javadsl.model.HttpEntity
+import akka.http.scaladsl.unmarshalling.Unmarshaller
 import akka.stream.javadsl.Source
-import de.heikoseeberger.akkasse.EventStreamMarshalling.{ toEventStream => toEventStreamScala }
+import de.heikoseeberger.akkasse.EventStreamUnmarshalling.{ fromEventStream => fromEventStreamScala }
 
-private object EventStreamMarshallingConverter {
+private object EventStreamUnmarshallingConverter {
 
-  final def toEventStream[A]: Marshaller[Source[ServerSentEvent, A], RequestEntity] = {
-    def asScala(eventStream: Source[ServerSentEvent, A]) =
-      eventStream.asScala.map(_.asInstanceOf[de.heikoseeberger.akkasse.ServerSentEvent])
-    toEventStreamScala.compose(asScala)
-  }
+  final val fromEventStream: Unmarshaller[HttpEntity, Source[ServerSentEvent, NotUsed]] =
+    fromEventStreamScala
+      .map(_.map(_.asInstanceOf[ServerSentEvent]).asJava)
+      .asInstanceOf[Unmarshaller[HttpEntity, Source[ServerSentEvent, NotUsed]]]
 }

@@ -16,6 +16,7 @@
 
 package de.heikoseeberger.akkasse
 
+import akka.NotUsed
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
 import akka.stream.scaladsl.Source
@@ -56,11 +57,11 @@ trait EventStreamUnmarshalling {
   protected def maxLineSize: Int =
     4096
 
-  implicit final val fromEventStream: FromEntityUnmarshaller[Source[ServerSentEvent, Any]] = {
+  implicit final val fromEventStream: FromEntityUnmarshaller[Source[ServerSentEvent, NotUsed]] = {
     val lineParser  = new LineParser(_maxLineSize)
     val eventParser = new ServerSentEventParser(_maxEventSize)
     def unmarshal(entity: HttpEntity) =
-      entity.withoutSizeLimit.dataBytes.via(lineParser).via(eventParser)
+      entity.withoutSizeLimit.dataBytes.via(lineParser).via(eventParser).mapMaterializedValue(_ => NotUsed: NotUsed)
     Unmarshaller.strict(unmarshal).forContentTypes(`text/event-stream`)
   }
 }
