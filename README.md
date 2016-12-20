@@ -14,6 +14,9 @@ communication, SSE only allows for one-way communication from the server to the
 client. If that's all you need, SSE offers advantages, because it's much simpler
 and relies on HTTP only.
 
+Since version 2 Akka SSE supports both Scala and Java, even if the below
+examples show only Scala. 
+
 ## Getting Akka SSE
 
 Akka SSE is published to Bintray and Maven Central.
@@ -24,7 +27,7 @@ Akka SSE is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= Vector(
-  "de.heikoseeberger" %% "akka-sse" % "2.0.0-RC3",
+  "de.heikoseeberger" %% "akka-sse" % "2.0.0-RC5",
   ...
 )
 ```
@@ -90,18 +93,18 @@ To send periodic heartbeats, simply use the `keepAlive` standard stage with a
 
 ## Usage – client-side
 
-In order to unmarshal server-sent events as `Source[ServerSentEvent, Any]`, you
+In order to unmarshal server-sent events as `Source[ServerSentEvent, NotUsed]`, you
 have to bring the implicit
-`FromEntityUnmarshaller[Source[ServerSentEvent, Any]]` defined by the
+`FromEntityUnmarshaller[Source[ServerSentEvent, NotUsed]]` defined by the
 `EventStreamUnmarshalling` trait or object into scope:
 
 ``` scala
-import EventStreamUnmarshalling._
+import EventStreamUnmarshalling._ // That does the trick!
 import system.dispatcher
 
 Http()
   .singleRequest(Get("http://localhost:8000/events"))
-  .flatMap(Unmarshal(_).to[Source[ServerSentEvent, Any]])
+  .flatMap(Unmarshal(_).to[Source[ServerSentEvent, NotUsed]])
   .foreach(_.runForeach(print))
 ```
 
