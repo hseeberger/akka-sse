@@ -15,7 +15,7 @@ client. If that's all you need, SSE offers advantages, because it's much simpler
 and relies on HTTP only.
 
 Since version 2 Akka SSE supports both Scala and Java, even if the below
-examples show only Scala. 
+examples only show Scala.
 
 ## Getting Akka SSE
 
@@ -27,7 +27,7 @@ Akka SSE is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= Vector(
-  "de.heikoseeberger" %% "akka-sse" % "2.0.0-RC5",
+  "de.heikoseeberger" %% "akka-sse" % "2.0.0",
   ...
 )
 ```
