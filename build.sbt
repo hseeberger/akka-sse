@@ -26,8 +26,7 @@ lazy val core =
         library.junit           % Test,
         library.scalaCheck      % Test,
         library.scalaTest       % Test
-      ),
-      initialCommands := """|import de.heikoseeberger.akkasse._""".stripMargin
+      )
     )
 
 lazy val example =
@@ -63,7 +62,7 @@ lazy val library =
   new {
     object Version {
       val akka       = "2.4.14"
-      val akkaHttp   = "10.0.0"
+      val akkaHttp   = "10.0.1"
       val junit      = "4.12"
       val scalaCheck = "1.13.4"
       val scalaTest  = "3.0.1"
