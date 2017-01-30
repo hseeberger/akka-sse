@@ -110,7 +110,7 @@ Http()
 
 ## References
 
-- [Example application](https://github.com/hseeberger/akka-sse/tree/master/akka-sse-example)
+- [Example application](https://github.com/hseeberger/akka-sse/tree/master/example)
 - [Reactive Flows](https://github.com/hseeberger/reactive-flows)
 - [Typesafe ConductR](http://www.typesafe.com/products/conductr)
 
