@@ -54,8 +54,10 @@ object EventStreamUnmarshallingSpec {
               complete(
                 HttpResponse(
                   BadRequest,
-                  entity = HttpEntity(`text/event-stream`,
-                                      "Integral number expected for Last-Event-ID header!".getBytes(UTF_8))
+                  entity = HttpEntity(
+                    `text/event-stream`,
+                    "Integral number expected for Last-Event-ID header!".getBytes(UTF_8)
+                  )
                 )
               )
           }
@@ -99,7 +101,10 @@ class EventStreamUnmarshallingSpec extends BaseSpec {
       val events = 1.to(666).map(n => ServerSentEvent(Some(n.toString)))
       val data   = Source(events).map(_.encode)
       val entity = HttpEntity(`text/event-stream`, data)
-      Unmarshal(entity).to[Source[ServerSentEvent, NotUsed]].flatMap(_.runWith(Sink.seq)).map(_ shouldBe events)
+      Unmarshal(entity)
+        .to[Source[ServerSentEvent, NotUsed]]
+        .flatMap(_.runWith(Sink.seq))
+        .map(_ shouldBe events)
     }
 
     "not be limited" in {
@@ -109,7 +114,9 @@ class EventStreamUnmarshallingSpec extends BaseSpec {
       Http()
         .singleRequest(Get(s"http://$host:$port"))
         .flatMap {
-          Unmarshal(_).to[Source[ServerSentEvent, NotUsed]].flatMap(_.take(nrOfSamples).runWith(Sink.ignore))
+          Unmarshal(_)
+            .to[Source[ServerSentEvent, NotUsed]]
+            .flatMap(_.take(nrOfSamples).runWith(Sink.ignore))
         }
         .map(_ shouldBe Done)
         .andThen { case _ => system.stop(server) }

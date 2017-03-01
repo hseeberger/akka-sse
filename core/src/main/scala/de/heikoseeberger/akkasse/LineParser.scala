@@ -28,9 +28,11 @@ private object LineParser {
   private final val lf = '\n'.toByte
 }
 
-private final class LineParser(maxLineSize: Int) extends GraphStage[FlowShape[ByteString, String]] {
+private final class LineParser(maxLineSize: Int)
+    extends GraphStage[FlowShape[ByteString, String]] {
 
-  override val shape = FlowShape(Inlet[ByteString]("LineParser.in"), Outlet[String]("LineParser.out"))
+  override val shape =
+    FlowShape(Inlet[ByteString]("LineParser.in"), Outlet[String]("LineParser.out"))
 
   override def createLogic(attributes: Attributes) =
     new GraphStageLogic(shape) with InHandler with OutHandler {

@@ -20,7 +20,9 @@ import akka.NotUsed
 import akka.http.javadsl.model.HttpEntity
 import akka.http.scaladsl.unmarshalling.Unmarshaller
 import akka.stream.javadsl.Source
-import de.heikoseeberger.akkasse.EventStreamUnmarshalling.{ fromEventStream => fromEventStreamScala }
+import de.heikoseeberger.akkasse.EventStreamUnmarshalling.{
+  fromEventStream => fromEventStreamScala
+}
 
 private object EventStreamUnmarshallingConverter {
 

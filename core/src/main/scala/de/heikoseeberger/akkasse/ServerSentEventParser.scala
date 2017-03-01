@@ -84,7 +84,8 @@ private object ServerSentEventParser {
   private val linePattern = """([^:]+): ?(.*)""".r
 }
 
-private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[FlowShape[String, ServerSentEvent]] {
+private final class ServerSentEventParser(maxEventSize: Int)
+    extends GraphStage[FlowShape[String, ServerSentEvent]] {
 
   override val shape = FlowShape(
     Inlet[String]("ServerSentEventParser.in"),

@@ -61,7 +61,10 @@ trait EventStreamUnmarshalling {
     val lineParser  = new LineParser(_maxLineSize)
     val eventParser = new ServerSentEventParser(_maxEventSize)
     def unmarshal(entity: HttpEntity) =
-      entity.withoutSizeLimit.dataBytes.via(lineParser).via(eventParser).mapMaterializedValue(_ => NotUsed: NotUsed)
+      entity.withoutSizeLimit.dataBytes
+        .via(lineParser)
+        .via(eventParser)
+        .mapMaterializedValue(_ => NotUsed: NotUsed)
     Unmarshaller.strict(unmarshal).forContentTypes(`text/event-stream`)
   }
 }
