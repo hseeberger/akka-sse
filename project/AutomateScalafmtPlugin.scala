@@ -28,8 +28,8 @@ object AutomateScalafmtPlugin extends AutoPlugin {
                   .get
                   .toSet
               def format(handler: Set[File] => Unit, msg: String) = {
-                def update(handler: Set[File] => Unit, msg: String)(
-                    in: ChangeReport[File], out: ChangeReport[File]) = {
+                def update(handler: Set[File] => Unit, msg: String)(in: ChangeReport[File],
+                                                                    out: ChangeReport[File]) = {
                   val label = Reference.display(thisProjectRef.value)
                   val files = in.modified -- in.removed
                   Analysis
@@ -38,13 +38,14 @@ object AutomateScalafmtPlugin extends AutoPlugin {
                   handler(files)
                   files
                 }
-                FileFunction.cached(cache)(FilesInfo.hash,
-                                           FilesInfo.exists)(update(handler, msg))(sources)
+                FileFunction.cached(cache)(FilesInfo.hash, FilesInfo.exists)(update(handler, msg))(
+                  sources
+                )
               }
               def formattingHandler(files: Set[File]) =
                 if (files.nonEmpty) {
                   val filesArg = files.map(_.getAbsolutePath).mkString(",")
-                  ScalafmtBootstrap.main(List("--non-interactive", "-i", "-f", filesArg))
+                  ScalafmtBootstrap.main(List("--quiet", "-i", "-f", filesArg))
                 }
               format(formattingHandler, "Formatting")
               format(_ => (), "Reformatted") // Recalculate the cache
