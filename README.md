@@ -89,7 +89,7 @@ object TimeServer {
 ```
 
 To send periodic heartbeats, simply use the `keepAlive` standard stage with a
-`ServerSentEvent.heartbeat`:
+`ServerSentEvent.heartbeat`.
 
 ## Usage – client-side
 
