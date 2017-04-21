@@ -42,9 +42,6 @@ class LastEventIdSpec extends WordSpec with Matchers with RouteTest with Scalate
 
   private def route = {
     import Directives._
-    headerValueByType[`Last-Event-ID`]() {
-      case `Last-Event-ID`(id) =>
-        complete(id.toString)
-    }
+    headerValueByType[`Last-Event-ID`]() { case `Last-Event-ID`(id) => complete(id.toString) }
   }
 }

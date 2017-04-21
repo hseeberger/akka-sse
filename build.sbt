@@ -65,7 +65,7 @@ lazy val library =
       val akkaHttp   = "10.0.5"
       val junit      = "4.12"
       val scalaCheck = "1.13.5"
-      val scalaTest  = "3.0.1"
+      val scalaTest  = "3.0.3"
     }
     val akkaHttp        = "com.typesafe.akka" %% "akka-http"         % Version.akkaHttp
     val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp
