@@ -80,17 +80,15 @@ private object ServerSentEventParser {
   private final val Id    = "id"
   private final val Retry = "retry"
 
-  //TODO switch to a regex which only matches the fields above
-  private val linePattern = """([^:]+): ?(.*)""".r
+  private val field = """([^:]+): ?(.*)""".r
 }
 
 private final class ServerSentEventParser(maxEventSize: Int)
     extends GraphStage[FlowShape[String, ServerSentEvent]] {
 
-  override val shape = FlowShape(
-    Inlet[String]("ServerSentEventParser.in"),
-    Outlet[ServerSentEvent]("ServerSentEventParser.out")
-  )
+  override val shape =
+    FlowShape(Inlet[String]("ServerSentEventParser.in"),
+              Outlet[ServerSentEvent]("ServerSentEventParser.out"))
 
   override def createLogic(attributes: Attributes) =
     new GraphStageLogic(shape) with InHandler with OutHandler {
@@ -104,23 +102,23 @@ private final class ServerSentEventParser(maxEventSize: Int)
       override def onPush() = {
         val line = grab(in)
         if (line == "") { // An event is terminated with a new line
-          push(out, builder.build())
-          builder.reset()
+          if (builder.size == 0)
+            pull(in)
+          else {
+            push(out, builder.build())
+            builder.reset()
+          }
         } else if (builder.size + line.length <= maxEventSize) {
           line match {
-            case Data  => builder.appendData("")
-            case Event => builder.setEventType("")
-            case Id    => builder.setId("")
-            case Retry => builder.setRetry("")
-            case linePattern(field, value) =>
-              field match {
-                case Data            => builder.appendData(value)
-                case Event           => builder.setEventType(value)
-                case Id              => builder.setId(value)
-                case Retry           => builder.setRetry(value)
-                case badFormatString => // TODO: Consider if these should be reported!
-              }
-            case badFormatString => // TODO: Consider if these should be reported!
+            case Data                => builder.appendData("")
+            case Event               => builder.setEventType("")
+            case Id                  => builder.setId("")
+            case Retry               => builder.setRetry("")
+            case field(Data, value)  => builder.appendData(value)
+            case field(Event, value) => builder.setEventType(value)
+            case field(Id, value)    => builder.setId(value)
+            case field(Retry, value) => builder.setRetry(value)
+            case _                   => // ignore according to spec
           }
           pull(in)
         } else {

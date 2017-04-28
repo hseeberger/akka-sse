@@ -16,9 +16,9 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Sink, Source}
 import akka.util.ByteString
-import org.scalatest.{ AsyncWordSpec, Matchers }
+import org.scalatest.{AsyncWordSpec, Matchers}
 
 final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with AkkaSpec {
 
@@ -49,13 +49,11 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
                      |""".stripMargin
       Source(input.split(f"%n").toVector)
         .via(new ServerSentEventParser(1048576))
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+        .runWith(Sink.seq)
         .map(
           _ shouldBe Vector(
             ServerSentEvent(Some("message 1 line 1\nmessage 1 line 2")),
             ServerSentEvent(Some("message 2"), Some("message 2 event"), Some("42"), Some(512)),
-            ServerSentEvent(),
-            ServerSentEvent(),
             ServerSentEvent(None, Some("message 4 event"), Some("")),
             ServerSentEvent(Some(""), None, Some("")),
             ServerSentEvent(retry = Some(512))
@@ -69,7 +67,7 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
                      |""".stripMargin
       Source(input.split(f"%n", -1).toVector)
         .via(new ServerSentEventParser(1048576))
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+        .runWith(Sink.seq)
         .map(_ shouldBe Vector(ServerSentEvent(Some("stuff"), retry = None)))
     }
 
@@ -79,7 +77,7 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
         .single(ByteString(input))
         .via(new LineParser(1048576))
         .via(new ServerSentEventParser(1048576))
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+        .runWith(Sink.seq)
         .map(_ shouldBe Vector(ServerSentEvent(Some("stuff\nmore\nextra"))))
     }
   }
