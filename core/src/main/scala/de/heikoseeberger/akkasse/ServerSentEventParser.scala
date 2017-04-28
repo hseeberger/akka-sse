@@ -21,7 +21,7 @@ import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 
 private object ServerSentEventParser {
 
-  private final class Builder {
+  final class Builder {
 
     private var data      = Vector.empty[String]
     private var eventType = null: String

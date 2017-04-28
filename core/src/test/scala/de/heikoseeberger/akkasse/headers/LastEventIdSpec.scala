@@ -23,7 +23,7 @@ import akka.http.scaladsl.testkit.RouteTest
 import akka.http.scaladsl.testkit.TestFrameworkInterface.Scalatest
 import org.scalatest.{ Matchers, WordSpec }
 
-class LastEventIdSpec extends WordSpec with Matchers with RouteTest with Scalatest {
+final class LastEventIdSpec extends WordSpec with Matchers with RouteTest with Scalatest {
 
   "Last-Event-ID" should {
     "match and extract the header value" in {

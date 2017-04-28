@@ -19,8 +19,9 @@ package de.heikoseeberger.akkasse
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpRequest
 import akka.stream.scaladsl.{ Sink, Source }
+import org.scalatest.{ AsyncWordSpec, Matchers }
 
-class EventStreamMarshallingSpec extends BaseSpec {
+final class EventStreamMarshallingSpec extends AsyncWordSpec with Matchers with AkkaSpec {
   import EventStreamMarshalling._
 
   "A source of ServerSentEvents" should {

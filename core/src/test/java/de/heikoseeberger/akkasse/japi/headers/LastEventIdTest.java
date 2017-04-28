@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package de.heikoseeberger.akkasse.japi;
+package de.heikoseeberger.akkasse.japi.headers;
 
-import akka.http.javadsl.model.MediaType;
+import org.junit.Assert;
+import org.junit.Test;
+import org.scalatest.junit.JUnitSuite;
 
-public abstract class MediaTypes {
+final public class LastEventIdTest extends JUnitSuite {
 
-    /**
-     * Media type for Server-Sent Events as required by the
-     * [[http://www.w3.org/TR/eventsource/#event-stream-interpretation SSE specification]].
-     */
-    public static final MediaType.WithFixedCharset TEXT_EVENT_STREAM =
-            de.heikoseeberger.akkasse.MediaTypes.text$divevent$minusstream();
+    @Test
+    public void create() {
+        final LastEventId lastEventId = LastEventId.create("123");
+        Assert.assertEquals("123", lastEventId.getValue());
+    }
 }

@@ -20,7 +20,7 @@ import akka.util.ByteString
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{ Matchers, WordSpec }
 
-class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPropertyChecks {
+final class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDrivenPropertyChecks {
 
   "Creating a ServerSentEvent" should {
     "throw an IllegalArgumentException if type contains a \n or \r character" in {
