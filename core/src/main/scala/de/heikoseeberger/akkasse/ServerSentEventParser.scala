@@ -84,7 +84,7 @@ private object ServerSentEventParser {
   private val linePattern = """([^:]+): ?(.*)""".r
 }
 
-private final class ServerSentEventParser(maxEventSize: Int)
+private final class ServerSentEventParser(maxEventSize: Int, dropHeartbeats: Boolean)
     extends GraphStage[FlowShape[String, ServerSentEvent]] {
 
   override val shape = FlowShape(
@@ -104,8 +104,12 @@ private final class ServerSentEventParser(maxEventSize: Int)
       override def onPush() = {
         val line = grab(in)
         if (line == "") { // An event is terminated with a new line
-          push(out, builder.build())
-          builder.reset()
+          if (builder.size == 0 && dropHeartbeats)
+            pull(in)
+          else {
+            push(out, builder.build())
+            builder.reset()
+          }
         } else if (builder.size + line.length <= maxEventSize) {
           line match {
             case Data  => builder.appendData("")
@@ -114,13 +118,13 @@ private final class ServerSentEventParser(maxEventSize: Int)
             case Retry => builder.setRetry("")
             case linePattern(field, value) =>
               field match {
-                case Data            => builder.appendData(value)
-                case Event           => builder.setEventType(value)
-                case Id              => builder.setId(value)
-                case Retry           => builder.setRetry(value)
-                case badFormatString => // TODO: Consider if these should be reported!
+                case Data  => builder.appendData(value)
+                case Event => builder.setEventType(value)
+                case Id    => builder.setId(value)
+                case Retry => builder.setRetry(value)
+                case _     => // TODO: Consider if these should be reported!
               }
-            case badFormatString => // TODO: Consider if these should be reported!
+            case _ => // TODO: Consider if these should be reported!
           }
           pull(in)
         } else {

@@ -27,8 +27,8 @@ import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
   * unmarshalled to a source of [[ServerSentEvent]]s.
   *
   * The maximum size for parsing server-sent events is 8KiB. The maximum size for parsing lines of a server-sent event
-  * is 4KiB. If you need to customize any of these, use the [[EventStreamUnmarshalling]] trait and override the
-  * respective methods.
+  * is 4KiB. Heartbeats (empty server-sentevents) are dropped. If you need to customize any of these, use the
+  * [[EventStreamUnmarshalling]] trait and override the respective methods.
   */
 object EventStreamUnmarshalling extends EventStreamUnmarshalling
 
@@ -38,13 +38,10 @@ object EventStreamUnmarshalling extends EventStreamUnmarshalling
   *
   * The maximum size for parsing server-sent events is 8KiB dy default and can be customized by overriding
   * [[EventStreamUnmarshalling.maxEventSize]]. The maximum size for parsing lines of a server-sent event is 4KiB dy
-  * default and can be customized by overriding [[EventStreamUnmarshalling.maxLineSize]].
+  * default and can be customized by overriding [[EventStreamUnmarshalling.maxLineSize]]. Heartbeats (empty server-sent
+  * events) are dropped by default which can be customized by overriding [[EventStreamUnmarshalling.dropHeartbeats]].
   */
 trait EventStreamUnmarshalling {
-
-  private val _maxEventSize = maxEventSize
-
-  private val _maxLineSize = maxLineSize
 
   /**
     * The maximum size for parsing server-sent events; 8KiB by default.
@@ -58,9 +55,15 @@ trait EventStreamUnmarshalling {
   protected def maxLineSize: Int =
     4096
 
+  /**
+    * Whether heartbeats (empty server-sent events) should be dropped; true by default.
+    */
+  protected def dropHeartbeats: Boolean =
+    true
+
   implicit final val fromEventStream: FromEntityUnmarshaller[Source[ServerSentEvent, NotUsed]] = {
-    val lineParser  = new LineParser(_maxLineSize)
-    val eventParser = new ServerSentEventParser(_maxEventSize)
+    val lineParser  = new LineParser(maxLineSize)
+    val eventParser = new ServerSentEventParser(maxEventSize, dropHeartbeats)
     def unmarshal(entity: HttpEntity) =
       entity.withoutSizeLimit.dataBytes
         .via(lineParser)

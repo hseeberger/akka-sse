@@ -23,7 +23,7 @@ import org.scalatest.{ AsyncWordSpec, Matchers }
 final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with AkkaSpec {
 
   "A ServerSentEventParser" should {
-    "parse ServerSentEvents correctly" in {
+    "parse ServerSentEvents correctly and drop heartbeats if configured accordingly" in {
       val input = """|data: message 1 line 1
                      |data:message 1 line 2
                      |
@@ -48,17 +48,36 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
                      |data: incomplete message
                      |""".stripMargin
       Source(input.split(f"%n").toVector)
-        .via(new ServerSentEventParser(1048576))
+        .via(new ServerSentEventParser(1048576, true))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
         .map(
           _ shouldBe Vector(
             ServerSentEvent(Some("message 1 line 1\nmessage 1 line 2")),
             ServerSentEvent(Some("message 2"), Some("message 2 event"), Some("42"), Some(512)),
-            ServerSentEvent(),
-            ServerSentEvent(),
             ServerSentEvent(None, Some("message 4 event"), Some("")),
             ServerSentEvent(Some(""), None, Some("")),
             ServerSentEvent(retry = Some(512))
+          )
+        )
+    }
+
+    "parse ServerSentEvents correctly and keep heartbeats if configured accordingly" in {
+      val input = """|data: data
+                     |
+                     |
+                     |
+                     |data: data
+                     |
+                     |THIS IS NEEDED BECAUSE OF STRIPPING THE MARGIN, I GUESS""".stripMargin
+      Source(input.split(f"%n").toVector)
+        .via(new ServerSentEventParser(1048576, false))
+        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+        .map(
+          _ shouldBe Vector(
+            ServerSentEvent("data"),
+            ServerSentEvent(),
+            ServerSentEvent(),
+            ServerSentEvent("data")
           )
         )
     }
@@ -68,7 +87,7 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
                      |retry: ten
                      |""".stripMargin
       Source(input.split(f"%n", -1).toVector)
-        .via(new ServerSentEventParser(1048576))
+        .via(new ServerSentEventParser(1048576, true))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
         .map(_ shouldBe Vector(ServerSentEvent(Some("stuff"), retry = None)))
     }
@@ -78,7 +97,7 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
       Source
         .single(ByteString(input))
         .via(new LineParser(1048576))
-        .via(new ServerSentEventParser(1048576))
+        .via(new ServerSentEventParser(1048576, true))
         .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
         .map(_ shouldBe Vector(ServerSentEvent(Some("stuff\nmore\nextra"))))
     }
