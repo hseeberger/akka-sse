@@ -53,12 +53,15 @@ private object ServerSentEventParser {
       retry = value
     }
 
+    def hasData: Boolean =
+      data.mkString("\n").nonEmpty
+
     def size: Int =
       _size
 
     def build(): ServerSentEvent =
       ServerSentEvent(
-        if (data.nonEmpty) Some(data.mkString("\n")) else None,
+        data.mkString("\n"),
         Option(eventType),
         Option(id),
         try { if (retry ne null) Some(retry.trim.toInt) else None } catch {
@@ -102,12 +105,11 @@ private final class ServerSentEventParser(maxEventSize: Int)
       override def onPush() = {
         val line = grab(in)
         if (line == "") { // An event is terminated with a new line
-          if (builder.size == 0)
-            pull(in)
-          else {
+          if (builder.hasData) // Events without data are ignored according to the spec
             push(out, builder.build())
-            builder.reset()
-          }
+          else
+            pull(in)
+          builder.reset()
         } else if (builder.size + line.length <= maxEventSize) {
           line match {
             case Data                => builder.appendData("")

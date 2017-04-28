@@ -41,7 +41,7 @@ object EventStreamUnmarshallingSpec {
       import Directives._
       import EventStreamMarshalling._
 
-      def toServerSentEvent(n: Int) = ServerSentEvent(Some(n.toString))
+      def toServerSentEvent(n: Int) = ServerSentEvent(n.toString)
 
       get {
         optionalHeaderValueByName(`Last-Event-ID`.name) { lastEventId =>
@@ -99,7 +99,7 @@ final class EventStreamUnmarshallingSpec extends AsyncWordSpec with Matchers wit
 
   "A HTTP entity with media-type text/event-stream" should {
     "be unmarshallable to an EventStream" in {
-      val events = 1.to(666).map(n => ServerSentEvent(Some(n.toString)))
+      val events = 1.to(666).map(n => ServerSentEvent(n.toString))
       val data   = Source(events).map(_.encode)
       val entity = HttpEntity(`text/event-stream`, data)
       Unmarshal(entity)

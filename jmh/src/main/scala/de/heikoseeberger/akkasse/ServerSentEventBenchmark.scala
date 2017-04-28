@@ -30,9 +30,9 @@ class ServerSentEventBenchmark {
     ServerSentEvent("line-one", "added"),
     ServerSentEvent("line-one\nline-two", "removed"),
     ServerSentEvent("line-one\nline-two\nline-three\nline-four", "updated"),
-    ServerSentEvent(Some("line-one"), id = Some("id")),
-    ServerSentEvent(Some("line-one\nline-two"), id = Some("id")),
-    ServerSentEvent(Some("line-one\nline-two\nline-three\nline-four"), id = Some("id")),
+    ServerSentEvent("line-one", id = Some("id")),
+    ServerSentEvent("line-one\nline-two", id = Some("id")),
+    ServerSentEvent("line-one\nline-two\nline-three\nline-four", id = Some("id")),
     ServerSentEvent("line-one", "added", "id"),
     ServerSentEvent("line-one\nline-two", "removed", "id"),
     ServerSentEvent("line-one\nline-two\nline-three\nline-four", "updated", "id")

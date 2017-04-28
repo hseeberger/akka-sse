@@ -24,19 +24,19 @@ final class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDri
 
   "Creating a ServerSentEvent" should {
     "throw an IllegalArgumentException if type contains a \n or \r character" in {
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent(`type` = Some("type\n"))
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent(`type` = Some("type\rtype"))
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "type\n")
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", "type\rtype")
     }
 
     "throw an IllegalArgumentException if id contains a \n or \r character" in {
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent(id = Some("id\n"))
-      an[IllegalArgumentException] should be thrownBy ServerSentEvent(id = Some("id\rid"))
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", id = Some("id\n"))
+      an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", id = Some("id\rid"))
     }
 
     "throw an IllegalArgumentException if retry is not a positive number" in {
       forAll("retry") { (n: Int) =>
         whenever(n <= 0) {
-          an[IllegalArgumentException] should be thrownBy ServerSentEvent(retry = Some(n))
+          an[IllegalArgumentException] should be thrownBy ServerSentEvent("data", n)
         }
       }
     }
@@ -44,32 +44,32 @@ final class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDri
 
   "Calling encode" should {
     "return a single data line" in {
-      val event = ServerSentEvent(Some(" "))
+      val event = ServerSentEvent(" ")
       event.encode shouldBe ByteString.fromString("data:  \n\n")
     }
 
     "return multiple data lines" in {
-      val event = ServerSentEvent(Some("data1\ndata2\n"))
+      val event = ServerSentEvent("data1\ndata2\n")
       event.encode shouldBe ByteString.fromString("data: data1\ndata: data2\ndata: \n\n")
     }
 
     "return data lines and an type line" in {
-      val event = ServerSentEvent(Some("data1\ndata2"), Some("type"))
+      val event = ServerSentEvent("data1\ndata2", "type")
       event.encode shouldBe ByteString.fromString("data: data1\ndata: data2\nevent: type\n\n")
     }
 
     "return a data line and an id line" in {
-      val event = ServerSentEvent(data = Some("data"), id = Some("id"))
+      val event = ServerSentEvent("data", id = Some("id"))
       event.encode shouldBe ByteString.fromString("data: data\nid: id\n\n")
     }
 
     "return a retry line" in {
-      val event = ServerSentEvent(retry = Some(42))
-      event.encode shouldBe ByteString.fromString("retry: 42\n\n")
+      val event = ServerSentEvent("data", 42)
+      event.encode shouldBe ByteString.fromString("data: data\nretry: 42\n\n")
     }
 
     "return all possible lines" in {
-      val event = ServerSentEvent(Some("data"), Some("type"), Some("id"), Some(42))
+      val event = ServerSentEvent("data", Some("type"), Some("id"), Some(42))
       event.encode shouldBe ByteString.fromString("data: data\nevent: type\nid: id\nretry: 42\n\n")
     }
   }
