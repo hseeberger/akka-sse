@@ -31,6 +31,7 @@ import akka.testkit.SocketUtil
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
 import java.nio.charset.StandardCharsets.UTF_8
+import org.scalatest.{ AsyncWordSpec, Matchers }
 
 object EventStreamUnmarshallingSpec {
 
@@ -91,7 +92,7 @@ object EventStreamUnmarshallingSpec {
   }
 }
 
-class EventStreamUnmarshallingSpec extends BaseSpec {
+final class EventStreamUnmarshallingSpec extends AsyncWordSpec with Matchers with AkkaSpec {
   import EventStreamUnmarshalling._
   import EventStreamUnmarshallingSpec._
   import RequestBuilding._

@@ -19,6 +19,7 @@ package de.heikoseeberger.akkasse
 import akka.util.ByteString
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.annotation.tailrec
+import scala.compat.java8.OptionConverters.RichOptionForJava8
 
 object ServerSentEvent {
 
@@ -92,7 +93,6 @@ final case class ServerSentEvent(data: Option[String] = None,
                                  id: Option[String] = None,
                                  retry: Option[Int] = None)
     extends japi.ServerSentEvent {
-  import OptionConverter._
   import ServerSentEvent._
 
   require(`type`.forall(noNewLine), "type must not contain \\n or \\r!")
@@ -141,11 +141,11 @@ final case class ServerSentEvent(data: Option[String] = None,
     builder.append('\n').toString
   }
 
-  override def getData = data.toOptional
+  override def getData = data.asJava
 
-  override def getType = `type`.toOptional
+  override def getType = `type`.asJava
 
-  override def getId = id.toOptional
+  override def getId = id.asJava
 
-  override def getRetry = retry.toOptionalInt
+  override def getRetry = retry.asPrimitive
 }

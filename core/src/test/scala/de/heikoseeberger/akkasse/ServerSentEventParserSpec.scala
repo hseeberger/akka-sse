@@ -18,8 +18,9 @@ package de.heikoseeberger.akkasse
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import org.scalatest.{ AsyncWordSpec, Matchers }
 
-class ServerSentEventParserSpec extends BaseSpec {
+final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with AkkaSpec {
 
   "A ServerSentEventParser" should {
     "parse ServerSentEvents correctly" in {

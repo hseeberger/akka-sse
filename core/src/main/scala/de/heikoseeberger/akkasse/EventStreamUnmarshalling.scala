@@ -43,7 +43,8 @@ object EventStreamUnmarshalling extends EventStreamUnmarshalling
 trait EventStreamUnmarshalling {
 
   private val _maxEventSize = maxEventSize
-  private val _maxLineSize  = maxLineSize
+
+  private val _maxLineSize = maxLineSize
 
   /**
     * The maximum size for parsing server-sent events; 8KiB by default.

@@ -18,8 +18,9 @@ package de.heikoseeberger.akkasse
 
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
+import org.scalatest.{ AsyncWordSpec, Matchers }
 
-class LineParserSpec extends BaseSpec {
+final class LineParserSpec extends AsyncWordSpec with Matchers with AkkaSpec {
 
   "A LineParser" should {
 
