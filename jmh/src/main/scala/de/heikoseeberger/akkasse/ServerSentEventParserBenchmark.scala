@@ -53,7 +53,7 @@ class ServerSentEventParserBenchmark {
         .fromIterator(() => Iterator.fill(50000)(data))
         .mapConcat(identity)
         .take(50000)
-        .via(new ServerSentEventParser(1048576))
+        .via(new ServerSentEventParser(1048576, true))
         .runForeach(_ => ())
     Await.ready(done, Duration.Inf)
   }
