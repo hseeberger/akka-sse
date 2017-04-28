@@ -19,12 +19,18 @@ package de.heikoseeberger.akkasse.japi;
 import akka.util.ByteString;
 import java.util.Optional;
 import java.util.OptionalInt;
+import scala.Option;
 import static scala.compat.java8.OptionConverters.toScala;
 
 /**
- * Representation of a server-sent event.
+ * Representation of a server-sent event. According to the specification, an empty data field
+ * designates an event which is to be ignored which is useful for heartbeats.
  */
 public abstract class ServerSentEvent {
+
+    private static final Option<String> stringNone =  toScala(Optional.empty());
+
+    private static final Option<Object> intNone = toScala(OptionalInt.empty());
 
     /**
      * Creates a [[ServerSentEvent]].
@@ -32,22 +38,13 @@ public abstract class ServerSentEvent {
      * @param data data, may be empty or span multiple lines
      */
     public static ServerSentEvent create(String data) {
-        return de.heikoseeberger.akkasse.ServerSentEvent.apply(data);
+        return de.heikoseeberger.akkasse.ServerSentEvent.apply(data, stringNone, stringNone, intNone);
     }
 
     /**
      * Creates a [[ServerSentEvent]].
      *
-     * @param retry reconnection delay in milliseconds
-     */
-    public static ServerSentEvent create(int retry) {
-        return de.heikoseeberger.akkasse.ServerSentEvent.apply(retry);
-    }
-
-    /**
-     * Creates a [[ServerSentEvent]].
-     *
-     * @param data data, may be empty or span multiple lines
+     * @param data data, may span multiple lines
      * @param type type, must not contain \n or \r
      */
     public static ServerSentEvent create(String data, String type) {
@@ -57,7 +54,7 @@ public abstract class ServerSentEvent {
     /**
      * Creates a [[ServerSentEvent]].
      *
-     * @param data data, may be empty or span multiple lines
+     * @param data data, may span multiple lines
      * @param type type, must not contain \n or \r
      * @param id id, must not contain \n or \r
      */
@@ -68,27 +65,34 @@ public abstract class ServerSentEvent {
     /**
      * Creates a [[ServerSentEvent]].
      *
-     * @param data optional data, may be empty or span multiple lines
+     * @param data data, may span multiple lines
+     * @param retry reconnection delay in milliseconds
+     */
+    public static ServerSentEvent create(String data, int retry) {
+        return de.heikoseeberger.akkasse.ServerSentEvent.apply(data, retry);
+    }
+
+    /**
+     * Creates a [[ServerSentEvent]].
+     *
+     * @param data data, may span multiple lines
      * @param type optional type, must not contain \n or \r
      * @param id optional id, must not contain \n or \r
      * @param retry optional reconnection delay in milliseconds
      */
-    public static ServerSentEvent create(Optional<String> data,
+    public static ServerSentEvent create(String data,
                                          Optional<String> type,
                                          Optional<String> id,
                                          OptionalInt retry) {
         return de.heikoseeberger.akkasse.ServerSentEvent.apply(
-                toScala(data),
-                toScala(type),
-                toScala(id),
-                toScala(retry)
+                data, toScala(type), toScala(id), toScala(retry)
         );
     }
 
     /**
-     * Optional data, may be empty or span multiple lines.
+     * Data, may span multiple lines.
      */
-    public abstract Optional<String> getData();
+    public abstract String getData();
 
     /**
      * Optional type, must not contain \n or \r.

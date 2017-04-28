@@ -16,7 +16,7 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ Sink, Source }
 import akka.util.ByteString
 import org.scalatest.{ AsyncWordSpec, Matchers }
 
@@ -29,6 +29,7 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
                      |
                      |data: message 2
                      |:This is a comment and must be ignored
+                     |ignore: this is an ignored field
                      |event: Only the last event should be considered
                      |event: message 2 event
                      |id: Only the last id should be considered
@@ -37,28 +38,28 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
                      |
                      |
                      |
-                     |event: message 4 event
+                     |event: no data means event gets ignored
                      |id:
                      |
                      |data
                      |id
                      |
-                     |retry: 512
+                     |data:
+                     |id
+                     |
+                     |data: data
+                     |id
                      |
                      |data: incomplete message
                      |""".stripMargin
       Source(input.split(f"%n").toVector)
         .via(new ServerSentEventParser(1048576))
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
+        .runWith(Sink.seq)
         .map(
           _ shouldBe Vector(
-            ServerSentEvent(Some("message 1 line 1\nmessage 1 line 2")),
-            ServerSentEvent(Some("message 2"), Some("message 2 event"), Some("42"), Some(512)),
-            ServerSentEvent(),
-            ServerSentEvent(),
-            ServerSentEvent(None, Some("message 4 event"), Some("")),
-            ServerSentEvent(Some(""), None, Some("")),
-            ServerSentEvent(retry = Some(512))
+            ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
+            ServerSentEvent("message 2", Some("message 2 event"), Some("42"), Some(512)),
+            ServerSentEvent("data", None, Some(""))
           )
         )
     }
@@ -69,8 +70,8 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
                      |""".stripMargin
       Source(input.split(f"%n", -1).toVector)
         .via(new ServerSentEventParser(1048576))
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-        .map(_ shouldBe Vector(ServerSentEvent(Some("stuff"), retry = None)))
+        .runWith(Sink.seq)
+        .map(_ shouldBe Vector(ServerSentEvent("stuff", retry = None)))
     }
 
     "work for issue 36" in {
@@ -79,8 +80,8 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
         .single(ByteString(input))
         .via(new LineParser(1048576))
         .via(new ServerSentEventParser(1048576))
-        .runFold(Vector.empty[ServerSentEvent])(_ :+ _)
-        .map(_ shouldBe Vector(ServerSentEvent(Some("stuff\nmore\nextra"))))
+        .runWith(Sink.seq)
+        .map(_ shouldBe Vector(ServerSentEvent("stuff\nmore\nextra")))
     }
   }
 }

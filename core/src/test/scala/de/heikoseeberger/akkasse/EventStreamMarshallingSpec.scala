@@ -34,5 +34,5 @@ final class EventStreamMarshallingSpec extends AsyncWordSpec with Matchers with 
     }
   }
 
-  private def intToServerSentEvent(n: Int) = ServerSentEvent(Some(n.toString))
+  private def intToServerSentEvent(n: Int) = ServerSentEvent(n.toString)
 }

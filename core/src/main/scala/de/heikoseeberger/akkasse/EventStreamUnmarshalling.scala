@@ -42,10 +42,6 @@ object EventStreamUnmarshalling extends EventStreamUnmarshalling
   */
 trait EventStreamUnmarshalling {
 
-  private val _maxEventSize = maxEventSize
-
-  private val _maxLineSize = maxLineSize
-
   /**
     * The maximum size for parsing server-sent events; 8KiB by default.
     */
@@ -59,8 +55,8 @@ trait EventStreamUnmarshalling {
     4096
 
   implicit final val fromEventStream: FromEntityUnmarshaller[Source[ServerSentEvent, NotUsed]] = {
-    val lineParser  = new LineParser(_maxLineSize)
-    val eventParser = new ServerSentEventParser(_maxEventSize)
+    val lineParser  = new LineParser(maxLineSize)
+    val eventParser = new ServerSentEventParser(maxEventSize)
     def unmarshal(entity: HttpEntity) =
       entity.withoutSizeLimit.dataBytes
         .via(lineParser)
