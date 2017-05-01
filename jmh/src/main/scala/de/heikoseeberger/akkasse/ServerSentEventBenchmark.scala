@@ -41,7 +41,7 @@ class ServerSentEventBenchmark {
   @Benchmark
   def benchmark(): Unit = {
     var acc = 0L
-    for (event <- Iterator.continually(events).flatten.take(100000)) acc += event.toString.length
+    for (event <- Iterator.continually(events).flatten.take(100000)) acc += event.encode.length
     sum = acc
   }
 }
