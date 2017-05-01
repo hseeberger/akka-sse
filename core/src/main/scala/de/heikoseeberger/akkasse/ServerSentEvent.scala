@@ -94,7 +94,7 @@ final case class ServerSentEvent(data: String,
   require(retry.forall(_ > 0), "retry must be a positive number!")
 
   override def encode = {
-    val s = {
+    def s = { // Performance fun fact: change this to val and get an ~30% performance penalty!!!
       // Why 8? "data:" == 5 + \n\n (1 data (at least) and 1 ending) == 2 and then we add 1 extra to allocate
       //        a bigger memory slab than data.length since we're going to add data ("data:" + "\n") per line
       // Why 7? "event:" + \n == 7 chars
