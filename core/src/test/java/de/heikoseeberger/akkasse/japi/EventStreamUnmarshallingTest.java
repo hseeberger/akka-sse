@@ -16,22 +16,14 @@
 
 package de.heikoseeberger.akkasse.japi;
 
-import akka.NotUsed;
 import akka.actor.ActorSystem;
-import akka.http.javadsl.model.ContentTypes;
-import akka.http.javadsl.model.HttpEntities;
 import akka.http.javadsl.model.HttpEntity;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
-import akka.stream.javadsl.Source;
-import akka.util.ByteString;
+import de.heikoseeberger.akkasse.EventStreamUnmarshallingSpec;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.junit.Assert;
 import org.junit.Test;
 import org.scalatest.junit.JUnitSuite;
@@ -44,17 +36,12 @@ public class EventStreamUnmarshallingTest extends JUnitSuite {
         try {
             Materializer mat = ActorMaterializer.create(system);
 
-            List<ServerSentEvent> events =
-                    Stream.iterate(1, n -> n + 1)
-                            .limit(666)
-                            .map(n -> ServerSentEvent.create("" + n))
-                            .collect(Collectors.toList());
-            Source<ByteString, NotUsed> data = Source.from(events).map(ServerSentEvent::encode);
-            HttpEntity entity = HttpEntities.create(ContentTypes.create(MediaTypes.TEXT_EVENT_STREAM), data);
+            List<ServerSentEvent> events = EventStreamUnmarshallingSpec.eventsAsJava();
+            HttpEntity entity = EventStreamUnmarshallingSpec.entity();
 
             List<ServerSentEvent> unmarshalledEvents =
                     EventStreamUnmarshalling.fromEventStream()
-                            .unmarshall(entity, system.dispatcher(), mat)
+                            .unmarshal(entity, system.dispatcher(), mat)
                             .thenCompose(source -> source.runWith(Sink.seq(), mat))
                             .toCompletableFuture().get(3000, TimeUnit.SECONDS);
 

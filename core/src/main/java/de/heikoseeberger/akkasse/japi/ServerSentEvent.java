@@ -115,5 +115,5 @@ public abstract class ServerSentEvent {
      *
      * @return message converted to UTF-8 encoded `akka.util.ByteString`
      */
-    public abstract ByteString encode();
+//    public abstract ByteString encode();
 }

@@ -16,7 +16,6 @@
 
 package de.heikoseeberger.akkasse
 
-import akka.{ Done, NotUsed }
 import akka.actor.{ Actor, ActorLogging, Props, Status }
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding
@@ -28,10 +27,14 @@ import akka.pattern.pipe
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.testkit.SocketUtil
+import akka.{ Done, NotUsed }
 import de.heikoseeberger.akkasse.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.headers.`Last-Event-ID`
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.{ List => JList }
 import org.scalatest.{ AsyncWordSpec, Matchers }
+import scala.collection.JavaConverters
+import scala.collection.immutable.Seq
 
 object EventStreamUnmarshallingSpec {
 
@@ -86,6 +89,19 @@ object EventStreamUnmarshallingSpec {
     }
   }
 
+  val events: Seq[ServerSentEvent] =
+    1.to(666).map(n => ServerSentEvent(n.toString))
+
+  val eventsAsJava: JList[japi.ServerSentEvent] = {
+    import JavaConverters._
+    events.map(_.asInstanceOf[japi.ServerSentEvent]).asJava
+  }
+
+  val entity: HttpEntity = {
+    val data = Source(events).map(_.encode)
+    HttpEntity(`text/event-stream`, data)
+  }
+
   private def hostAndPort() = {
     val address = SocketUtil.temporaryServerAddress()
     (address.getAddress.getHostAddress, address.getPort)
@@ -99,9 +115,6 @@ final class EventStreamUnmarshallingSpec extends AsyncWordSpec with Matchers wit
 
   "A HTTP entity with media-type text/event-stream" should {
     "be unmarshallable to an EventStream" in {
-      val events = 1.to(666).map(n => ServerSentEvent(n.toString))
-      val data   = Source(events).map(_.encode)
-      val entity = HttpEntity(`text/event-stream`, data)
       Unmarshal(entity)
         .to[Source[ServerSentEvent, NotUsed]]
         .flatMap(_.runWith(Sink.seq))
