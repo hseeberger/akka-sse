@@ -31,7 +31,7 @@ object LineParserBenchmark {
 }
 
 @State(Scope.Benchmark)
-final class LineParserBenchmark {
+class LineParserBenchmark {
 
   private var state: LineParserBenchmark.State = _
 

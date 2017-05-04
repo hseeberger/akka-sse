@@ -30,7 +30,7 @@ object ServerSentEventParserBenchmark {
 }
 
 @State(Scope.Benchmark)
-final class ServerSentEventParserBenchmark {
+class ServerSentEventParserBenchmark {
 
   private var state: LineParserBenchmark.State = _
 
