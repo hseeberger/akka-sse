@@ -23,7 +23,8 @@ import akka.http.scaladsl.model.StatusCodes.PermanentRedirect
 import akka.http.scaladsl.server.Directives
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import de.heikoseeberger.akkasse.{ EventStreamMarshalling, ServerSentEvent }
+import de.heikoseeberger.akkasse.scaladsl.marshalling.EventStreamMarshalling
+import de.heikoseeberger.akkasse.scaladsl.model.ServerSentEvent
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import scala.concurrent.duration.DurationInt
