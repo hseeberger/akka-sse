@@ -27,42 +27,54 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
 
   "A ServerSentEventParser" should {
     "parse ServerSentEvents correctly" in {
-      val input = """|data: message 1 line 1
-                     |data:message 1 line 2
+      val input = """|data: event 1 line 1
+                     |data:event 1 line 2
                      |
-                     |data: message 2
+                     |data: event 2
                      |:This is a comment and must be ignored
                      |ignore: this is an ignored field
                      |event: Only the last event should be considered
-                     |event: message 2 event
+                     |event: event 2 event
                      |id: Only the last id should be considered
                      |id: 42
+                     |retry: 123
                      |retry: 512
                      |
                      |
-                     |
-                     |event: no data means event gets ignored
-                     |id:
+                     |event
+                     |:no data means event gets ignored
                      |
                      |data
-                     |id
+                     |:emtpy data means event gets ignored
                      |
                      |data:
-                     |id
+                     |:emtpy data means event gets ignored
                      |
-                     |data: data
+                     |data: event 3
                      |id
+                     |event
+                     |retry
+                     |:empty id is possible
+                     |:empty event is ignored
+                     |:empty retry is ignored
                      |
-                     |data: incomplete message
+                     |data: event 4
+                     |event:
+                     |retry: abc
+                     |:empty event is ignored
+                     |:invalid retry is ignored
+                     |
+                     |data: incomplete
                      |""".stripMargin
       Source(input.split(f"%n").toVector)
         .via(new ServerSentEventParser(1048576))
         .runWith(Sink.seq)
         .map(
           _ shouldBe Vector(
-            ServerSentEvent("message 1 line 1\nmessage 1 line 2"),
-            ServerSentEvent("message 2", Some("message 2 event"), Some("42"), Some(512)),
-            ServerSentEvent("data", None, Some(""))
+            ServerSentEvent("event 1 line 1\nevent 1 line 2"),
+            ServerSentEvent("event 2", Some("event 2 event"), Some("42"), Some(512)),
+            ServerSentEvent("event 3", None, Some("")),
+            ServerSentEvent("event 4")
           )
         )
     }

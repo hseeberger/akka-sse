@@ -24,12 +24,20 @@ import de.heikoseeberger.akkasse.scaladsl.model.ServerSentEvent
 
 private object ServerSentEventParser {
 
+  final object PosInt {
+    def unapply(s: String): Option[Int] =
+      try { Some(s.trim.toInt) } catch { case _: NumberFormatException => None }
+  }
+
   final class Builder {
 
-    private var data      = Vector.empty[String]
-    private var eventType = null: String
-    private var id        = null: String
-    private var retry     = null: String
+    private var data = Vector.empty[String]
+
+    private var `type` = Option.empty[String]
+
+    private var id = Option.empty[String]
+
+    private var retry = Option.empty[Int]
 
     private var _size = 0
 
@@ -38,50 +46,48 @@ private object ServerSentEventParser {
       data :+= value
     }
 
-    def setEventType(value: String): Unit = {
-      val oldSize = if (eventType == null) 0 else 6 + eventType.length
+    def setType(value: String): Unit = {
+      val oldSize = `type`.fold(0)(6 + _.length)
       _size += 6 + value.length - oldSize
-      eventType = value
+      `type` = Some(value)
     }
 
     def setId(value: String): Unit = {
-      val oldSize = if (id == null) 0 else 3 + id.length
+      val oldSize = id.fold(0)(3 + _.length)
       _size += 3 + value.length - oldSize
-      id = value
+      id = Some(value)
     }
 
-    def setRetry(value: String): Unit = {
-      val oldSize = if (retry == null) 0 else 6 + retry.length
-      _size += 6 + value.length - oldSize
-      retry = value
+    def setRetry(value: Int, length: Int): Unit = {
+      val oldSize = retry.fold(0)(6 + _.toString.length)
+      _size += 6 + length - oldSize
+      retry = Some(value)
     }
 
     def hasData: Boolean =
-      data.mkString("\n").nonEmpty
+      data.nonEmpty
 
     def size: Int =
       _size
 
     def build(): ServerSentEvent =
-      ServerSentEvent(
-        data.mkString("\n"),
-        Option(eventType),
-        Option(id),
-        try { if (retry ne null) Some(retry.trim.toInt) else None } catch { case _: NumberFormatException => None }
-      )
+      ServerSentEvent(data.mkString("\n"), `type`, id, retry)
 
     def reset(): Unit = {
       data = Vector.empty[String]
-      eventType = null
-      id = null
-      retry = null
+      `type` = None
+      id = None
+      retry = None
       _size = 0
     }
   }
 
-  private final val Data  = "data"
+  private final val Data = "data"
+
   private final val Event = "event"
-  private final val Id    = "id"
+
+  private final val Id = "id"
+
   private final val Retry = "retry"
 
   private val field = """([^:]+): ?(.*)""".r
@@ -111,15 +117,12 @@ private final class ServerSentEventParser(maxEventSize: Int) extends GraphStage[
           builder.reset()
         } else if (builder.size + line.length <= maxEventSize) {
           line match {
-            case Data                => builder.appendData("")
-            case Event               => builder.setEventType("")
-            case Id                  => builder.setId("")
-            case Retry               => builder.setRetry("")
-            case field(Data, value)  => builder.appendData(value)
-            case field(Event, value) => builder.setEventType(value)
-            case field(Id, value)    => builder.setId(value)
-            case field(Retry, value) => builder.setRetry(value)
-            case _                   => // ignore according to spec
+            case Id                                 => builder.setId("")
+            case field(Data, data) if data.nonEmpty => builder.appendData(data)
+            case field(Event, t) if t.nonEmpty      => builder.setType(t)
+            case field(Id, id)                      => builder.setId(id)
+            case field(Retry, s @ PosInt(retry))    => builder.setRetry(retry, s.length)
+            case _                                  => // ignore according to spec
           }
           pull(in)
         } else {
