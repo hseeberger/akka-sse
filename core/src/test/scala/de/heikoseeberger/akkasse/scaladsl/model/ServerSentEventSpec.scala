@@ -55,7 +55,7 @@ final class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDri
       event.encode shouldBe ByteString.fromString("data:data1\ndata:data2\ndata:\n\n")
     }
 
-    "return data lines and an type line" in {
+    "return data lines and an event line" in {
       val event = ServerSentEvent("data1\ndata2", "type")
       event.encode shouldBe ByteString.fromString("data:data1\ndata:data2\nevent:type\n\n")
     }
@@ -65,7 +65,7 @@ final class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDri
       event.encode shouldBe ByteString.fromString("data:data\nid:id\n\n")
     }
 
-    "return a retry line" in {
+    "return a data line and a retry line" in {
       val event = ServerSentEvent("data", 42)
       event.encode shouldBe ByteString.fromString("data:data\nretry:42\n\n")
     }
@@ -73,6 +73,11 @@ final class ServerSentEventSpec extends WordSpec with Matchers with GeneratorDri
     "return all possible lines" in {
       val event = ServerSentEvent("data", Some("type"), Some("id"), Some(42))
       event.encode shouldBe ByteString.fromString("data:data\nevent:type\nid:id\nretry:42\n\n")
+    }
+
+    "not return and an event line for an empty type" in {
+      val event = ServerSentEvent("data1\ndata2", "")
+      event.encode shouldBe ByteString.fromString("data:data1\ndata:data2\n\n")
     }
   }
 }

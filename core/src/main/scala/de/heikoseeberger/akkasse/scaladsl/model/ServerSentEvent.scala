@@ -76,8 +76,8 @@ object ServerSentEvent {
 }
 
 /**
-  * Representation of a server-sent event. According to the specification, an empty data field
-  * designates an event which is to be ignored which is useful for heartbeats.
+  * Representation of a server-sent event. According to the specification, an empty data field designates an event
+  * which is to be ignored which is useful for heartbeats.
   *
   * @param data data, may span multiple lines
   * @param type optional type, must not contain \n or \r
@@ -124,7 +124,7 @@ final case class ServerSentEvent(data: String,
         }
       }
       appendData(data)
-      if (`type`.isDefined) builder.append("event:").append(`type`.get).append('\n')
+      if (`type`.isDefined && `type`.get.nonEmpty) builder.append("event:").append(`type`.get).append('\n')
       if (id.isDefined) builder.append("id:").append(id.get).append('\n')
       if (retry.isDefined) builder.append("retry:").append(retry.get).append('\n')
       builder.append('\n').toString
