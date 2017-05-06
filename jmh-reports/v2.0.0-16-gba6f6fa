@@ -1,0 +1,206 @@
+[0m[[0minfo[0m] [0mLoading global plugins from /Users/heiko/.sbt/0.13/plugins[0m
+[0m[[0minfo[0m] [0mLoading project definition from /Users/heiko/projekte/hseeberger/akka-sse/project[0m
+[0m[[0minfo[0m] [0mSet current project to akka-sse (in build file:/Users/heiko/projekte/hseeberger/akka-sse/)[0m
+Processing 9 classes from /Users/heiko/projekte/hseeberger/akka-sse/jmh/target/scala-2.12/classes with "reflection" generator
+Writing out Java source to /Users/heiko/projekte/hseeberger/akka-sse/jmh/target/scala-2.12/src_managed/jmh and resources to /Users/heiko/projekte/hseeberger/akka-sse/jmh/target/scala-2.12/resource_managed/jmh
+[0m[[0minfo[0m] [0mCompiling 15 Java sources to /Users/heiko/projekte/hseeberger/akka-sse/jmh/target/scala-2.12/classes...[0m
+[0m[[0minfo[0m] [0mRunning org.openjdk.jmh.Main -i 10 -wi 10 -f 2 -t 1[0m
+[0m[[0minfo[0m] [0m# JMH 1.18 (released 54 days ago)[0m
+[0m[[0minfo[0m] [0m# VM version: JDK 1.8.0_121, VM 25.121-b13[0m
+[0m[[0minfo[0m] [0m# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/bin/java[0m
+[0m[[0minfo[0m] [0m# VM options: <none>[0m
+[0m[[0minfo[0m] [0m# Warmup: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Measurement: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Timeout: 10 min per iteration[0m
+[0m[[0minfo[0m] [0m# Threads: 1 thread, will synchronize iterations[0m
+[0m[[0minfo[0m] [0m# Benchmark mode: Throughput, ops/time[0m
+[0m[[0minfo[0m] [0m# Benchmark: de.heikoseeberger.akkasse.scaladsl.model.ServerSentEventBenchmark.benchmark[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 0,00% complete, ETA 00:02:00[0m
+[0m[[0minfo[0m] [0m# Fork: 1 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 22,609 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 27,713 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 37,959 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 40,955 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 39,001 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 41,129 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 36,777 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 36,660 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 37,460 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 36,274 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 36,026 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 38,564 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 40,629 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 39,315 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 42,801 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 39,479 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 39,738 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 40,104 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 40,482 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 36,952 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 16,67% complete, ETA 00:02:11[0m
+[0m[[0minfo[0m] [0m# Fork: 2 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 25,740 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 30,287 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 39,185 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 37,470 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 39,876 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 41,762 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 41,629 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 41,611 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 40,058 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 40,213 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 41,150 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 41,033 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 40,824 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 39,937 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 39,306 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 40,191 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 40,178 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 40,287 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 39,894 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 40,550 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mResult "de.heikoseeberger.akkasse.scaladsl.model.ServerSentEventBenchmark.benchmark":[0m
+[0m[[0minfo[0m] [0m  39,872 ±(99.9%) 1,262 ops/s [Average][0m
+[0m[[0minfo[0m] [0m  (min, avg, max) = (36,026, 39,872, 42,801), stdev = 1,453[0m
+[0m[[0minfo[0m] [0m  CI (99.9%): [38,610, 41,134] (assumes normal distribution)[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# JMH 1.18 (released 54 days ago)[0m
+[0m[[0minfo[0m] [0m# VM version: JDK 1.8.0_121, VM 25.121-b13[0m
+[0m[[0minfo[0m] [0m# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/bin/java[0m
+[0m[[0minfo[0m] [0m# VM options: <none>[0m
+[0m[[0minfo[0m] [0m# Warmup: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Measurement: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Timeout: 10 min per iteration[0m
+[0m[[0minfo[0m] [0m# Threads: 1 thread, will synchronize iterations[0m
+[0m[[0minfo[0m] [0m# Benchmark mode: Throughput, ops/time[0m
+[0m[[0minfo[0m] [0m# Benchmark: de.heikoseeberger.akkasse.scaladsl.unmarshalling.LineParserBenchmark.benchmark[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 33,33% complete, ETA 00:01:44[0m
+[0m[[0minfo[0m] [0m# Fork: 1 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 15,510 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 21,218 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 24,708 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 27,495 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 27,392 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 27,300 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 27,537 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 27,755 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 27,570 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 27,771 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 27,807 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 26,762 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 27,447 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 27,501 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 27,511 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 27,628 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 27,253 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 27,729 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 27,936 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 27,469 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 50,00% complete, ETA 00:01:19[0m
+[0m[[0minfo[0m] [0m# Fork: 2 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 16,716 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 20,430 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 24,999 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 21,366 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 28,042 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 27,833 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 28,030 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 27,995 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 28,140 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 27,838 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 28,125 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 27,872 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 27,597 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 28,267 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 27,649 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 27,951 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 28,016 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 27,530 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 27,648 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 27,668 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mResult "de.heikoseeberger.akkasse.scaladsl.unmarshalling.LineParserBenchmark.benchmark":[0m
+[0m[[0minfo[0m] [0m  27,668 ±(99.9%) 0,286 ops/s [Average][0m
+[0m[[0minfo[0m] [0m  (min, avg, max) = (26,762, 27,668, 28,267), stdev = 0,330[0m
+[0m[[0minfo[0m] [0m  CI (99.9%): [27,382, 27,955] (assumes normal distribution)[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# JMH 1.18 (released 54 days ago)[0m
+[0m[[0minfo[0m] [0m# VM version: JDK 1.8.0_121, VM 25.121-b13[0m
+[0m[[0minfo[0m] [0m# VM invoker: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre/bin/java[0m
+[0m[[0minfo[0m] [0m# VM options: <none>[0m
+[0m[[0minfo[0m] [0m# Warmup: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Measurement: 10 iterations, 1 s each[0m
+[0m[[0minfo[0m] [0m# Timeout: 10 min per iteration[0m
+[0m[[0minfo[0m] [0m# Threads: 1 thread, will synchronize iterations[0m
+[0m[[0minfo[0m] [0m# Benchmark mode: Throughput, ops/time[0m
+[0m[[0minfo[0m] [0m# Benchmark: de.heikoseeberger.akkasse.scaladsl.unmarshalling.ServerSentEventParserBenchmark.benchmark[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 66,67% complete, ETA 00:00:53[0m
+[0m[[0minfo[0m] [0m# Fork: 1 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 21,723 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 40,632 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 39,637 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 49,043 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 48,315 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 49,464 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 49,444 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 49,658 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 48,803 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 49,503 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 47,779 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 49,673 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 49,256 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 49,193 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 48,470 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 49,149 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 49,249 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 48,039 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 49,072 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 49,183 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run progress: 83,33% complete, ETA 00:00:26[0m
+[0m[[0minfo[0m] [0m# Fork: 2 of 2[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   1: 21,790 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   2: 40,133 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   3: 39,246 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   4: 48,990 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   5: 49,350 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   6: 48,695 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   7: 49,071 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   8: 48,749 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration   9: 48,991 ops/s[0m
+[0m[[0minfo[0m] [0m# Warmup Iteration  10: 49,089 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   1: 47,786 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   2: 49,116 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   3: 48,992 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   4: 49,172 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   5: 48,903 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   6: 49,573 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   7: 49,606 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   8: 49,932 ops/s[0m
+[0m[[0minfo[0m] [0mIteration   9: 48,965 ops/s[0m
+[0m[[0minfo[0m] [0mIteration  10: 49,063 ops/s[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mResult "de.heikoseeberger.akkasse.scaladsl.unmarshalling.ServerSentEventParserBenchmark.benchmark":[0m
+[0m[[0minfo[0m] [0m  49,009 ±(99.9%) 0,507 ops/s [Average][0m
+[0m[[0minfo[0m] [0m  (min, avg, max) = (47,779, 49,009, 49,932), stdev = 0,583[0m
+[0m[[0minfo[0m] [0m  CI (99.9%): [48,502, 49,515] (assumes normal distribution)[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0m# Run complete. Total time: 00:02:39[0m
+[0m[[0minfo[0m] [0m[0m
+[0m[[0minfo[0m] [0mBenchmark                                                        Mode  Cnt   Score   Error  Units[0m
+[0m[[0minfo[0m] [0md.h.a.s.model.ServerSentEventBenchmark.benchmark                thrpt   20  39,872 ± 1,262  ops/s[0m
+[0m[[0minfo[0m] [0md.h.a.s.unmarshalling.LineParserBenchmark.benchmark             thrpt   20  27,668 ± 0,286  ops/s[0m
+[0m[[0minfo[0m] [0md.h.a.s.unmarshalling.ServerSentEventParserBenchmark.benchmark  thrpt   20  49,009 ± 0,507  ops/s[0m
+[0m[[32msuccess[0m] [0mTotal time: 162 s, completed 06.05.2017 17:30:07[0m
