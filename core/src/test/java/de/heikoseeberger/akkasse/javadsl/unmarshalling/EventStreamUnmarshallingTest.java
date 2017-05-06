@@ -45,7 +45,8 @@ public class EventStreamUnmarshallingTest extends JUnitSuite {
                     EventStreamUnmarshalling.fromEventStream()
                             .unmarshal(entity, system.dispatcher(), mat)
                             .thenCompose(source -> source.runWith(Sink.seq(), mat))
-                            .toCompletableFuture().get(3000, TimeUnit.SECONDS);
+                            .toCompletableFuture()
+                            .get(3000, TimeUnit.SECONDS);
 
             Assert.assertEquals(events, unmarshalledEvents);
         } finally {

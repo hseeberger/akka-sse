@@ -19,8 +19,7 @@ package scaladsl
 package model
 package headers
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.testkit.RouteTest
 import akka.http.scaladsl.testkit.TestFrameworkInterface.Scalatest
@@ -30,15 +29,15 @@ final class LastEventIdSpec extends WordSpec with Matchers with RouteTest with S
 
   "Last-Event-ID" should {
     "match and extract the header value" in {
-      Get().withHeaders(RawHeader("Last-Event-ID", "123")) ~> route ~> check {
-        status shouldBe StatusCodes.OK
+      Get().withHeaders(`Last-Event-ID`("123")) ~> route ~> check {
+        status shouldBe OK
         responseAs[String] shouldBe "123"
       }
     }
 
     "reject the request if the header is not present" in {
       Get() ~> route ~> check {
-        rejections
+        rejections should not be 'empty
       }
     }
   }

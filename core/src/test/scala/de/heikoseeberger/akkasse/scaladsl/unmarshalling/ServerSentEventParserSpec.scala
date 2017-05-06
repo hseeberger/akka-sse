@@ -19,7 +19,6 @@ package scaladsl
 package unmarshalling
 
 import akka.stream.scaladsl.{ Sink, Source }
-import akka.util.ByteString
 import de.heikoseeberger.akkasse.scaladsl.model.ServerSentEvent
 import org.scalatest.{ AsyncWordSpec, Matchers }
 
@@ -60,7 +59,7 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
                      |
                      |data: event 4
                      |event:
-                     |retry: abc
+                     |retry: not numeric
                      |:empty event is ignored
                      |:invalid retry is ignored
                      |
@@ -77,26 +76,6 @@ final class ServerSentEventParserSpec extends AsyncWordSpec with Matchers with A
             ServerSentEvent("event 4")
           )
         )
-    }
-
-    "ignore unparsable retry fields" in {
-      val input = """|data: stuff
-                     |retry: ten
-                     |""".stripMargin
-      Source(input.split(f"%n", -1).toVector)
-        .via(new ServerSentEventParser(1048576))
-        .runWith(Sink.seq)
-        .map(_ shouldBe Vector(ServerSentEvent("stuff", retry = None)))
-    }
-
-    "work for issue 36" in {
-      val input = "data: stuff\r\ndata: more\r\ndata: extra\n\n"
-      Source
-        .single(ByteString(input))
-        .via(new LineParser(1048576))
-        .via(new ServerSentEventParser(1048576))
-        .runWith(Sink.seq)
-        .map(_ shouldBe Vector(ServerSentEvent("stuff\nmore\nextra")))
     }
   }
 }
