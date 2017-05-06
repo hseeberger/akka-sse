@@ -18,23 +18,28 @@ package de.heikoseeberger.akkasse
 package scaladsl
 package marshalling
 
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.testkit.RouteTest
+import akka.http.scaladsl.testkit.TestFrameworkInterface.Scalatest
 import akka.stream.scaladsl.{ Sink, Source }
+import de.heikoseeberger.akkasse.scaladsl.model.MediaTypes.`text/event-stream`
 import de.heikoseeberger.akkasse.scaladsl.model.ServerSentEvent
-import org.scalatest.{ AsyncWordSpec, Matchers }
+import org.scalatest.{ Matchers, WordSpec }
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 
-final class EventStreamMarshallingSpec extends AsyncWordSpec with Matchers with AkkaSpec {
+final class EventStreamMarshallingSpec extends WordSpec with Matchers with RouteTest with Scalatest {
+  import Directives._
   import EventStreamMarshalling._
 
   "A source of ServerSentEvents" should {
     "be marshallable to a HTTP response" in {
-      val events       = 1.to(666).map(intToServerSentEvent)
-      val marshallable = Source(events): ToResponseMarshallable
-      val response     = marshallable(HttpRequest()).flatMap(_.entity.dataBytes.runWith(Sink.seq))
-      response.map(_ shouldBe events.map(_.encode))
+      val events = 1.to(666).map(n => ServerSentEvent(n.toString))
+      val route  = complete(Source(events))
+      Get() ~> route ~> check {
+        mediaType shouldBe `text/event-stream`
+        Await.result(responseEntity.dataBytes.runWith(Sink.seq), 3.seconds) shouldBe events.map(_.encode)
+      }
     }
   }
-
-  private def intToServerSentEvent(n: Int) = ServerSentEvent(n.toString)
 }

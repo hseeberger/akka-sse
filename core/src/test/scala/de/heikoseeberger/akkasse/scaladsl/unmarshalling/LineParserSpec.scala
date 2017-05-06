@@ -27,27 +27,26 @@ final class LineParserSpec extends AsyncWordSpec with Matchers with AkkaSpec {
   "A LineParser" should {
 
     "parse lines terminated with either CR, LF or CRLF" in {
-      val input1 = "line1\nline2\rline3\r"
-      val input2 = "\nline4\nline5\rline6\r\n\n"
-      Source(Vector(ByteString(input1), ByteString(input2)))
+      Source
+        .single(ByteString("line1\nline2\rline3\r\nline4\nline5\rline6\r\n\n"))
         .via(new LineParser(1048576))
         .runWith(Sink.seq)
         .map(_ shouldBe Vector("line1", "line2", "line3", "line4", "line5", "line6", ""))
     }
 
     "ignore a trailing non-terminated line" in {
-      val input = "line1\nline2\rline3\r\nline4\nline5\rline6\r\n\nincomplete"
       Source
-        .single(ByteString(input))
+        .single(ByteString("line1\nline2\rline3\r\nline4\nline5\rline6\r\n\nincomplete"))
         .via(new LineParser(1048576))
         .runWith(Sink.seq)
         .map(_ shouldBe Vector("line1", "line2", "line3", "line4", "line5", "line6", ""))
     }
 
-    "handle splitted line" in {
-      val testLine = "test line"
-      val input    = s"$testLine\n".grouped(1).map(ByteString.apply).toVector
-      Source(input).via(new LineParser(1048576)).runWith(Sink.seq).map(_ shouldBe Seq(testLine))
+    "parse a line splittet into many chunks" in {
+      Source(('a'.to('z') :+ '\n').map(ByteString(_)))
+        .via(new LineParser(1048576))
+        .runWith(Sink.seq)
+        .map(_ shouldBe Vector('a'.to('z').mkString))
     }
   }
 }
