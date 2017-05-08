@@ -27,7 +27,7 @@ Akka SSE is published to Bintray and Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
 libraryDependencies ++= Vector(
-  "de.heikoseeberger" %% "akka-sse" % "2.0.0",
+  "de.heikoseeberger" %% "akka-sse" % "3.0.0",
   ...
 )
 ```
