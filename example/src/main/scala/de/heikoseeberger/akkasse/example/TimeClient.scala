@@ -38,6 +38,6 @@ object TimeClient {
     Http()
       .singleRequest(Get("http://localhost:8000/events"))
       .flatMap(Unmarshal(_).to[Source[ServerSentEvent, NotUsed]])
-      .foreach(_.runForeach(print))
+      .foreach(_.runForeach(println))
   }
 }

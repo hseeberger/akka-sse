@@ -4,18 +4,14 @@
 [![Build Status](https://travis-ci.org/hseeberger/akka-sse.svg?branch=master)](https://travis-ci.org/hseeberger/akka-sse)
 [![Maven Central](https://img.shields.io/maven-central/v/de.heikoseeberger/akka-sse_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/de.heikoseeberger/akka-sse_2.12)
 
+Akka SSE adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource) (SSE) – a
+lightweight and standardized technology for pushing notifications from a HTTP server to a HTTP
+client – to [Akka HTTP](https://github.com/akka/akka-http). In contrast to
+[WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way communication, SSE only
+allows for one-way communication from the server to the client. If that's all you need, SSE offers
+advantages, because it's much simpler and relies on HTTP only.
 
-Akka SSE adds support for [Server-Sent Events](http://www.w3.org/TR/eventsource)
-(SSE) – a lightweight and standardized technology for pushing notifications from
-a HTTP server to a HTTP client – to
-[Akka HTTP](https://github.com/akka/akka-http). In contrast to
-[WebSocket](http://tools.ietf.org/html/rfc6455), which enables two-way
-communication, SSE only allows for one-way communication from the server to the
-client. If that's all you need, SSE offers advantages, because it's much simpler
-and relies on HTTP only.
-
-Since version 2 Akka SSE supports both Scala and Java, even if the below
-examples only show Scala.
+Since version 2 Akka SSE supports both Scala and Java, even if the below examples only show Scala.
 
 ## Getting Akka SSE
 
@@ -26,7 +22,7 @@ Akka SSE is published to Bintray and Maven Central.
 // final ones are also published to Maven Central.
 resolvers += Resolver.bintrayRepo("hseeberger", "maven")
 
-libraryDependencies ++= Vector(
+libraryDependencies ++= Seq(
   "de.heikoseeberger" %% "akka-sse" % "3.0.0",
   ...
 )
@@ -34,27 +30,21 @@ libraryDependencies ++= Vector(
 
 ## Usage – basics
 
-Akka SSE models a event stream as `Source[ServerSentEvent, Any]` with `Source`
-from Akka Streams and `ServerSentEvent` from Akka SSE. `ServerSentEvent` is a
-case class with the following fields:
+Akka SSE models an event stream as `Source[ServerSentEvent, Any]` with `Source` from Akka Streams
+and `ServerSentEvent` from Akka SSE. `ServerSentEvent` is a case class with the following fields:
 
-- `data` of type `Option[String]`: payload, may be defined with the empty string
-- `eventType` of type `Option[String]` with default `None`: handler to be
-  invoked, e.g. "message", "added", etc.
-- `id` of type `Option[String]` with default `None`: sets the client's last
-  event ID value
-- `retry` of type `Option[Int]` with default `None`: set the client's
-  reconnection time
+- `data: String` – the actual payload, may span multiple lines
+- `type: Option[String]` with default `None` – optional qualifier, e.g. "added", "removed", etc.
+- `id: Option[String]` with default `None` – optional identifier
+- `retry: Option[Int]` with default `None` – optional reconnection delay in milliseconds
 
-More info about the above fields can be found in the
-[specification](http://www.w3.org/TR/eventsource).
+More informatioon about the above fields can be found in the
+[SSE specification](http://www.w3.org/TR/eventsource).
 
 ## Usage – server-side
 
-In order to respond to a HTTP request with an event stream, you have to bring
-the implicit `ToResponseMarshaller[Source[ServerSentEvent, Any]]` defined by the
-`EventStreamMarshalling` trait or object into the scope defining the respective
-route:
+In order to respond to a HTTP request with an event stream, you have to bring the implicit `ToResponseMarshaller[Source[ServerSentEvent, Any]]` defined by `EventStreamMarshalling` into the
+scope defining the respective route:
 
 ``` scala
 object TimeServer {
@@ -89,14 +79,14 @@ object TimeServer {
 ```
 
 To send periodic heartbeats, simply use the `keepAlive` standard stage with a
-`ServerSentEvent.heartbeat`.
+`ServerSentEvent.heartbeat` which has am empty `data` field and hence is ignored by clients
+according to the specification.
 
 ## Usage – client-side
 
-In order to unmarshal server-sent events as `Source[ServerSentEvent, NotUsed]`, you
-have to bring the implicit
-`FromEntityUnmarshaller[Source[ServerSentEvent, NotUsed]]` defined by the
-`EventStreamUnmarshalling` trait or object into scope:
+In order to unmarshal server-sent events as `Source[ServerSentEvent, NotUsed]`, you have to bring
+the implicit `FromEntityUnmarshaller[Source[ServerSentEvent, NotUsed]]` defined by
+`EventStreamUnmarshalling` into scope:
 
 ``` scala
 import EventStreamUnmarshalling._ // That does the trick!
@@ -105,7 +95,7 @@ import system.dispatcher
 Http()
   .singleRequest(Get("http://localhost:8000/events"))
   .flatMap(Unmarshal(_).to[Source[ServerSentEvent, NotUsed]])
-  .foreach(_.runForeach(print))
+  .foreach(_.runForeach(println))
 ```
 
 ## References
@@ -116,13 +106,12 @@ Http()
 
 ## Contribution policy ##
 
-Contributions via GitHub pull requests are gladly accepted from their original
-author. Along with any pull requests, please state that the contribution is your
-original work and that you license the work to the project under the project's
-open source license. Whether or not you state this explicitly, by submitting any
-copyrighted material via pull request, email, or other means you agree to
-license the material under the project's open source license and warrant that
-you have the legal authority to do so.
+Contributions via GitHub pull requests are gladly accepted from their original author. Along with
+any pull requests, please state that the contribution is your original work and that you license
+the work to the project under the project's open source license. Whether or not you state this
+explicitly, by submitting any copyrighted material via pull request, email, or other means you agree
+to license the material under the project's open source license and warrant that you have the legal
+authority to do so.
 
 ## License ##
 
