@@ -81,18 +81,16 @@ lazy val library =
 lazy val settings =
   commonSettings ++
   gitSettings ++
-  headerSettings ++
-  sonatypeSettings
+  publishSettings
 
 lazy val commonSettings =
   Seq(
     // scalaVersion from .travis.yml
     // crossScalaVersions from .travis.yml
     organization := "de.heikoseeberger",
-    licenses += ("Apache-2.0",
-                 url("http://www.apache.org/licenses/LICENSE-2.0")),
-    mappings.in(Compile, packageBin) +=
-      baseDirectory.in(ThisBuild).value / "LICENSE" -> "LICENSE",
+    organizationName := "Heiko Seeberger",
+    startYear := Some(2015),
+    licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
     scalacOptions ++= Seq(
       "-unchecked",
       "-deprecation",
@@ -115,13 +113,7 @@ lazy val gitSettings =
     git.useGitDescribe := true
   )
 
-import de.heikoseeberger.sbtheader.license.Apache2_0
-lazy val headerSettings =
-  Seq(
-    headers := Map("scala" -> Apache2_0("2015", "Heiko Seeberger"))
-  )
-
-lazy val sonatypeSettings =
+lazy val publishSettings =
   Seq(
     homepage := Some(url("https://github.com/hseeberger/akka-sse")),
     scmInfo := Some(ScmInfo(url("https://github.com/hseeberger/akka-sse"),
