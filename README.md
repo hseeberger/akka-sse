@@ -1,5 +1,7 @@
 # Akka SSE #
 
+**Important**: As of version 10.0.8, Akka HTTP now includes Akka SSE. Hence this project has come to an end.
+
 [![Join the chat at https://gitter.im/hseeberger/akka-sse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hseeberger/akka-sse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/hseeberger/akka-sse.svg?branch=master)](https://travis-ci.org/hseeberger/akka-sse)
 [![Maven Central](https://img.shields.io/maven-central/v/de.heikoseeberger/akka-sse_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/de.heikoseeberger/akka-sse_2.12)
